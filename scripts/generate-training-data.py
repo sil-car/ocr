@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""generate tesseract training data to fine tune the Latin script for use in African languages"""
+
 # https://tesseract-ocr.github.io/tessdoc/tess5/TrainingTesseract-5.html
 # Generate training data for Tesseract:
 #   - data folder: "data/training/Latin_afr-ground-truth"
@@ -52,13 +54,6 @@ variables = {
         "ɛ", "ə", "ı", "ɨ", "ɔ", "ʉ",
     ],
 }
-
-combinations = 1
-for k, v in variables.items():
-    ct = len(v)
-    if k == 'diac_top' or k == 'diac_bot': # allow for no diacritic
-        ct += 1
-    combinations *= ct
 
 
 # Function definitions.
@@ -182,6 +177,12 @@ def get_parsed_args():
     return parser.parse_args()
 
 def main():
+    combinations = 1
+    for k, v in variables.items():
+        ct = len(v)
+        if k == 'diac_top' or k == 'diac_bot': # allow for no diacritic
+            ct += 1
+        combinations *= ct
     # print(f"Total possible combinations = {combinations}")
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
     args = get_parsed_args()
