@@ -13,6 +13,7 @@ import fitz # PyMuPDF: https://pymupdf.readthedocs.io/en/latest/
 import random
 import time
 
+from matplotlib import font_manager
 from pathlib import Path
 
 
@@ -37,17 +38,23 @@ variables = {
         b'\\u0327', # combining cedilla
     ],
     'fonts': [
-        'Arial',
-        'Times New Roman',
-        'Liberation Sans',
-        'Abyssinica SIL',
-        'Andika SIL',
+        # 'Arial', # doesn't handle all characters
+        # 'Times New Roman', # doesn't handle all characters
+        # 'Liberation Sans', # doesn't handle all characters
+        # 'Abyssinica SIL', # mainly for Ethiopic script
+        'Andika Afr',
         'Charis SIL',
+        'DejaVu Sans',
+        'DejaVu Serif',
+        'Doulos SIL',
+        'Gentium',
+        # 'Galatia SIL', # mainly for basic Latin and Greek
     ],
     'styles': [
-        'regular',
-        'bold',
-        'italic',
+        'Regular',
+        'Bold',
+        'Italic',
+        'Bold Italic'
     ],
     'vowels': [
         "a", "e", "i", "o", "u",
@@ -87,16 +94,38 @@ def get_binary_choice(wt=1):
     else: # bias towards 1
         return 0 if random.randrange(wt + 1) == 0 else 1
 
+def get_available_fonts():
+    # https://stackoverflow.com/a/68810954
+    fonts = {}
+    fpaths = font_manager.findSystemFonts()
+    for p in fpaths:
+        try:
+            f = font_manager.get_font(p)
+        except RuntimeError:
+            continue
+        if not fonts.get(f.family_name):
+            fonts[f.family_name] = {}
+        fonts[f.family_name][f.style_name] = p
+    return fonts
+
 def generate_text_line_chars(vars, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
     """return a line of given length with a random mixture of valid charachers"""
+    # choices:
+    #   - lower or upper case
+    #   - consonant or vowel
+    #   - 0 or 1 top diacritic
+    #   - 0 or 1 bottom diacritic
     s = b''
     for i in range(length):
+        # Choose between lower or upper case.
         upper = get_binary_choice(wt=0.1)
+
         # Choose between consonant or vowel.
         c_bases = ['consonants', 'vowels']
         n = get_binary_choice(wt=vowel_wt)
         # print(f"c/v choice: {n}")
         c_base = c_bases[n]
+
         # Choose character index from base.
         n = get_random_index(len(vars.get(c_base)))
         # print(f"{c_base} index: {n}")
@@ -128,26 +157,34 @@ def generate_text_line_chars(vars, length=40, vowel_wt=1, top_dia_wt=0.5, bot_di
 
 def generate_text_line_png(chars, fontfile):
     with fitz.open() as doc:
-        page = doc.new_page(width=250, height=20)
-        page.insert_font(fontname="charis", fontfile=fontfile)
+        # TODO: Set page width based on font's needs?
+        page = doc.new_page(width=350, height=20)
+        page.insert_font(fontname='test', fontfile=fontfile)
         pt = fitz.Point(5, 15)
-        rc = page.insert_text(pt, chars, fontname='charis')
+        rc = page.insert_text(pt, chars, fontname='test')
         pix = page.get_pixmap()
-        # pix.save(outfile)
         return pix
 
-def generate_text_line_txt(chars):
-    if not outfile.is_file():
-        outfile.touch()
-    with outfile.open('w') as f:
-        # f.write(chars)
-        return f
-
-def generate_training_data_pair(chars, fontfile):
-    name = time.time()
+def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
+    name = f"{time.time()}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
     txtdata = chars
     pngdata = generate_text_line_png(chars, fontfile)
     return name, txtdata, pngdata
+
+def verify_fonts(vars):
+    installed_fonts = get_available_fonts()
+    missing_fonts = []
+    for f in vars.get('fonts'):
+        if f not in installed_fonts.keys():
+            missing_fonts.append(f)
+    if len(missing_fonts) > 0:
+        print(f"ERROR: Not all required fonts are installed:")
+        for m in missing_fonts:
+            print(f"  - {m}")
+        exit(1)
+
+def choose_font():
+    pass
 
 def save_training_data_pair(gt_dir, name, txtdata, pngdata):
     txtfile = gt_dir / f"{name}.gt.txt"
@@ -183,8 +220,18 @@ def main():
         if k == 'diac_top' or k == 'diac_bot': # allow for no diacritic
             ct += 1
         combinations *= ct
+
     # print(f"Total possible combinations = {combinations}")
+
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
+
+    system_fonts = get_available_fonts()
+    verify_fonts(variables)
+    # for n, s in system_fonts.items():
+    #     print(n, s)
+    # exit()
+
+    # Handle command args.
     args = get_parsed_args()
     if not args.iterations:
         args.iterations = 1
@@ -195,9 +242,20 @@ def main():
     # Generate data.
     for i in range(args.iterations):
         char_line = generate_text_line_chars(variables)
-        charis_reg = '/usr/share/fonts/truetype/charis/CharisSIL-Regular.ttf'
 
-        name, txtdata, pngdata = generate_training_data_pair(char_line, charis_reg)
+        # Choose font family.
+        n = get_random_index(len(variables.get('fonts')))
+        font_fam = variables.get('fonts')[n]
+
+        # Choose font style.
+        n = get_random_index(len(variables.get('styles')))
+        font_sty = variables.get('styles')[n]
+        fontfile = system_fonts.get(font_fam).get(font_sty)
+        if not fontfile: # not all fonts include all styles
+            continue
+
+        # Generate files.
+        name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
         if args.simulate:
             # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
             print("INFO: Simulation; no files generated.")
