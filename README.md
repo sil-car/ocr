@@ -52,3 +52,4 @@ The new script model, "Latin_afr", will be based on "Latin", then be given train
   - \u0302, combining circumflex
   - \u0303, combining tilde
   - \u0308, combining diaeresis
+  - \u0327, combining cedilla
