@@ -35,7 +35,7 @@ variables = {
         "h", "j", "k", "l", "m",
         "n", "p", "q", "r", "s",
         "t", "v", "w", "x", "z",
-        "ɓ", "ɗ", "m̃", "ñ", "ŋ", "ŋ̃", "ẅ", "ꞌ",
+        "ɓ", "ɗ", "ŋ", "ẅ", "ꞌ",
     ],
     'diac_top': [
         # Includes all combining diacritics present on the CMB Multilingual keyboard.
@@ -45,7 +45,6 @@ variables = {
         b'\\u0303', # combining tilde above
         b'\\u0304', # combining macron
         b'\\u0308', # combining diaeresis
-        b'\\u0327', # combining cedilla
         b'\\u030d', # combining vert. line above
         b'\\u1dc4', # combining macron-acute
         b'\\u1dc5', # combining grave-macron
