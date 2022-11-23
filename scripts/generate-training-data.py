@@ -21,34 +21,57 @@ from pathlib import Path
 writing_system_name = 'Latin_afr'
 
 variables = {
+    # More info to be considered here:
+    # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
     'cases': [
-        'lower', 'upper'
+        'lower', 'upper',
     ],
     'consonants': [
-        "ɓ", "ɗ", "ŋ"
+        # Includes:
+        #   - nasalized consonants
+        #   - possibility that consonants take top diacritics b/c grammatical tone
+        #   - all consonants present on the CMB Multilingual keyboard
+        "b", "c", "d", "f", "g",
+        "h", "j", "k", "l", "m",
+        "n", "p", "q", "r", "s",
+        "t", "v", "w", "x", "z",
+        "ɓ", "ɗ", "m̃", "ñ", "ŋ", "ŋ̃", "ẅ", "ꞌ",
     ],
     'diac_top': [
+        # Includes all combining diacritics present on the CMB Multilingual keyboard.
         b'\\u0300', # combining grave accent
         b'\\u0301', # combining acute accent
         b'\\u0302', # combining circumflex
-        b'\\u0303', # combining tilde
+        b'\\u0303', # combining tilde above
+        b'\\u0304', # combining macron
         b'\\u0308', # combining diaeresis
+        b'\\u0327', # combining cedilla
+        b'\\u030d', # combining vert. line above
+        b'\\u1dc4', # combining macron-acute
+        b'\\u1dc5', # combining grave-macron
+        b'\\u1dc6', # combining macron-grave
+        b'\\u1dc7', # combining acute-macron
     ],
     'diac_bot': [
+        # Includes all combining diacritics present on the CMB Multilingual keyboard.
+        b'\\u0323', # combining dot below
         b'\\u0327', # combining cedilla
+        b'\\u0330', # combining tilde below
     ],
     'fonts': [
-        # 'Arial', # doesn't handle all characters
-        # 'Times New Roman', # doesn't handle all characters
-        # 'Liberation Sans', # doesn't handle all characters
-        # 'Abyssinica SIL', # mainly for Ethiopic script
         'Andika Afr',
         'Charis SIL',
         'DejaVu Sans',
         'DejaVu Serif',
         'Doulos SIL',
         'Gentium',
+        # 'Abyssinica SIL', # mainly for Ethiopic script
+        # 'Arial', # doesn't handle all characters
+        # 'Carlito', # doesn't handle all characters
+        # 'Comic Sans MS', # doesn't handle all characters
         # 'Galatia SIL', # mainly for basic Latin and Greek
+        # 'Liberation Sans', # doesn't handle all characters
+        # 'Times New Roman', # doesn't handle all characters
     ],
     'styles': [
         'Regular',
@@ -57,13 +80,54 @@ variables = {
         'Bold Italic'
     ],
     'vowels': [
+        # Includes all vowels present on the CMB Multilingual keyboard.
         "a", "e", "i", "o", "u",
-        "ɛ", "ə", "ı", "ɨ", "ɔ", "ʉ",
+        "ɛ", "æ", "ɑ", "ə", "ı", "ɨ", "ɔ", "ø", "œ", "ʉ",
     ],
 }
 
 
 # Function definitions.
+def show_character_combinations(vs):
+    # Calculate total number of unique vowel+diacritic characters.
+    num_vowels = len(vs.get('vowels'))
+    num_top_diac = len(vs.get('diac_top'))
+    num_bot_diac = len(vs.get('diac_bot'))
+    # Vowels can receive both top and bottom diacritics.
+    num_vowel_combos = (num_top_diac + 1) * (num_bot_diac + 1) * num_vowels
+
+    # Get total number of consonants.
+    num_consonants = len(vs.get('consonants'))
+    # Consonants can receive top diacritics b/c of grammatical tone markings.
+    num_consonant_combos = (num_top_diac + 1) * num_consonants
+
+    # Calculate total number of all characters.
+    num_chars = num_consonant_combos + num_vowel_combos
+
+    # Calculate total number of unique displayed characters.
+    num_fonts = len(vs.get('fonts'))
+    num_styles = len(vs.get('styles'))
+    num_cases = len(vs.get('cases'))
+    combinations = num_chars * num_fonts * num_styles * num_cases
+
+    print(f"Character list:")
+    print(f"Consonants: {', '.join(vs.get('consonants'))}")
+    print(f"Vowels: {', '.join(vs.get('vowels'))}")
+    print(f"Top diacritics: {b', '.join(vs.get('diac_top'))}")
+    print(f"Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
+    print()
+    print(f"Character counts:")
+    print(f"{num_vowel_combos}\tvowels with or without top or bottom diacritics")
+    print(f"{num_consonant_combos}\tconsonants with or without top diacritics")
+    print(f"-" * 40)
+    print(f"{num_chars}\ttotal unique characters")
+    print()
+    print(f"{num_fonts}\tfonts")
+    print(f"{num_styles}\tstyles")
+    print(f"{num_cases}\tcases (upper/lower)")
+    print(f"-" * 40)
+    print(f"{combinations}\t total possible combinations")
+
 def get_git_root(path):
     """find repository root from the path's parents"""
     # https://stackoverflow.com/a/67516092
@@ -108,7 +172,7 @@ def get_available_fonts():
         fonts[f.family_name][f.style_name] = p
     return fonts
 
-def generate_text_line_chars(vars, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
+def generate_text_line_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
     """return a line of given length with a random mixture of valid charachers"""
     # choices:
     #   - lower or upper case
@@ -118,36 +182,40 @@ def generate_text_line_chars(vars, length=40, vowel_wt=1, top_dia_wt=0.5, bot_di
     s = b''
     for i in range(length):
         # Choose between lower or upper case.
-        upper = get_binary_choice(wt=0.1)
+        # upper = get_binary_choice(wt=0.1)
+        upper = get_binary_choice(wt=1)
 
         # Choose between consonant or vowel.
         c_bases = ['consonants', 'vowels']
-        n = get_binary_choice(wt=vowel_wt)
+        # n = get_binary_choice(wt=vowel_wt)
+        n = get_binary_choice(wt=1)
         # print(f"c/v choice: {n}")
         c_base = c_bases[n]
 
         # Choose character index from base.
-        n = get_random_index(len(vars.get(c_base)))
+        n = get_random_index(len(vs.get(c_base)))
         # print(f"{c_base} index: {n}")
-        c = vars.get(c_base)[n]
+        c = vs.get(c_base)[n]
         if upper:
             c = c.upper()
         u = c.encode('unicode-escape')
         dt = None
         db = None
         if c_base == 'vowels':
-            accept_dt = get_binary_choice(wt=top_dia_wt)
-            n = get_random_index(len(vars.get('diac_top')))
+            # accept_dt = get_binary_choice(wt=top_dia_wt)
+            accept_dt = get_binary_choice(wt=1)
+            n = get_random_index(len(vs.get('diac_top')))
             # print(f"dt choice: {accept_dt}")
             # if accept_dt:
             #     print(f"dt index: {n}")
-            dt = vars.get('diac_top')[n] if accept_dt == 1 else None
-            accept_db = get_binary_choice(wt=bot_dia_wt)
-            n = get_random_index(len(vars.get('diac_bot')))
+            dt = vs.get('diac_top')[n] if accept_dt == 1 else None
+            # accept_db = get_binary_choice(wt=bot_dia_wt)
+            accept_db = get_binary_choice(wt=1)
+            n = get_random_index(len(vs.get('diac_bot')))
             # print(f"db choice: {accept_db}")
             # if accept_db:
             #     print(f"db index: {n}")
-            db = vars.get('diac_bot')[n] if accept_db else None
+            db = vs.get('diac_bot')[n] if accept_db else None
         if dt:
             u += dt
         if db:
@@ -171,10 +239,10 @@ def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
     pngdata = generate_text_line_png(chars, fontfile)
     return name, txtdata, pngdata
 
-def verify_fonts(vars):
+def verify_fonts(vs):
     installed_fonts = get_available_fonts()
     missing_fonts = []
-    for f in vars.get('fonts'):
+    for f in vs.get('fonts'):
         if f not in installed_fonts.keys():
             missing_fonts.append(f)
     if len(missing_fonts) > 0:
@@ -197,6 +265,16 @@ def save_training_data_pair(gt_dir, name, txtdata, pngdata):
 def get_parsed_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-c', '--combinations',
+        action='store_true',
+        help="output character list and counts, then exit",
+    )
+    parser.add_argument(
+        '-i', '--iterations',
+        type=int,
+        help="create \"i\" iterations of ground truth data",
+    )
+    parser.add_argument(
         '-n', '--simulate',
         action='store_true',
         help="generate training data without saving it to disk"
@@ -206,23 +284,9 @@ def get_parsed_args():
         action='store_true',
         help=reset_ground_truth.__doc__
     )
-    parser.add_argument(
-        '-i', '--iterations',
-        type=int,
-        help="create \"i\" iterations of ground truth data",
-    )
     return parser.parse_args()
 
 def main():
-    combinations = 1
-    for k, v in variables.items():
-        ct = len(v)
-        if k == 'diac_top' or k == 'diac_bot': # allow for no diacritic
-            ct += 1
-        combinations *= ct
-
-    # print(f"Total possible combinations = {combinations}")
-
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
 
     system_fonts = get_available_fonts()
@@ -233,6 +297,11 @@ def main():
 
     # Handle command args.
     args = get_parsed_args()
+
+    if args.combinations:
+        show_character_combinations(variables)
+        exit()
+
     if not args.iterations:
         args.iterations = 1
     if args.reset:
