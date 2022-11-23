@@ -35,7 +35,7 @@ variables = {
         "h", "j", "k", "l", "m",
         "n", "p", "q", "r", "s",
         "t", "v", "w", "x", "z",
-        "ɓ", "ɗ", "ŋ", "ẅ", "ꞌ",
+        "ɓ", "ɗ", "ŋ", "ẅ", "ꞌ", "ʼ",
     ],
     'diac_top': [
         # Includes all combining diacritics present on the CMB Multilingual keyboard.
