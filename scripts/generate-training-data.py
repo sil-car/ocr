@@ -60,7 +60,6 @@ variables = {
     'fonts': [
         'Andika',
         'Andika Compact',
-        'Andika New Basic',
         'Charis SIL',
         'Charis SIL Compact',
         'DejaVu Sans',
@@ -68,6 +67,7 @@ variables = {
         'Doulos SIL',
         'Gentium',
         # 'Abyssinica SIL', # mainly for Ethiopic script
+        # 'Andika New Basic', # doesn't handle all characters
         # 'Arial', # doesn't handle all characters
         # 'Carlito', # doesn't handle all characters
         # 'Comic Sans MS', # doesn't handle all characters
@@ -125,7 +125,7 @@ def show_character_combinations(vs):
     print(f"{num_chars}\ttotal unique characters")
     print()
     print(f"{num_fonts}\tfonts")
-    print(f"{num_styles}\tstyles")
+    print(f"{num_styles}\tstyles (not all fonts support all styles)")
     print(f"{num_cases}\tcases (upper/lower)")
     print(f"-" * 40)
     print(f"{combinations}\t total possible combinations")
