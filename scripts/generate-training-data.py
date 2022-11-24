@@ -66,6 +66,8 @@ variables = {
         'DejaVu Serif',
         'Doulos SIL',
         'Gentium',
+        'Noto Sans',
+        'Noto Serif',
         # 'Abyssinica SIL', # mainly for Ethiopic script
         # 'Andika New Basic', # doesn't handle all characters
         # 'Arial', # doesn't handle all characters
