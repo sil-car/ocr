@@ -59,8 +59,8 @@ variables = {
     ],
     'fonts': [
         'Andika',
-        'Andika Compact'
-        'Andika New Basic'
+        'Andika Compact',
+        'Andika New Basic',
         'Charis SIL',
         'Charis SIL Compact',
         'DejaVu Sans',
