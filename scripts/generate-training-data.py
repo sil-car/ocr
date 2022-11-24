@@ -58,8 +58,11 @@ variables = {
         b'\\u0330', # combining tilde below
     ],
     'fonts': [
-        'Andika Afr',
+        'Andika',
+        'Andika Compact'
+        'Andika New Basic'
         'Charis SIL',
+        'Charis SIL Compact',
         'DejaVu Sans',
         'DejaVu Serif',
         'Doulos SIL',
