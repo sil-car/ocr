@@ -45,6 +45,7 @@ variables = {
         b'\\u0303', # combining tilde above
         b'\\u0304', # combining macron
         b'\\u0308', # combining diaeresis
+        b'\\u030c', # combining caron
         b'\\u030d', # combining vert. line above
         b'\\u1dc4', # combining macron-acute
         b'\\u1dc5', # combining grave-macron
