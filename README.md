@@ -44,8 +44,26 @@ Ideally, this solution will prove to be **98%-99%** accurate.
 ### Character set
 
 The new script model, "Latin_afr", will be based on "Latin", then be given training data using the following vowels, consonants, and diacritics:
-- vowels: a, e, i, o, u, ɛ, ə, ı, ɨ, ɔ, ʉ
-- consonants: ɓ, ɗ, ŋ
+- vowels: a, e, i, o, u, ɛ, æ, ɑ, ə, ı, ɨ, ɔ, ø, œ, ʉ
+- consonants: b, c, d, f, g, h, j, k, l, m, n, p, q, r, s, t, v, w, x, z, ɓ, ɗ, ŋ, ẅ, ꞌ, ʼ
+- top diacritics:
+  - \u0300 # combining grave accent
+  - \u0301 # combining acute accent
+  - \u0302 # combining circumflex
+  - \u0303 # combining tilde above
+  - \u0304 # combining macron
+  - \u0308 # combining diaeresis
+  - \u030c # combining caron
+  - \u030d # combining vert. line above
+  - \u1dc4 # combining macron-acute
+  - \u1dc5 # combining grave-macron
+  - \u1dc6 # combining macron-grave
+  - \u1dc7 # combining acute-macron
+- bottom diacritics:
+  - \u0323 # combining dot below
+  - \u0327 # combining cedilla
+  - \u0330 # combining tilde below
+
 - diacritics:
   - \u0300, combining grave accent
   - \u0301, combining acute accent
