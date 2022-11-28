@@ -32,14 +32,31 @@ This repository will only focus on Step 2: OCR proper using **Tesseract**. Later
 
 ### Defining accuracy
 
-OCR accuracy can be measured in a few different ways. Here the focus will be on:
-1. total number of recognized characters
-1. number of mis-recognized characters (i.e. wrong character was recognized)
-1. number of missing characters (i.e. character was left out of results)
-1. number of extra characters (i.e. character was added to results)
+OCR accuracy can be measured in a few different ways. Since we are concerned with
+an OCR solution at the writing script-level (i.e. character level) rather than one
+at the word-level, we will focus on the Character Error Rate (CER).
 
-Ideally, this solution will prove to be **98%-99%** accurate.
-*Further reading: http://www.dlib.org/dlib/march09/holley/03holley.html*
+The CER is composed of 5 quantities:
+1. N: number of characters in source text (or ground truth text)
+1. C: number of correctly recognized characters
+1. S: number of substitution errors (i.e. wrong character was recognized)
+1. D: number of deletion errors (i.e. character was left out of results)
+1. I: number of insertion errors (i.e. character was added to results)
+
+The simple CER is calculated as follows:
+```CER = (S + D + I) / N
+```
+
+However, this can result in a CER > 100% if there are many insertion errors. So
+an alternative *Normalized CER* can be calculated as follows:
+
+```CERn = (S + D + I) / (S + D + I + C)
+```
+
+Ideally, this solution will prove to be **98%-99%** accurate; i.e. CER <= 2%.
+*Further reading:*
+- *http://www.dlib.org/dlib/march09/holley/03holley.html*
+- *https://towardsdatascience.com/evaluating-ocr-output-quality-with-character-error-rate-cer-and-word-error-rate-wer-853175297510*
 
 ### Character set
 
