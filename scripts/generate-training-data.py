@@ -182,7 +182,7 @@ def get_available_fonts():
         fonts[f.family_name][f.style_name] = p
     return fonts
 
-def generate_text_line_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
+def generate_text_line_random_chars(vs, length=40):
     """return a line of given length with a random mixture of valid charachers"""
     # choices:
     #   - lower or upper case
