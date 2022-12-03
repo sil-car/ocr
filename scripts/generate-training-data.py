@@ -287,6 +287,11 @@ def get_parsed_args():
         action='store_true',
         help=reset_ground_truth.__doc__
     )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help="show verbose output"
+    )
     return parser.parse_args()
 
 def main():
@@ -314,16 +319,25 @@ def main():
     # Generate data.
     for i in range(args.iterations):
         char_line = generate_text_line_chars(variables)
+        if args.verbose:
+            print(f"INFO: {char_line}")
+            print(f"INFO: {b''.join(c.encode('unicode-escape') for c in char_line)}")
 
         # Choose font family.
         n = get_random_index(len(variables.get('fonts')))
         font_fam = variables.get('fonts')[n]
+        if args.verbose:
+            print(f"INFO: {font_fam}")
 
         # Choose font style.
         n = get_random_index(len(variables.get('styles')))
         font_sty = variables.get('styles')[n]
+        if args.verbose:
+            print(f"INFO: {font_sty}")
         fontfile = system_fonts.get(font_fam).get(font_sty)
         if not fontfile: # not all fonts include all styles
+            if args.verbose:
+                print("INFO: No font file found. Skipping font style.")
             continue
 
         # Generate files.
@@ -333,6 +347,8 @@ def main():
             print("INFO: Simulation; no files generated.")
             continue
         else:
+            if args.verbose:
+                print(f"INFO: base name: {name}")
             save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
 
 
