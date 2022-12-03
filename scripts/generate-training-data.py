@@ -78,11 +78,17 @@ variables = {
         # 'Liberation Sans', # doesn't handle all characters
         # 'Times New Roman', # doesn't handle all characters
     ],
+    'space': [' '],
     'styles': [
         'Regular',
         'Bold',
         'Italic',
         'Bold Italic'
+    ],
+    'punctuation': [
+        # TODO: This compiled without much effort. Some chars could be missing.
+        '!', '"', "'", "(", ")", ",", "-", ".", ":", ";", "?",
+        "[", "]", "¡", "«", "»", "“", "”", "‹", "›"
     ],
     'vowels': [
         # Includes all vowels present on the CMB Multilingual keyboard.
