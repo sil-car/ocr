@@ -257,9 +257,6 @@ def verify_fonts(vs):
             print(f"  - {m}")
         exit(1)
 
-def choose_font():
-    pass
-
 def save_training_data_pair(gt_dir, name, txtdata, pngdata):
     txtfile = gt_dir / f"{name}.gt.txt"
     pngfile = gt_dir / f"{name}.png"
