@@ -229,6 +229,69 @@ def generate_text_line_random_chars(vs, length=40):
         s += u
     return s.decode('unicode-escape')
 
+def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
+    """return a line of given length with a weighted mixture of valid charachers"""
+    # Define probabilities.
+    p_space = 0.15
+    p_punct = 0.05
+    p_vowel = 0.40
+    p_conso = 0.40
+    p_upper = 0.10 # of all consonants & vowels
+    p_vtpdi = 0.25 # of vowels
+    p_vbtdi = 0.10 # of vowels
+    p_ctpdi = 0.05 # of consonants
+
+    default_options = {
+        'consonants': p_conso,
+        'punctuation': p_punct,
+        'space': p_space,
+        'vowels': p_vowel,
+    }
+
+    s = b''
+    for i in range(length):
+        # Get base character type.
+        options = default_options.copy()
+        c_type = None
+        if i == 0 or i == length - 1:
+            # Can't be a space at beginning or end of string.
+            options.pop('space')
+        for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
+            if get_binary_choice(p):
+                c_type = t
+                break
+        if not c_type: # fall back to consonant
+            c_type = 'consonants'
+        c_opts = vs.get(c_type)
+        c = c_opts[get_random_index(len(c_opts))]
+
+        # Set case.
+        if c_type in ['consonants', 'vowels'] and get_binary_choice(p_upper):
+            c = c.upper()
+
+        u = c.encode('unicode-escape')
+
+        # Set diacritics.
+        use_bot_diac = False
+        use_top_diac = False
+        if c_type == 'consonants':
+            use_top_diac = get_binary_choice(p_ctpdi)
+        elif c_type == 'vowels':
+            use_top_diac = get_binary_choice(p_vtpdi)
+            use_bot_diac = get_binary_choice(p_vbtdi)
+        # Add lower diacritics first: https://www.unicode.org/reports/tr15/#Examples
+        if use_bot_diac:
+            diac_bot_list = vs.get('diac_bot')
+            u += diac_bot_list[get_random_index(len(diac_bot_list))]
+        if use_top_diac:
+            diac_top_list = vs.get('diac_top')
+            u += diac_top_list[get_random_index(len(diac_top_list))]
+
+        # Add characters to string.
+        s += u
+
+    return s.decode('unicode-escape')
+
 def generate_text_line_png(chars, fontfile):
     with fitz.open() as doc:
         # TODO: Set page width based on font's needs?
@@ -318,7 +381,7 @@ def main():
 
     # Generate data.
     for i in range(args.iterations):
-        char_line = generate_text_line_chars(variables)
+        char_line = generate_text_line_weighted_chars(variables)
         if args.verbose:
             print(f"INFO: {char_line}")
             print(f"INFO: {b''.join(c.encode('unicode-escape') for c in char_line)}")
