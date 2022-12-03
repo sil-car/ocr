@@ -387,14 +387,16 @@ def main():
             print(f"INFO: {b''.join(c.encode('unicode-escape') for c in char_line)}")
 
         # Choose font family.
-        n = get_random_index(len(variables.get('fonts')))
-        font_fam = variables.get('fonts')[n]
+        fonts = variables.get('fonts')
+        n = get_random_index(len(fonts))
+        font_fam = fonts[n]
         if args.verbose:
             print(f"INFO: {font_fam}")
 
         # Choose font style.
-        n = get_random_index(len(variables.get('styles')))
-        font_sty = variables.get('styles')[n]
+        styles = variables.get('styles')
+        n = get_random_index(len(styles))
+        font_sty = styles[n]
         if args.verbose:
             print(f"INFO: {font_sty}")
         fontfile = system_fonts.get(font_fam).get(font_sty)
@@ -405,14 +407,14 @@ def main():
 
         # Generate files.
         name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
-        if args.simulate:
-            # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
-            print("INFO: Simulation; no files generated.")
-            continue
-        else:
+        if not args.simulate:
             if args.verbose:
                 print(f"INFO: base name: {name}")
             save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
+
+    if args.simulate:
+        # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
+        print("INFO: Simulation; no files generated.")
 
 
 if __name__ == '__main__':
