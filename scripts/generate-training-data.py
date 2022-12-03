@@ -192,13 +192,11 @@ def generate_text_line_random_chars(vs, length=40):
     s = b''
     for i in range(length):
         # Choose between lower or upper case.
-        # upper = get_binary_choice(wt=0.1)
-        upper = get_binary_choice(wt=1)
+        upper = get_binary_choice(p=0.5)
 
         # Choose between consonant or vowel.
         c_bases = ['consonants', 'vowels']
-        # n = get_binary_choice(wt=vowel_wt)
-        n = get_binary_choice(wt=1)
+        n = get_binary_choice(p=0.5)
         # print(f"c/v choice: {n}")
         c_base = c_bases[n]
 
@@ -212,15 +210,13 @@ def generate_text_line_random_chars(vs, length=40):
         dt = None
         db = None
         if c_base == 'vowels':
-            # accept_dt = get_binary_choice(wt=top_dia_wt)
-            accept_dt = get_binary_choice(wt=1)
+            accept_dt = get_binary_choice(p=0.5)
             n = get_random_index(len(vs.get('diac_top')))
             # print(f"dt choice: {accept_dt}")
             # if accept_dt:
             #     print(f"dt index: {n}")
             dt = vs.get('diac_top')[n] if accept_dt == 1 else None
-            # accept_db = get_binary_choice(wt=bot_dia_wt)
-            accept_db = get_binary_choice(wt=1)
+            accept_db = get_binary_choice(p=0.5)
             n = get_random_index(len(vs.get('diac_bot')))
             # print(f"db choice: {accept_db}")
             # if accept_db:
