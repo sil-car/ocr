@@ -162,12 +162,11 @@ def get_random_index(num_opt):
     # return random index from integer range
     return random.randrange(num_opt)
 
-def get_binary_choice(wt=1):
-    # Outcome is biased towards '1' or 'yes' if wt >= 1, towards 'no' if wt < 1.
-    if wt < 1: # bias towards 0
-        return 1 if random.randrange(int(1/wt) + 1) == 0 else 0
-    else: # bias towards 1
-        return 0 if random.randrange(wt + 1) == 0 else 1
+def get_binary_choice(prob=0.5):
+    # 1 == yes/true; 0 = no/false
+    # prob of 1.0 = always yes/true; prob of 0.0 = never yes/true
+    # https://stackoverflow.com/a/5887040
+    return random.random() < prob
 
 def get_available_fonts():
     # https://stackoverflow.com/a/68810954
