@@ -216,28 +216,12 @@ def find_extent(pil_img, axis='x', etype='max'):
                 break
     return extent
 
-
 def get_box_extents_pil(pil_img):
     x_min = find_extent(pil_img, axis='x', etype='min')
     y_min = find_extent(pil_img, axis='y', etype='min')
     x_max = find_extent(pil_img, axis='x', etype='max')
     y_max = find_extent(pil_img, axis='y', etype='max')
-
     return x_min, y_min, x_max, y_max
-
-def get_box_extents_matrix(pil_img):
-    img_data = list(pil_img.getdata(band=0)) # get only 'R' band of 'RGB' due to grayscale image
-    img_matrix_yx = []
-    j = -1
-    for i, v in enumerate(img_data):
-        if i % img.size[0] == 0:
-            j += 1
-            img_matrix_yx.append([v])
-        else:
-            img_matrix_yx[j].append(v)
-    # m1 = [[0,1,2,3],[0,1,2,3]]
-    # m2 = [[0,0],[1,1],[2,2],[3,3]]
-    img_matrix_xy = []
 
 def get_random_c_type(index, length, options, last_c_type):
     c_type = None
@@ -302,10 +286,12 @@ def generate_text_line_random_chars(vs, length=40):
 def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
     """return a line of given length with a weighted mixture of valid charachers"""
     # Define probabilities.
+    # Base characters; should equal 100%,
     p_space = 0.15
     p_punct = 0.05
     p_vowel = 0.40
     p_conso = 0.40
+    # Modifications to base characters.
     p_upper = 0.10 # of all consonants & vowels
     p_vtpdi = 0.25 # of vowels
     p_vbtdi = 0.10 # of vowels
