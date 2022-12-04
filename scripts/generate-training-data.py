@@ -244,8 +244,20 @@ def get_box_extents_matrix(pil_img):
             img_matrix_yx[j].append(v)
     # m1 = [[0,1,2,3],[0,1,2,3]]
     # m2 = [[0,0],[1,1],[2,2],[3,3]]
-    # m2 = []
     img_matrix_xy = []
+
+def get_random_c_type(index, length, options, last_c_type):
+    c_type = None
+    if index == 0 or index == length - 1 or last_c_type == 'space':
+        # Can't be a space at beginning or end of string, or after another space.
+        options.pop('space')
+    for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
+        if get_binary_choice(p):
+            c_type = t
+            break
+    if not c_type: # fall back to consonant
+        c_type = 'consonants'
+    return c_type
 
 def generate_text_line_random_chars(vs, length=40):
     """return a line of given length with a random mixture of valid charachers"""
@@ -314,19 +326,12 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     }
 
     s = b''
+    last_c_type = None
+    last_u = None
     for i in range(length):
         # Get base character type.
-        options = default_options.copy()
-        c_type = None
-        if i == 0 or i == length - 1:
-            # Can't be a space at beginning or end of string.
-            options.pop('space')
-        for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
-            if get_binary_choice(p):
-                c_type = t
-                break
-        if not c_type: # fall back to consonant
-            c_type = 'consonants'
+        c_type = get_random_c_type(i, length, default_options.copy(), last_c_type)
+        last_c_type = c_type
         c_opts = vs.get(c_type)
         c = c_opts[get_random_index(len(c_opts))]
 
@@ -353,6 +358,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
             u += diac_top_list[get_random_index(len(diac_top_list))]
 
         # Add characters to string.
+        last_u = u
         s += u
 
     return s.decode('unicode-escape')
