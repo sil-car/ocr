@@ -188,48 +188,41 @@ def get_available_fonts():
         fonts[f.family_name][f.style_name] = p
     return fonts
 
+def find_extent(pil_img, axis='x', etype='max'):
+    extent = None
+    # Set dimensions.
+    if axis == 'x':
+        d1, d2 = pil_img.size
+    elif axis == 'y':
+        d2, d1 = pil_img.size
+    # Set ranges.
+    if etype == 'min':
+        r1 = range(d1)
+        r2 = range(d2)
+    elif etype == 'max':
+        r1 = range(d1-1, -1, -1)
+        r2 = range(d2-1, -1, -1)
+    # Find extent.
+    for x in r1:
+        if extent:
+            break
+        for y in r2:
+            if axis == 'x':
+                pixel = pil_img.getpixel((x, y))
+            elif axis == 'y':
+                pixel = pil_img.getpixel((y, x))
+            if pixel[0] < 255:
+                extent = x
+                break
+    return extent
+
+
 def get_box_extents_pil(pil_img):
-    # Get y_min for black pixels.
-    x_min = None
-    x_max = None
-    y_min = None
-    y_max = None
-    # Find x_min.
-    for x in range(pil_img.size[0]):
-        if x_min:
-            break
-        for y in range(pil_img.size[1]):
-            if pil_img.getpixel((x, y))[0] < 255:
-                # Non-white pixel found from left.
-                x_min = x
-                break
-    # Find y_min.
-    for y in range(pil_img.size[1]):
-        if y_min:
-            break
-        for x in range(pil_img.size[0]):
-            if pil_img.getpixel((x, y))[0] < 255:
-                # Non-white pixel found from top.
-                y_min = y
-                break
-    # Find x_max.
-    for x in reversed(range(pil_img.size[0])):
-        if x_max:
-            break
-        for y in reversed(range(pil_img.size[1])):
-            if pil_img.getpixel((x, y))[0] < 255:
-                # Non-white pixel found from left.
-                x_max = x
-                break
-    # Find y_max.
-    for y in reversed(range(pil_img.size[1])):
-        if y_max:
-            break
-        for x in reversed(range(pil_img.size[0])):
-            if pil_img.getpixel((x, y))[0] < 255:
-                # Non-white pixel found from top.
-                y_max = y
-                break
+    x_min = find_extent(pil_img, axis='x', etype='min')
+    y_min = find_extent(pil_img, axis='y', etype='min')
+    x_max = find_extent(pil_img, axis='x', etype='max')
+    y_max = find_extent(pil_img, axis='y', etype='max')
+
     return x_min, y_min, x_max, y_max
 
 def get_box_extents_matrix(pil_img):
