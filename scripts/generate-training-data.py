@@ -68,8 +68,6 @@ variables = {
         'DejaVu Serif',
         'Doulos SIL',
         'Gentium',
-        'Noto Sans',
-        'Noto Serif',
         # 'Abyssinica SIL', # mainly for Ethiopic script
         # 'Andika New Basic', # doesn't handle all characters
         # 'Arial', # doesn't handle all characters
@@ -77,6 +75,8 @@ variables = {
         # 'Comic Sans MS', # doesn't handle all characters
         # 'Galatia SIL', # mainly for basic Latin and Greek
         # 'Liberation Sans', # doesn't handle all characters
+        # 'Noto Sans', # doesn't properly handle combined accents
+        # 'Noto Serif', # doesn't properly handle combined accents
         # 'Times New Roman', # doesn't handle all characters
     ],
     'space': [' '],
