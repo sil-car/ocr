@@ -15,6 +15,7 @@ import time
 
 from matplotlib import font_manager
 from pathlib import Path
+from PIL import Image
 
 
 # Global variables.
@@ -187,6 +188,65 @@ def get_available_fonts():
         fonts[f.family_name][f.style_name] = p
     return fonts
 
+def get_box_extents_pil(pil_img):
+    # Get y_min for black pixels.
+    x_min = None
+    x_max = None
+    y_min = None
+    y_max = None
+    # Find x_min.
+    for x in range(pil_img.size[0]):
+        if x_min:
+            break
+        for y in range(pil_img.size[1]):
+            if pil_img.getpixel((x, y))[0] < 255:
+                # Non-white pixel found from left.
+                x_min = x
+                break
+    # Find y_min.
+    for y in range(pil_img.size[1]):
+        if y_min:
+            break
+        for x in range(pil_img.size[0]):
+            if pil_img.getpixel((x, y))[0] < 255:
+                # Non-white pixel found from top.
+                y_min = y
+                break
+    # Find x_max.
+    for x in reversed(range(pil_img.size[0])):
+        if x_max:
+            break
+        for y in reversed(range(pil_img.size[1])):
+            if pil_img.getpixel((x, y))[0] < 255:
+                # Non-white pixel found from left.
+                x_max = x
+                break
+    # Find y_max.
+    for y in reversed(range(pil_img.size[1])):
+        if y_max:
+            break
+        for x in reversed(range(pil_img.size[0])):
+            if pil_img.getpixel((x, y))[0] < 255:
+                # Non-white pixel found from top.
+                y_max = y
+                break
+    return x_min, y_min, x_max, y_max
+
+def get_box_extents_matrix(pil_img):
+    img_data = list(pil_img.getdata(band=0)) # get only 'R' band of 'RGB' due to grayscale image
+    img_matrix_yx = []
+    j = -1
+    for i, v in enumerate(img_data):
+        if i % img.size[0] == 0:
+            j += 1
+            img_matrix_yx.append([v])
+        else:
+            img_matrix_yx[j].append(v)
+    # m1 = [[0,1,2,3],[0,1,2,3]]
+    # m2 = [[0,0],[1,1],[2,2],[3,3]]
+    # m2 = []
+    img_matrix_xy = []
+
 def generate_text_line_random_chars(vs, length=40):
     """return a line of given length with a random mixture of valid charachers"""
     # choices:
@@ -300,12 +360,31 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
 def generate_text_line_png(chars, fontfile):
     with fitz.open() as doc:
         # TODO: Set page width based on font's needs?
-        page = doc.new_page(width=350, height=20)
+        page = doc.new_page(width=350, height=21)
         page.insert_font(fontname='test', fontfile=fontfile)
-        pt = fitz.Point(5, 15)
+        # Only built-in PDF fonts are supported by get_text_length();
+        #   have to crop the box outside of fitz/muPDF.
+        #   Ref: https://pymupdf.readthedocs.io/en/latest/functions.html#get_text_length
+        # text_length = fitz.get_text_length(chars, fontname='test')
+        pt = fitz.Point(5, 16)
         rc = page.insert_text(pt, chars, fontname='test')
         pix = page.get_pixmap()
-        return pix
+
+    # Crop the pixmap to remove extra whitespace.
+    # Convert to PIL Image.
+    #   Ref: https://github.com/pymupdf/PyMuPDF/issues/322#issuecomment-512561756
+    img = Image.frombytes('RGB', [pix.width, pix.height], pix.samples)
+    # Get boundary extents.
+    box_extents = list(get_box_extents_pil(img))
+    # Add padding around text.
+    pad = 3
+    for i in range(len(box_extents)):
+        if i < 2: # left & top
+            box_extents[i] -= pad
+        else: # right & bottom
+            box_extents[i] += pad
+    # Crop and return the image.
+    return img.crop(box_extents)
 
 def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
     name = f"{time.time()}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
