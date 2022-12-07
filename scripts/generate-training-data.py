@@ -11,6 +11,8 @@
 import argparse
 import fitz # PyMuPDF: https://pymupdf.readthedocs.io/en/latest/
 import random
+import subprocess
+import tempfile
 import time
 
 from matplotlib import font_manager
@@ -79,6 +81,7 @@ variables = {
         # 'Noto Serif', # doesn't properly handle combined accents
         # 'Times New Roman', # doesn't handle all characters
     ],
+    'numbers': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     'space': [' '],
     'styles': [
         'Regular',
@@ -236,6 +239,9 @@ def get_random_c_type(index, length, options, last_c_type):
         c_type = 'consonants'
     return c_type
 
+def set_data_filename(fontname, fontstyle):
+    return f"{time.time()}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
+
 def generate_text_line_random_chars(vs, length=40):
     """return a line of given length with a random mixture of valid charachers"""
     # choices:
@@ -371,11 +377,32 @@ def generate_text_line_png(chars, fontfile):
     # Crop and return the image.
     return img.crop(box_extents)
 
-def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
-    name = f"{time.time()}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
-    txtdata = chars
+# def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
+def generate_training_data_pair(chars, fontfile):
+    # name = set_data_filename(fontname, fontstyle)
     pngdata = generate_text_line_png(chars, fontfile)
-    return name, txtdata, pngdata
+    # return name, txtdata, pngdata
+    return chars, pngdata
+
+def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle):
+    if fontstyle == 'Regular':
+        font = fontname
+    else:
+        font = f"{fontname} {fontstyle}"
+
+    # Create tempfile for chars & use it to create TIFF image with text2image.
+    # Ref: https://stackoverflow.com/a/15235559
+    with tempfile.NamedTemporaryFile(mode='w+') as f:
+        f.write(chars)
+        f.flush()
+        cmd = [
+            'text2image',
+            f"--text={f.name}",
+            f"--outputbase={basedir}/{filename}",
+            f"--fonts_dir=/usr/share/fonts",
+            f"--font={font}"
+        ]
+        result = subprocess.run(cmd)
 
 def verify_fonts(vs):
     installed_fonts = get_available_fonts()
@@ -420,6 +447,11 @@ def get_parsed_args():
         help=reset_ground_truth.__doc__
     )
     parser.add_argument(
+        '-t', '--use-text2image',
+        action='store_true',
+        help="use text2image script to generate training data instead of built-in function"
+    )
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help="show verbose output"
@@ -431,9 +463,6 @@ def main():
 
     system_fonts = get_available_fonts()
     verify_fonts(variables)
-    # for n, s in system_fonts.items():
-    #     print(n, s)
-    # exit()
 
     # Handle command args.
     args = get_parsed_args()
@@ -475,11 +504,21 @@ def main():
             continue
 
         # Generate files.
-        name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
-        if not args.simulate:
-            if args.verbose:
-                print(f"INFO: base name: {name}")
-            save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
+        filename = set_data_filename(font_fam, font_sty)
+        txtdata = char_line
+        if args.verbose:
+            print(f"INFO: base name: {filename}")
+        if not args.use_text2image:
+            # name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
+            # txtdata, pngdata = generate_training_data_pair(char_line, fontfile)
+            pngdata = generate_text_line_png(txtdata, fontfile)
+            if not args.simulate:
+                # if args.verbose:
+                #     print(f"INFO: base name: {name}")
+                # save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
+                save_training_data_pair(ground_truth_dir, filename, txtdata, pngdata)
+        else:
+            generate_text2image_data_pair(ground_truth_dir, filename, txtdata, font_fam, font_sty)
 
     if args.simulate:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
