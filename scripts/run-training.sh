@@ -99,7 +99,7 @@ if [[ -n "$t2i" ]]; then
     #     tesseract "$tif" "${lstmf_dir}/${base}" --psm 6 lstm.train
     # done
     # Ref: https://stackoverflow.com/a/9612232
-    find "${data_dir}/${model_name}-ground-truth" -name '*.tif' -print0 |\
+    find "${data_dir}/${model_name}-ground-truth/" -name '*.tif' -print0 |\
         while IFS= read -r -d '' tif; do
             name="$(basename "$tif")"
             base="${name%.*}"
