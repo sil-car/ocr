@@ -3,17 +3,21 @@
 ### Start tesseract training on cloud server with relevant options.
 
 # Set initial variables.
+debug=
 model_name="Latin_afr"
-tess_tr_dir="${HOME}/tesstrain/"
+tess_tr_dir="${HOME}/tesstrain"
 data_dir="${tess_tr_dir}/data"
 tess_data="/usr/local/share/tessdata"
 max_iter=100000
 debug_interval=0
 t2i=
 
-help_text="usage: $0 [-v] [-t] [-i NUM]"
-while getopts ":hi:tv" opt; do
+help_text="usage: $0 [-dtv] [-i NUM]"
+while getopts ":dhi:tv" opt; do
     case $opt in
+        d) # debug
+            debug=YES
+            ;;
         h) # help text
             echo "$help_text"
             exit 0
@@ -56,10 +60,16 @@ fi
 
 # Start training.
 time_start=$(date +%s)
+
+# Handle debug option.
+if [[ -n "$debug" ]]; then
+    set -x
+fi
+
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
     # Explicit training with BOX files.
-    out_dir="${data_dir}/${model_name}/"
+    out_dir="${data_dir}/${model_name}"
     # Use "manual" training steps.
     # Ref: https://groups.google.com/g/tesseract-ocr/c/7q5pmgJDu_o/m/q9Pb7UMoAgAJ
 
@@ -102,7 +112,7 @@ if [[ -n "$t2i" ]]; then
     lstmtraining \
         --traineddata "${out_dir}/${model_name}.traineddata" \
         --model_output "${out_dir}/${model_name}"  \
-        --train_listfile  "${out_dir}/${model_name}/mylang.training_files.txt" \
+        --train_listfile  "${out_dir}/${model_name}/${model_name}.training_files.txt" \
         --max_iterations "$max_iter"
 
     # Create Final traineddata.
