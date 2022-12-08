@@ -11,8 +11,8 @@ max_iter=100000
 debug_interval=0
 t2i=
 
-help_text="usage: $0 [-v] [-i NUM]"
-while getopts ":hi:v" opt; do
+help_text="usage: $0 [-v] [-t] [-i NUM]"
+while getopts ":hi:tv" opt; do
     case $opt in
         h) # help text
             echo "$help_text"
