@@ -359,7 +359,9 @@ def generate_text_line_png(chars, fontfile):
         # text_length = fitz.get_text_length(chars, fontname='test')
         pt = fitz.Point(5, 16)
         rc = page.insert_text(pt, chars, fontname='test')
-        pix = page.get_pixmap()
+        # Use dpi to give optimum character height (default seems to be 100):
+        #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
+        pix = page.get_pixmap(dpi=188)
 
     # Crop the pixmap to remove extra whitespace.
     # Convert to PIL Image.
