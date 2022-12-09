@@ -3,6 +3,7 @@
 ### Start tesseract training on cloud server with relevant options.
 
 # Set initial variables.
+reset=
 debug=
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
@@ -13,7 +14,7 @@ debug_interval=0
 t2i=
 
 help_text="usage: $0 [-dtv] [-i NUM]"
-while getopts ":dhi:tv" opt; do
+while getopts ":dhi:rtv" opt; do
     case $opt in
         d) # debug
             debug=YES
@@ -24,6 +25,9 @@ while getopts ":dhi:tv" opt; do
             ;;
         i) # max. iterations
             max_iter="$OPTARG"
+            ;;
+        r) # reset
+            reset=YES
             ;;
         t) # train based on text2image
             t2i=YES
@@ -58,13 +62,22 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Start training.
-time_start=$(date +%s)
-
 # Handle debug option.
 if [[ -n "$debug" ]]; then
     set -x
 fi
+
+# Handle clean option.
+if [[ -n "$reset" ]]; then
+    # Clean generated files & exit (for now).
+    make clean "MODEL_NAME=${model_name}"
+    rm "${tess_tr_dir}/data/"*.traineddata
+    cp -r "$HOME/ocr/data/Latin_afr" "${tess_tr_dir}/data/"
+    exit 0
+fi
+
+# Start training.
+time_start=$(date +%s)
 
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
