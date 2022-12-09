@@ -69,57 +69,58 @@ fi
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
     # Explicit training with BOX files.
-    out_dir="${data_dir}/${model_name}"
+    output_dir="${data_dir}/${model_name}"
+    ground_truth_dir="${output_dir}-ground-truth"
     # Use "manual" training steps.
     # Ref: https://groups.google.com/g/tesseract-ocr/c/7q5pmgJDu_o/m/q9Pb7UMoAgAJ
 
     # Create unicharset from training_text.
     # unicharset_extractor \
     #     --norm_mode 1 \
-    #     --output_unicharset "${out_dir}/${model_name}.unicharset" \
+    #     --output_unicharset "${output_dir}/${model_name}.unicharset" \
     #     "../langdata/${model_name}/${model_name}.training_text"
     # Copy prepared unicharset & other files.
-    langdata_dir="${data_dir}/langdata/${model_name}"
-    mkdir -p "$langdata_dir"
-    cp "$HOME/ocr/data/${model_name}/${model_name}."* "${langdata_dir}/"
+    langdata_dir="${data_dir}/langdata"
+    mkdir -p "${langdata_dir}/${model_name}"
+    cp "$HOME/ocr/data/${model_name}/${model_name}."* "${langdata_dir}/${model_name}/"
 
     # Create starter traineddatda (aka recoder).
     combine_lang_model \
-        --input_unicharset "${out_dir}/${model_name}.unicharset" \
+        --input_unicharset "${output_dir}/${model_name}.unicharset" \
         --script_dir "${data_dir}/langdata" \
-        --output_dir "$out_dir" \
+        --output_dir "$output_dir" \
         --lang "$model_name"
 
     # Create training files (for each image).
-    lstmf_dir="${out_dir}/${model_name}"
-    # tiff_files=$(find "${data_dir}/${model_name}-ground-truth" -name '*.tif')
+    lstmf_dir="${output_dir}/${model_name}"
+    # tiff_files=$(find "${ground_truth_dir}/" -name '*.tif')
     # for tif in $tiff_files; do
     #     name="$(basename "$tif")"
     #     base="${name%.*}"
     #     tesseract "$tif" "${lstmf_dir}/${base}" --psm 6 lstm.train
     # done
     # Ref: https://stackoverflow.com/a/9612232
-    find "${data_dir}/${model_name}-ground-truth/" -name '*.tif' -print0 |\
+    find "${ground_truth_dir}/" -name '*.tif' -print0 |\
         while IFS= read -r -d '' tif; do
             name="$(basename "$tif")"
             base="${name%.*}"
             tesseract "$tif" "${lstmf_dir}/${base}" --psm 6 lstm.train
         done
     # Create list of lstmf files
-    ls -1 "${lstmf_dir}/"*.lstmf > "${out_dir}/${model_name}.training_files.txt"
+    ls -1 "${lstmf_dir}/"*.lstmf > "${output_dir}/${model_name}.training_files.txt"
 
     # Train.
     lstmtraining \
-        --traineddata "${out_dir}/${model_name}.traineddata" \
-        --model_output "${out_dir}/${model_name}"  \
-        --train_listfile  "${out_dir}/${model_name}/${model_name}.training_files.txt" \
+        --traineddata "${output_dir}/${model_name}.traineddata" \
+        --model_output "${output_dir}/${model_name}"  \
+        --train_listfile  "${output_dir}/${model_name}/${model_name}.training_files.txt" \
         --max_iterations "$max_iter"
 
     # Create Final traineddata.
     lstmtraining \
         --stop_training \
-        --continue_from "${out_dir}/${model_name}_checkpoint" \
-        --traineddata "${out_dir}/${model_name}.traineddata" \
+        --continue_from "${output_dir}/${model_name}_checkpoint" \
+        --traineddata "${output_dir}/${model_name}.traineddata" \
         --model_output "${tess_tr_dir}/${model_name}.traineddata"
 else
     # Standard training with GT.TXT files.
