@@ -491,7 +491,8 @@ def main():
 
     # Generate data.
     for i in range(args.iterations):
-        char_line = generate_text_line_weighted_chars(variables)
+        line_length = 50
+        char_line = generate_text_line_weighted_chars(variables, length=line_length)
         if args.verbose:
             print(f"INFO: {char_line}")
             print(f"INFO: {b''.join(c.encode('unicode-escape') for c in char_line)}")
