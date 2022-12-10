@@ -116,28 +116,34 @@ def show_character_combinations(vs):
     # Consonants can receive top diacritics b/c of grammatical tone markings.
     num_consonant_combos = (num_top_diac + 1) * num_consonants
 
-    # Get number of punctuation characters.
+    # Get number of numbers & punctuation characters.
+    num_numbers = len(vs.get('numbers'))
     num_punctuation_chars = len(vs.get('space')) + len(vs.get('punctuation'))
 
     # Calculate total number of all characters.
-    num_chars = num_consonant_combos + num_vowel_combos + num_punctuation_chars
+    num_cased_chars = num_consonant_combos + num_vowel_combos
+    num_uncased_chars = num_numbers + num_punctuation_chars
+    num_chars = num_cased_chars + num_uncased_chars
 
     # Calculate total number of unique displayed characters.
     num_fonts = len(vs.get('fonts'))
     num_styles = len(vs.get('styles'))
     num_cases = len(vs.get('cases'))
-    combinations = num_chars * num_fonts * num_styles * num_cases
+    # combinations = num_chars * num_fonts * num_styles * num_cases
+    combinations = (num_cased_chars * num_cases + num_uncased_chars) * num_fonts * num_styles
 
     print(f"Character list:")
     print(f"Consonants: {''.join(vs.get('consonants'))}")
     print(f"Vowels: {''.join(vs.get('vowels'))}")
     print(f"Top diacritics: {b', '.join(vs.get('diac_top'))}")
     print(f"Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
+    print(f"Numbers: {''.join(vs.get('numbers'))}")
     print(f"Punctuation: {''.join(vs.get('punctuation'))}")
     print()
     print(f"Character counts:")
     print(f"{num_vowel_combos}\tvowels with or without top or bottom diacritics")
     print(f"{num_consonant_combos}\tconsonants with or without top diacritics")
+    print(f"{num_numbers}\tnumbers")
     print(f"{num_punctuation_chars}\tpunctuation characters")
     print(f"-" * 40)
     print(f"{num_chars}\ttotal unique characters")
