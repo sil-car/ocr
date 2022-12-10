@@ -361,7 +361,9 @@ def generate_text_line_png(chars, fontfile):
         rc = page.insert_text(pt, chars, fontname='test')
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        pix = page.get_pixmap(dpi=188)
+        opt_char_ht = 35 # a proxy; actual char ht is a few px more b/c spacing
+        dpi=int((88/13)*opt_char_ht - 636/13) # calculated using (22, 100), (35, 188)
+        pix = page.get_pixmap(dpi=dpi)
 
     # Crop the pixmap to remove extra whitespace.
     # Convert to PIL Image.
