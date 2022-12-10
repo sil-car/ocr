@@ -15,8 +15,11 @@ help_text="usage:
   that an image \"block.png\" already exists in \"base_dir\".
 "
 
-while getopts ":hl:" opt; do
+while getopts ":dhl:" opt; do
     case $opt in
+        d) # debug
+            set -x
+            ;;
         h) # help text
             echo "$help_text"
             exit 0
@@ -34,7 +37,7 @@ shift $(($OPTIND - 1))
 
 # Handle base_dir arg.
 if [[ -n "$3" && -d "$3" ]]; then
-    base_dir="$3"
+    base_dir=$(readlink -f "$3")
 fi
 
 # Set base_dir.
@@ -91,8 +94,8 @@ if [[ -f "$1" ]]; then
 
         # Create page image (replaces existing file).
         echo "Creating image from page \"$page\" of \"$infile\"..."
-        page_image_file=$(readlink -f "${filetitle}-${pg_num}.png")
         pdftoppm -png -f "$page" -l "$page" "$infile" "${infile%.*}"
+        page_image_file=$(readlink -f "${base_dir}/${filetitle}-${pg_num}.png")
     elif [[ "$filetype" == 'TIFF' ]]; then
         # Split multipage TIFF into multiple TIFFs (replaces existing files).
         echo "Splitting multipage \"$inifile\" into individual TIFF images..."
@@ -116,8 +119,7 @@ ocr_outfile_name="ocr-text_${lang}"
 if [[ ! -f "${base_dir}/block.png" ]]; then
     if [[ -n "$page_image_file" ]]; then
         # Create block.png.
-        echo "Please create \"block.png\" in \"$base_dir\" by cropping and exporting"
-        echo "the image using the new shutter window..."
+        echo "Please create \"block.png\" in \"$base_dir\" by cropping and exporting the image using the new shutter window..."
         shutter "file://${page_image_file}" >/dev/null 2>&1
     else
         echo "Error: No \"block.png\" in \"$base_dir\" and no input file given."
@@ -136,10 +138,12 @@ else
 fi
 
 # Make sure there's an "orig-text.txt" file for comparison.
-if [[ ! -e "${base_dir}/orig-text.txt" ]]; then
-    read -p "Need to create \"orig-text.txt\", then [Enter] to continue..."
-    if [[ ! -e "${base_dir}/orig-text.txt" ]]; then
-        echo "Error: \"orig-text.txt\" still not available."
+orig_text_file="${base_dir}/orig-text.txt"
+if [[ ! -e "$orig_text_file" || $(stat -c%s "$orig_text_file") -eq 0 ]]; then
+    echo "Need to put original text in \"$orig_text_file\"."
+    gedit "$orig_text_file"
+    if [[ $(stat -c%s "$orig_text_file") -eq 0 ]]; then
+        echo "Error: No text in \"$orig_text_file\"."
         exit 1
     fi
 fi
@@ -151,4 +155,4 @@ wc -c "${base_dir}/orig-text.txt" "$ocr_outfile"
 echo
 
 # Open the files in meld for visual comparison.
-meld "${base_dir}/orig-text.txt" "$ocr_outfile"
+meld "${base_dir}/orig-text.txt" "$ocr_outfile" & >/dev/null 2>&1
