@@ -70,7 +70,7 @@ fi
 # Handle reset option.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit (for now).
-    echo "Resetting files. No other option will be handled."
+    echo "Resetting generated files (not GT data). No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
     rm -v "${tess_tr_dir}/data/"*.traineddata
     cp -rv "$HOME/ocr/data/Latin_afr" "${tess_tr_dir}/data/"
