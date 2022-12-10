@@ -234,9 +234,9 @@ def get_box_extents_pil(pil_img):
 
 def get_random_c_type(index, length, options, last_c_type):
     c_type = None
-    if index == 0 or index == length - 1 or last_c_type == 'space':
-        # Can't be a space at beginning or end of string, or after another space.
-        options.pop('space')
+    # if index == 0 or index == length - 1 or last_c_type == 'space':
+    #     # Can't be a space at beginning or end of string, or after another space.
+    #     options.pop('space')
     for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
         if get_binary_choice(p):
             c_type = t
