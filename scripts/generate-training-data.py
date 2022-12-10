@@ -299,18 +299,20 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     """return a line of given length with a weighted mixture of valid charachers"""
     # Define probabilities.
     # Base characters; should equal 100%,
-    p_space = 0.15
+    p_space = 0.14
+    p_num   = 0.01
     p_punct = 0.05
     p_vowel = 0.40
     p_conso = 0.40
     # Modifications to base characters.
     p_upper = 0.10 # of all consonants & vowels
-    p_vtpdi = 0.25 # of vowels
-    p_vbtdi = 0.10 # of vowels
-    p_ctpdi = 0.05 # of consonants
+    p_vtpdi = 0.25 # of vowels (vowel top diacritic)
+    p_vbtdi = 0.10 # of vowels (vowel bottom diacritic)
+    p_ctpdi = 0.05 # of consonants (consonant top diacritic)
 
     default_options = {
         'consonants': p_conso,
+        'numbers': p_num,
         'punctuation': p_punct,
         'space': p_space,
         'vowels': p_vowel,
