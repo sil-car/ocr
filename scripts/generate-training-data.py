@@ -299,8 +299,8 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     """return a line of given length with a weighted mixture of valid charachers"""
     # Define probabilities.
     # Base characters; should equal 100%,
-    p_space = 0.14
-    p_num   = 0.01
+    p_space = 0.13
+    p_num   = 0.02
     p_punct = 0.05
     p_vowel = 0.40
     p_conso = 0.40
@@ -309,6 +309,8 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     p_vtpdi = 0.25 # of vowels (vowel top diacritic)
     p_vbtdi = 0.10 # of vowels (vowel bottom diacritic)
     p_ctpdi = 0.05 # of consonants (consonant top diacritic)
+    # Special probability adjustments.
+    p_y     = 0.002
 
     default_options = {
         'consonants': p_conso,
@@ -322,11 +324,19 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     last_c_type = None
     last_u = None
     for i in range(length):
+        options = default_options.copy()
+        # Special treatment for 'space'.
+        if i == 0 or i == length - 1 or last_c_type == 'space':
+            # Shouldn't be a space at beginning or end of string, or after another space.
+            options.pop('space')
         # Get base character type.
-        c_type = get_random_c_type(i, length, default_options.copy(), last_c_type)
+        c_type = get_random_c_type(i, length, options, last_c_type)
         last_c_type = c_type
         c_opts = vs.get(c_type)
         c = c_opts[get_random_index(len(c_opts))]
+        # Special treatment for 'y' to improve recognition.
+        if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
+            c = 'y'
 
         # Set case.
         if c_type in ['consonants', 'vowels'] and get_binary_choice(p_upper):
@@ -369,7 +379,7 @@ def generate_text_line_png(chars, fontfile):
         rc = page.insert_text(pt, chars, fontname='test')
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        opt_char_ht = 35 # a proxy; actual char ht is a few px more b/c spacing
+        opt_char_ht = 40 # a proxy; actual char ht is a few px more b/c spacing
         dpi=int((88/13)*opt_char_ht - 636/13) # calculated using (22, 100), (35, 188)
         pix = page.get_pixmap(dpi=dpi)
 
