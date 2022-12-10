@@ -13,7 +13,7 @@ max_iter=100000
 debug_interval=0
 t2i=
 
-help_text="usage: $0 [-dtv] [-i NUM]"
+help_text="usage: $0 [-dhrtv] [-i NUM]"
 while getopts ":dhi:rtv" opt; do
     case $opt in
         d) # debug
@@ -67,12 +67,13 @@ if [[ -n "$debug" ]]; then
     set -x
 fi
 
-# Handle clean option.
+# Handle reset option.
 if [[ -n "$reset" ]]; then
-    # Clean generated files & exit (for now).
+    # Clean/reset generated files & exit (for now).
+    echo "Resetting files. No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
-    rm "${tess_tr_dir}/data/"*.traineddata
-    cp -r "$HOME/ocr/data/Latin_afr" "${tess_tr_dir}/data/"
+    rm -v "${tess_tr_dir}/data/"*.traineddata
+    cp -rv "$HOME/ocr/data/Latin_afr" "${tess_tr_dir}/data/"
     exit 0
 fi
 
