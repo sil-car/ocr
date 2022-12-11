@@ -234,9 +234,6 @@ def get_box_extents_pil(pil_img):
 
 def get_random_c_type(index, length, options, last_c_type):
     c_type = None
-    # if index == 0 or index == length - 1 or last_c_type == 'space':
-    #     # Can't be a space at beginning or end of string, or after another space.
-    #     options.pop('space')
     for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
         if get_binary_choice(p):
             c_type = t
@@ -310,7 +307,9 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     p_vbtdi = 0.10 # of vowels (vowel bottom diacritic)
     p_ctpdi = 0.05 # of consonants (consonant top diacritic)
     # Special probability adjustments.
-    p_y     = 0.002
+    p_a     = 0.002 # to overcome over-recognized alphas
+    p_schwa = 0.002 # to overcome open-o being paired with schwa
+    p_y     = 0.002 # to overcome over-recognized 'v' in place of 'y'
 
     default_options = {
         'consonants': p_conso,
@@ -334,9 +333,17 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         last_c_type = c_type
         c_opts = vs.get(c_type)
         c = c_opts[get_random_index(len(c_opts))]
-        # Special treatment for 'y' to improve recognition.
+
+        # Special treatment to improve recognition of some characters.
         if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
             c = 'y'
+        if c_type == 'vowels':
+            if c != 'a':
+                if get_binary_choice(p_a):
+                    c = 'a'
+            elif c != 'ə':
+                if get_binary_choice(p_schwa):
+                    c = 'ə'
 
         # Set case.
         if c_type in ['consonants', 'vowels'] and get_binary_choice(p_upper):
