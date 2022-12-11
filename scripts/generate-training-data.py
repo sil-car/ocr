@@ -527,16 +527,25 @@ def main():
             print(f"INFO: {font_fam}")
 
         # Choose font style.
-        styles = variables.get('styles')
-        n = get_random_index(len(styles))
-        font_sty = styles[n]
-        if args.verbose:
-            print(f"INFO: {font_sty}")
-        fontfile = system_fonts.get(font_fam).get(font_sty)
-        if not fontfile: # not all fonts include all styles
+        fontfile = None
+        while not fontfile:
+            styles = variables.get('styles')
+            n = get_random_index(len(styles))
+            font_sty = styles[n]
             if args.verbose:
-                print("INFO: No font file found. Skipping font style.")
-            continue
+                print(f"INFO: {font_sty}")
+            if args.verbose and fontfile not None:
+                print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
+            fontfile = system_fonts.get(font_fam).get(font_sty)
+        # styles = variables.get('styles')
+        # n = get_random_index(len(styles))
+        # font_sty = styles[n]
+        # if args.verbose:
+        #     print(f"INFO: {font_sty}")
+        # if not fontfile: # not all fonts include all styles
+        #     if args.verbose:
+        #         print("INFO: No font file found. Skipping font style.")
+        #     continue
 
         # Generate files.
         filename = set_data_filename(font_fam, font_sty)
