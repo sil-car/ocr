@@ -141,7 +141,7 @@ fi
 orig_text_file="${base_dir}/orig-text.txt"
 if [[ ! -e "$orig_text_file" || $(stat -c%s "$orig_text_file") -eq 0 ]]; then
     echo "Need to put original text in \"$orig_text_file\"."
-    gedit "$orig_text_file"
+    gedit "$orig_text_file" >/dev/null 2>&1
     if [[ $(stat -c%s "$orig_text_file") -eq 0 ]]; then
         echo "Error: No text in \"$orig_text_file\"."
         exit 1
