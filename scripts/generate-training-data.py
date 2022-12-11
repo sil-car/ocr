@@ -310,6 +310,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     p_a     = 0.005 # to overcome over-recognized alphas
     p_schwa = 0.005 # to overcome open-o being paired with schwa
     p_y     = 0.002 # to overcome over-recognized 'v' in place of 'y'
+    p_tilda = 0.002 # to overcome under-recognized '~'
 
     default_options = {
         'consonants': p_conso,
@@ -334,7 +335,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         c_opts = vs.get(c_type)
         c = c_opts[get_random_index(len(c_opts))]
 
-        # Special treatment to improve recognition of some characters.
+        # Special treatment to improve recognition of some base characters.
         if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
             c = 'y'
         if c_type == 'vowels':
@@ -365,7 +366,11 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
             u += diac_bot_list[get_random_index(len(diac_bot_list))]
         if use_top_diac:
             diac_top_list = vs.get('diac_top')
-            u += diac_top_list[get_random_index(len(diac_top_list))]
+            td = diac_top_list[get_random_index(len(diac_top_list))]
+            # Special treatment to improve recognition of some base top diacritics.
+            if td != '~' and get_binary_choice(p_tilda):
+                td = '~'
+            u += td
 
         # Add characters to string.
         last_u = u
