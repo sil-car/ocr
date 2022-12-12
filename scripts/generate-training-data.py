@@ -310,7 +310,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     p_a     = 0.01 # to overcome over-recognized alphas
     p_schwa = 0.01 # to overcome open-o being paired with schwa
     p_y     = 0.002 # to overcome over-recognized 'v' in place of 'y'
-    p_tilda = 0.005 # to overcome under-recognized '~'
+    p_tilda = 0.01 # to overcome under-recognized '~' top diacritic
 
     default_options = {
         'consonants': p_conso,
