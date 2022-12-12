@@ -368,8 +368,8 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
             diac_top_list = vs.get('diac_top')
             td = diac_top_list[get_random_index(len(diac_top_list))]
             # Special treatment to improve recognition of some base top diacritics.
-            if td != '~' and get_binary_choice(p_tilda):
-                td = '~'
+            if td != b'\\u0303' and get_binary_choice(p_tilda):
+                td = b'\\u0303'
             u += td
 
         # Add characters to string.
