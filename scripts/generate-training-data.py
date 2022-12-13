@@ -310,7 +310,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
     p_a     = 0.01 # to overcome over-recognized alphas
     p_schwa = 0.01 # to overcome open-o being paired with schwa
     p_y     = 0.002 # to overcome over-recognized 'v' in place of 'y'
-    p_tilda = 0.01 # to overcome under-recognized '~' top diacritic
+    # p_tilda = 0.01 # to overcome under-recognized '~' top diacritic # didn't help
 
     default_options = {
         'consonants': p_conso,
@@ -391,7 +391,7 @@ def generate_text_line_png(chars, fontfile):
         rc = page.insert_text(pt, chars, fontname='test')
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        opt_char_ht = 45 # a proxy; actual char ht is a few px more b/c spacing
+        opt_char_ht = 40 # a proxy; actual char ht is a few px less b/c spacing
         dpi=int((88/13)*opt_char_ht - 636/13) # calculated using (22, 100), (35, 188)
         pix = page.get_pixmap(dpi=dpi)
 
