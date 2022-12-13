@@ -12,6 +12,8 @@ tess_data="/usr/local/share/tessdata"
 max_iter=100000
 debug_interval=0
 t2i=
+submodel=$(date +%Y%m%d%H)
+log="${data_dir}/${model_name}_${submodel}.log"
 
 help_text="usage: $0 [-dhrtv] [-i NUM]"
 while getopts ":dhi:rtv" opt; do
@@ -144,10 +146,11 @@ else
         START_MODEL=Latin \
         TESSDATA="$tess_data" \
         MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval"
+        DEBUG_INTERVAL="$debug_interval" | tee "$log"
 fi
 time_end=$(date +%s)
 duration=$(($time_end - $time_start))
 
 echo "Training lasted ${duration}s."
+echo "Log file: $log"
 # per_iter=$(($max_iter / $duration))
