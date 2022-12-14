@@ -92,7 +92,7 @@ variables = {
     'punctuation': [
         # TODO: This compiled without much effort. Some chars could be missing.
         '!', '"', "'", "(", ")", ",", "-", ".", ":", ";", "?",
-        "[", "]", "¡", "«", "»", "“", "”", "‹", "›"
+        "[", "]", "¡", "«", "»", "“", "”", "‹", "›",
     ],
     'vowels': [
         # Includes all vowels present on the CMB Multilingual keyboard.
