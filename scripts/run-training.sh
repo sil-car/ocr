@@ -146,7 +146,8 @@ else
         START_MODEL=Latin \
         TESSDATA="$tess_data" \
         MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval" | tee "$log"
+        DEBUG_INTERVAL="$debug_interval" \
+        2>&1 | tee "$log"
 fi
 time_end=$(date +%s)
 duration=$(($time_end - $time_start))
