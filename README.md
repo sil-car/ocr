@@ -10,9 +10,12 @@ An attempt at creating a reliable character-based OCR solution for Latin-based w
 
 ### Current Testing
 Current best model: [tessdata/Latin_afr_2022121409.traineddata](tessdata/Latin_afr_2022121409.traineddata)
+
 Average CER: 8.09%
+
 [Summary test results](Testing.md)
-[Full test results](data/example-documents/comparison data.ods)
+
+[Full test results](data/example-documents/)
 
 ### Usage
 1. Install **Tesseract** on your system.
