@@ -5,15 +5,18 @@
 # Set initial variables.
 reset=
 debug=
+replace_layer=
+start_model="Latin"
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
 data_dir="${tess_tr_dir}/data"
-tess_data="/usr/local/share/tessdata"
+tessdata="/usr/local/share/tessdata"
 max_iter=100000
 debug_interval=0
 t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
+ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
 help_text="usage: $0 [-dhrtv] [-i NUM]"
 while getopts ":dhi:rtv" opt; do
@@ -27,6 +30,9 @@ while getopts ":dhi:rtv" opt; do
             ;;
         i) # max. iterations
             max_iter="$OPTARG"
+            ;;
+        l) # replace layer
+            replace_layer=YES
             ;;
         r) # reset
             reset=YES
@@ -75,7 +81,7 @@ if [[ -n "$reset" ]]; then
     echo "Resetting generated files (not GT data). No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
     rm -v "${tess_tr_dir}/data/"*.traineddata
-    cp -rv "$HOME/ocr/data/Latin_afr" "${tess_tr_dir}/data/"
+    cp -rv "$HOME/ocr/data/${model_name}" "${tess_tr_dir}/data/"
     exit 0
 fi
 
@@ -138,13 +144,27 @@ if [[ -n "$t2i" ]]; then
         --continue_from "${output_dir}/${model_name}_checkpoint" \
         --traineddata "${output_dir}/${model_name}.traineddata" \
         --model_output "${tess_tr_dir}/${model_name}.traineddata"
+elif [[ -n "$replace_layer" ]]; then
+    echo "Training by replacing top layer of start model \"$start_model\"."
+    # Need to follow same steps as "training" from Makefile, but also replace layers.
+    # Use modified Makefile
+    # TODO: Edit Makefile-layer to replace & retrain layers.
+    echo "Using Makefile \"${ocr_script_dir}/Makefile-layer\""
+    make -f "${ocr_script_dir}/Makefile-layer" training \
+        MODEL_NAME="$model_name" \
+        CORES=2 \
+        START_MODEL="$start_model" \
+        TESSDATA="$tessdata" \
+        MAX_ITERATIONS="$max_iter" \
+        DEBUG_INTERVAL="$debug_interval" \
+        2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
     make training \
         MODEL_NAME="$model_name" \
         CORES=2 \
-        START_MODEL=Latin \
-        TESSDATA="$tess_data" \
+        START_MODEL="$start_model" \
+        TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
         DEBUG_INTERVAL="$debug_interval" \
         2>&1 | tee "$log"
