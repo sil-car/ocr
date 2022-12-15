@@ -2,7 +2,7 @@
 
 ## Character Error Rates (CER)
 
-Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png
+*Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
 
 Language | ISO | # src chars | Latin | 2022121409 (fine-tune) | (replace layer)
 :---|:---:|---:|---:|---:|---:
