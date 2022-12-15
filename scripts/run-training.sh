@@ -150,6 +150,11 @@ elif [[ -n "$replace_layer" ]]; then
     # Use modified Makefile
     # TODO: Edit Makefile-layer to replace & retrain layers.
     echo "Using Makefile \"${ocr_script_dir}/Makefile-layer\""
+    # NOTE: The 1st term/layer in NET_SPEC includes the resized pixel height of the GT images.
+    #   36px: [1,36,0,1...
+    #   Ref:
+    #   - https://github.com/tesseract-ocr/tesstrain/issues/241#issuecomment-880984403
+    #   - https://github.com/tesseract-ocr/tessdoc/blob/f3201f2d32e69144047028869e0eda80b2b1cee2/tess4/VGSLSpecs.md
     make -f "${ocr_script_dir}/Makefile-layer" training \
         MODEL_NAME="$model_name" \
         CORES=2 \
@@ -157,6 +162,7 @@ elif [[ -n "$replace_layer" ]]; then
         TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
         DEBUG_INTERVAL="$debug_interval" \
+        NET_SPEC='[Lfx256 O1c###]'
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
