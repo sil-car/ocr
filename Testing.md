@@ -2,6 +2,8 @@
 
 ## Character Error Rates (CER)
 
+Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png
+
 Language | ISO | # src chars | Latin | 2022121409 (fine-tune) | (replace layer)
 :---|:---:|---:|---:|---:|---:
 Bhogoto | bdt | 461 | 14.75% | 4.34% |
@@ -17,5 +19,5 @@ Merey | meq | 328 | 4.57% | 0.00% |
 Mbuko | mqb | 374 | 1.60% | 1.60% |
 Mandja | mza | 339 | 11.80% | 0.88% |
 Luto | ndy | 324 | 3.09% | 0.31% |
-Ngbaka | nga | 13.56% | 40.34% |
+Ngbaka | nga | 295 | 13.56% | 40.34% |
 Nzakara | nzk | 465 | 7.96% | 6.02% |
