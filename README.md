@@ -2,6 +2,9 @@
 
 An attempt at creating a reliable character-based OCR solution for Latin-based writing scripts in Africa. The strategy is to start with **Tesseract's** Latin script training data and improve it using additional data relevant to languages in the central African region.
 
+Current best model: [tessdata/Latin_afr_2022121409.traineddata](tessdata/Latin_afr_2022121409.traineddata)
+Average CER: 8.09%
+
 ## Goals
 
 1. Develop an accurate system for OCRing text at the character level from documents produced/discovered in the central Africa region. (Theoretically, this could apply to *any* language that uses a Latin-based script, but the generated training data will only explicitly consider characters important to the central Africa region.)
