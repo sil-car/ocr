@@ -18,8 +18,8 @@ submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
 ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
-help_text="usage: $0 [-dhrtv] [-i NUM]"
-while getopts ":dhi:rtv" opt; do
+help_text="usage: $0 [-dhlrtv] [-i NUM]"
+while getopts ":dhi:lrtv" opt; do
     case $opt in
         d) # debug
             debug=YES
