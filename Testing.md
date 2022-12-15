@@ -2,8 +2,8 @@
 
 ## Character Error Rates (CER)
 
-Language | ISO | # src chars | Latin | 2022121409 (fine-tune) | (replace layer) |
-:---|:---:|---:|---:|---:|
+Language | ISO | # src chars | Latin | 2022121409 (fine-tune) | (replace layer)
+:---|:---:|---:|---:|---:|---:
 Bhogoto | bdt | 461 | 14.75% | 4.34% |
 French | fra | 151 | 0.00% | 3.31% |
 Kaansa | gna | 369 | 12.47% | 6.78% |
