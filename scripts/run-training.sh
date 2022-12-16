@@ -6,6 +6,7 @@
 reset=
 debug=
 replace_layer=
+net_spec_top='Lfx512'
 start_model="Latin"
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
@@ -18,7 +19,7 @@ submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
 ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
-help_text="usage: $0 [-dhlrtv] [-i NUM]"
+help_text="usage: $0 [-dhl:rtv] [-i NUM]"
 while getopts ":dhi:lrtv" opt; do
     case $opt in
         d) # debug
@@ -33,6 +34,7 @@ while getopts ":dhi:lrtv" opt; do
             ;;
         l) # replace layer
             replace_layer=YES
+            net_spec_top="$OPTARG"
             ;;
         r) # reset
             reset=YES
@@ -162,7 +164,7 @@ elif [[ -n "$replace_layer" ]]; then
         TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
         DEBUG_INTERVAL="$debug_interval" \
-        NET_SPEC='[Lfx256 O1c###]'
+        NET_SPEC="[$net_spec_top O1c###]" \
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
