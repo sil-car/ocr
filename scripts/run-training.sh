@@ -3,8 +3,9 @@
 ### Start tesseract training on cloud server with relevant options.
 
 # Set initial variables.
-reset=
+convert_checkpoint=
 debug=
+reset=
 replace_layer=
 net_spec_top='Lfx512'
 start_model="Latin"
@@ -22,9 +23,13 @@ ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 d=
 v=
 
-help_text="usage: $0 [-dhrtv] [-l NET_SPEC] [-i NUM]"
-while getopts ":dhi:l:rtv" opt; do
+help_text="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+while getopts ":c:dhi:l:rtv" opt; do
     case $opt in
+        c) # convert checkpoint
+            convert_checkpoint=YES
+            checkpoint_file="$OPTARG"
+            ;;
         d) # debug
             debug=YES
             v='-v'
@@ -87,9 +92,39 @@ if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit (for now).
     echo "Resetting generated files (not GT data). No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
-    rm -fv "${tess_tr_dir}/data/"*.traineddata
-    cp -rv "$HOME/ocr/data/${model_name}" "${tess_tr_dir}/data/"
+    rm -fv "${data_dir}/"*.traineddata
+    cp -rv "$HOME/ocr/data/${model_name}" "${data_dir}/"
     exit 0
+fi
+
+# Handle convert checkpoint option.
+if [[ -n "$convert_checkpoint" ]]; then
+    # Verify that files exist.
+    traineddata_file="${data_dir}/${model_name}/${model_name}.traineddata"
+    checkpoints_dir="${data_dir}/${model_name}/checkpoints"
+    if [[ ! -f "$checkpoint_file" ]]; then
+        if [[ -f "${checkpoints_dir}/${checkpoint_file}" ]]; then
+            checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
+        else
+            echo "Error: File not found: $checkpoint_file"
+            exit 1
+        fi
+    elif [[ ! -f "$traineddata_file" ]]; then
+        echo "Error: File not found: $traineddata_file"
+        exit 1
+    fi
+    # Convert checkpoint file to traineddata file.
+    checkpoint_filename="$(basename "$checkpoint_file")"
+    checkpoint_name="${checkpoint_filename%.checkpoint}"
+    echo "Converting checkpoint to traineddata:"
+    echo "  Checkpoint: $checkpoint_file"
+    echo "  Outfile: ${checkpoint_name}.traineddata"
+    lstmtraining \
+        --stop_training \
+        --continue_from "$checkpoint_file" \
+        --traineddata "${traineddata_file}" \
+        --model_output "${data_dir}/${checkpoint_name}.traineddata"
+    exit $?
 fi
 
 # Start training.
