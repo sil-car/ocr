@@ -87,7 +87,7 @@ if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit (for now).
     echo "Resetting generated files (not GT data). No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
-    rm -v "${tess_tr_dir}/data/"*.traineddata
+    rm -fv "${tess_tr_dir}/data/"*.traineddata
     cp -rv "$HOME/ocr/data/${model_name}" "${tess_tr_dir}/data/"
     exit 0
 fi
