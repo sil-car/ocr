@@ -22,8 +22,8 @@ ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 d=
 v=
 
-help_text="usage: $0 [-dhl:rtv] [-i NUM]"
-while getopts ":dhi:lrtv" opt; do
+help_text="usage: $0 [-dhrtv] [-l NET_SPEC] [-i NUM]"
+while getopts ":dhi:l:rtv" opt; do
     case $opt in
         d) # debug
             debug=YES
