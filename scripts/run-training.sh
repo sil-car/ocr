@@ -19,11 +19,16 @@ submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
 ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
+d=
+v=
+
 help_text="usage: $0 [-dhl:rtv] [-i NUM]"
 while getopts ":dhi:lrtv" opt; do
     case $opt in
         d) # debug
             debug=YES
+            v='-v'
+            d='-d'
             ;;
         h) # help text
             echo "$help_text"
@@ -157,18 +162,20 @@ elif [[ -n "$replace_layer" ]]; then
     #   Ref:
     #   - https://github.com/tesseract-ocr/tesstrain/issues/241#issuecomment-880984403
     #   - https://github.com/tesseract-ocr/tessdoc/blob/f3201f2d32e69144047028869e0eda80b2b1cee2/tess4/VGSLSpecs.md
-    make -f "${ocr_script_dir}/Makefile-layer" training \
+    net_spec="[$net_spec_top O1c###]"
+    echo "NET_SPEC = $net_spec"
+    make $d -f "${ocr_script_dir}/Makefile-layer" training \
         MODEL_NAME="$model_name" \
         CORES=2 \
         START_MODEL="$start_model" \
         TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
         DEBUG_INTERVAL="$debug_interval" \
-        NET_SPEC="[$net_spec_top O1c###]" \
+        NET_SPEC="$net_spec" \
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
-    make training \
+    make $d training \
         MODEL_NAME="$model_name" \
         CORES=2 \
         START_MODEL="$start_model" \
