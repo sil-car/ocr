@@ -118,7 +118,7 @@ if [[ -n "$convert_checkpoint" ]]; then
     checkpoint_name="${checkpoint_filename%.checkpoint}"
     echo "Converting checkpoint to traineddata:"
     echo "  Checkpoint: $checkpoint_file"
-    echo "  Outfile: ${checkpoint_name}.traineddata"
+    echo "  Outfile: ${data_dir}/${checkpoint_name}.traineddata"
     lstmtraining \
         --stop_training \
         --continue_from "$checkpoint_file" \
