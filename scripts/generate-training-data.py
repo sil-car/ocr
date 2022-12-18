@@ -22,6 +22,7 @@ from PIL import Image
 
 # Global variables.
 writing_system_name = 'Latin_afr'
+image_ht = 48
 
 variables = {
     # More info to be considered here:
@@ -67,8 +68,10 @@ variables = {
         'Charis SIL',
         'Charis SIL Compact',
         'DejaVu Sans',
+        'DejaVu Sans Mono',
         'DejaVu Serif',
         'Doulos SIL',
+        'Doulos SIL Compact',
         'Gentium',
         # 'Abyssinica SIL', # mainly for Ethiopic script
         # 'Andika New Basic', # doesn't handle all characters
@@ -336,15 +339,15 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         c = c_opts[get_random_index(len(c_opts))]
 
         # Special treatment to improve recognition of some base characters.
-        if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
-            c = 'y'
-        if c_type == 'vowels':
-            if c != 'a':
-                if get_binary_choice(p_a):
-                    c = 'a'
-            elif c != 'ə':
-                if get_binary_choice(p_schwa):
-                    c = 'ə'
+        # if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
+        #     c = 'y'
+        # if c_type == 'vowels':
+        #     if c != 'a':
+        #         if get_binary_choice(p_a):
+        #             c = 'a'
+        #     elif c != 'ə':
+        #         if get_binary_choice(p_schwa):
+        #             c = 'ə'
 
         # Set case.
         if c_type in ['consonants', 'vowels'] and get_binary_choice(p_upper):
@@ -391,8 +394,8 @@ def generate_text_line_png(chars, fontfile):
         rc = page.insert_text(pt, chars, fontname='test')
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        opt_char_ht = 40 # a proxy; actual char ht is a few px less b/c spacing
-        dpi=int((88/13)*opt_char_ht - 636/13) # calculated using (22, 100), (35, 188)
+        # image_ht is a proxy; actual char ht is a few px less b/c spacing
+        dpi=int((88/13)*image_ht - 636/13) # calculated using (22, 100), (35, 188)
         pix = page.get_pixmap(dpi=dpi)
 
     # Crop the pixmap to remove extra whitespace.
