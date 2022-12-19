@@ -339,8 +339,8 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         c = c_opts[get_random_index(len(c_opts))]
 
         # Special treatment to improve recognition of some base characters.
-        # if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
-        #     c = 'y'
+        if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
+            c = 'y'
         # if c_type == 'vowels':
         #     if c != 'a':
         #         if get_binary_choice(p_a):
