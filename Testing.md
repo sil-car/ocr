@@ -1,11 +1,18 @@
 # Testing
 
+Each tesseract language model is used to OCR the same set of 15 sample images.
+The 15 images are taken from documents produced in the central Africa region, which are a mixture of generated PDFs (selectable text) and raster PDFs (image-based).
+The results are evaluated manually and the Character Error Rate is calculated.
+
+A summary showing the results of three particular models is given below. The models are:
+1. The original Latin model produced by Tesseract.
+1. The best "fine-tuning" model I could come up with using Tesseract training.
+1. The best "replace layer" model I could produce.
+
+***Fine-tuning*** involves giving additional training data to an existing model.
+***Replacing a layer*** involves also rebuilding part of an existing model to make it better fit the new data, at the cost of additional computational effort and time.
+
 ## Character Error Rates (CER)
-
-Each model is tested on 15 images taken from documents produced in the central Africa region.
-The documents are a mixture of generated PDFs (selectable text) and raster PDFs (image-based).
-
-*Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
 
 Language     | ISO | # src chars | Latin  | 2022121409 (fine-tune)  | 202212178613 (replace layer)
 :---         |:---:|---:         |---:    |---:                     |---:
@@ -26,3 +33,5 @@ Ngbaka       | nga | 295         | 13.56% | 40.34%                  | 16.61%
 Nzakara      | nzk | 465         | 7.96%  | 6.02%                   | 3.23%
 count < 5%   |     |             | 5      | 9                       | 11
 count < 2%   |     |             | 2      | 7                       | 7
+
+*Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
