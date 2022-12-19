@@ -9,9 +9,9 @@ An attempt at creating a reliable character-based OCR solution for Latin-based w
    given character set.
 
 ### Current Testing
-Current best model: [tessdata/Latin_afr_2022121409.traineddata](tessdata/Latin_afr_2022121409.traineddata)
+Current best model: [tessdata/Latin_afr_202212178613.traineddata](tessdata/Latin_afr_202212178613.traineddata)
 
-Average CER: 8.09%
+Average CER: 3.82% over 5,381 characters from 15 samples
 
 [Summary test results](Testing.md)
 
