@@ -6,10 +6,10 @@ The results are evaluated manually and the Character Error Rate is calculated.
 
 A summary showing the results of three particular models is given below. The models are:
 1. The original Latin model produced by Tesseract.
-1. The best "fine-tuning" model I could come up with using Tesseract training.
+1. The best "fine tuning" model I could come up with using Tesseract training.
 1. The best "replace layer" model I could produce.
 
-***Fine-tuning*** involves giving additional training data to an existing model.
+***Fine tuning*** involves giving additional training data to an existing model.
 ***Replacing a layer*** involves also rebuilding part of an existing model to make it better fit the new data, at the cost of additional computational effort and time.
 
 ## Character Error Rates (CER)
