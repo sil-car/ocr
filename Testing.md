@@ -35,3 +35,5 @@ count < 5%   |     |             | 5      | 9                       | 11
 count < 2%   |     |             | 2      | 7                       | 7
 
 *Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
+
+> NOTE: This testing has been done without any image preprocessing (e.g. increasing contrast to remove specks that could be confused for characters). It has also not made use of tesseract's character blacklist or whitelist features, which in some cases would significantly reduce substitution errors.
