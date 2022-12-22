@@ -18,16 +18,17 @@ Average CER: 4.01% over 5,339 characters from 15 samples
 [Full test results](data/example-documents/)
 
 ### Usage
-1. Install **Tesseract** on your system.
+1. Install **Tesseract** on your system. How to do this depends on your OS.
 1. Copy the above model into **Tesseract's** *tessdata* folder; e.g.
    ```
-   sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_2022121409.traineddata -P /usr/share/tesseract-ocr/4.0/tessdata/
+   $ sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_20221219.traineddata -O /usr/share/tesseract-ocr/4.00/tessdata/Latin_afr.traineddata # on Ubuntu/Wasta 20.04
    ```
+   This will install the current best model using the name "Latin_afr". Windows users will need to adapt the instructions to their particular setup.
 1. Use the model with **Tesseract**; e.g.
    ```
-   tesseract -l Latin_afr_2022121409 image.png
+   $ tesseract -l Latin_afr image.png
    ```
-You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr_2022121409" as the language to be recognized after having copied the model to the appropriate place.
+You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language to be recognized after having copied the model to the appropriate place.
 
 ## Existing OCR options are unsatisfactory
 
