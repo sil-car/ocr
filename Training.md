@@ -22,7 +22,7 @@ Since this OCR model is intended to improve character recognition for Latin scri
 ### Fonts and font styles
 
 All the fonts used for image generation for training can be found in [scripts/generate-training-data.py](scripts/generate-training-data.py) or by passing the '-c' option to the command:
-```
+```bash
 (env) $ ./scripts/generate-training-data.py -c
 ```
 
@@ -38,7 +38,7 @@ Several font families have been tested, including various SIL fonts, as well as 
 ### Character selection during image generation
 
 At first it was assumed that simply generating random combinations of valid characters would be sufficient when generating the training images. However, that proved to give very poor and unusable results. So the character selection is now based on a weighting system that attempts to mimic real-world rates of the various types of characters. The weights can be found in [scripts/generate-training-data.py](scripts/generate-training-data.py) or by passing the '-w' option to the command:
-```
+```bash
 (env) $ ./scripts/generate-training-data.py -w
 ```
 
