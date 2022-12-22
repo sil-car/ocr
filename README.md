@@ -34,21 +34,18 @@ You can also make use of other front-end apps that use **Tesseract** as a back e
 
 ## Background
 
-**[Tesseract](https://github.com/tesseract-ocr)** seems to be a reasonable option for character-based OCR work because it provides script-based "language" options while other solutions are language-based. But when **Tesseract** was tried on a document in a central African language with a Latin-based script (Banda-Linda [liy]) it clearly struggled to properly identify less-common Latin script characters (e.g. ɓ, ɗ, ɛ, ə, ŋ, ɔ), as well as both those and more-common ones that were composed with various diacritics. Nevertheless, **Tesseract** is still able to properly identify *~95%* of the Banda-Linda characters using the "Latin" language option, i.e.:
-```
-tesseract -l Latin image.png
-```
+**[Tesseract](https://github.com/tesseract-ocr)** seems to be a reasonable option for character-based OCR work because it provides script-based "language" options while other solutions use are strictly language-based. But when **Tesseract** was tried on a document in a central African language with a Latin-based script (Banda-Linda [liy]) it clearly struggled to properly identify less-common Latin script characters (e.g. ɓ, ɗ, ɛ, ə, ŋ, ɔ), as well as both those and more-common ones that were composed with various diacritics. Nevertheless, **Tesseract** was still able to properly identify *~90-95%* of the Banda-Linda characters using the "Latin" language option.
 
-This was further tested on more than 15 other documents from the region that use some of the same "special" characters and diacritics. Details of those results can be found in [data/example-documents](data/example-documents). In all cases the same kinds of characters as with Banda-Linda were improperly recognized.
+This was further tested on more than 15 other documents from the region that use some of the same "special" characters and diacritics. Details of those results can be found in [data/example-documents](data/example-documents). In all cases the same kinds of characters as with Banda-Linda were poorly recognized.
 
 ## Scope
 
 From an end-user perspective it would be great to have a graphical, cross-platform app than can reliably perform these steps:
 1. Recognize text blocks in an image or PDF document, regardless of columns, text orientation, etc.
 1. Recognize all Latin script characters within these text blocks, regardless of language.
-1. Export the text to a unicode text file.
+1. Export the text to a text file.
 1. Optionally export the results, including images, to a searchable PDF.
-1. Optionally export the results, including images, to an editable document format, such as ODT or ODG.
+1. Optionally export the results, including images, to an editable document format, such as ODT.
 
 This repository will only focus on Step 2: OCR proper using **Tesseract**. Later, various GUI apps can be evaluated depending on specific end user needs.
 
