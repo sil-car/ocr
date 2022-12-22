@@ -63,13 +63,15 @@ The CER is composed of 5 quantities:
 1. I: number of insertion errors (i.e. character was added to results)
 
 The simple CER is calculated as follows:
-```CER = (S + D + I) / N
+```
+CER = (S + D + I) / N
 ```
 
 However, this can result in a CER > 100% if there are many insertion errors. So
 an alternative *Normalized CER* can be calculated as follows:
 
-```CERn = (S + D + I) / (S + D + I + C)
+```
+CERn = (S + D + I) / (S + D + I + C)
 ```
 
 Ideally, this solution will prove to be **98%-99%** accurate; i.e. CER <= 2%.
