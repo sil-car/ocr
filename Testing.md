@@ -31,9 +31,12 @@ Mandja       | mza | 339         | 11.80% | 0.88%                   | 2.36%
 Luto         | ndy | 324         | 3.09%  | 0.31%                   | 0.62%
 Ngbaka       | nga | 295         | 13.56% | 40.34%                  | 19.32%
 Nzakara      | nzk | 465         | 7.96%  | 6.02%                   | 4.52%
+             |     |             |        |                         |
+average CER  |     |             | 7.58%  | 7.39%                   | 4.01%
+standard dev.|     |             | 4.69%  | 10.97%                  | 5.20%
 count < 5%   |     |             | 5      | 9                       | 11
 count < 2%   |     |             | 2      | 7                       | 7
 
 *Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
 
-> NOTE: This testing has been done without any image preprocessing (e.g. increasing contrast to remove specks that could be confused for characters). It has also not made use of tesseract's character blacklist or whitelist features, which in some cases would significantly reduce substitution errors.
+> NOTE: This testing has been done without any image preprocessing (e.g. increasing contrast to remove specks that could be confused for characters). It has also not made use of tesseract's character blacklist or whitelist features, which in some cases would significantly reduce substitution and/or insertion errors.
