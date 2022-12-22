@@ -102,10 +102,35 @@ variables = {
         "a", "e", "i", "o", "u",
         "ɛ", "æ", "ɑ", "ə", "ı", "ɨ", "ɔ", "ø", "œ", "ʉ",
     ],
+    'weights': {
+        # Define probabilities.
+        # Base characters; should equal 100%,
+        'p_space': 0.13,
+        'p_num'  : 0.02,
+        'p_punct': 0.05,
+        'p_vowel': 0.40,
+        'p_conso': 0.40,
+        # Modifications to base characters.
+        'p_upper': 0.10, # of all consonants & vowels
+        'p_vtpdi': 0.25, # of vowels (vowel top diacritic)
+        'p_vbtdi': 0.10, # of vowels (vowel bottom diacritic)
+        'p_ctpdi': 0.05, # of consonants (consonant top diacritic)
+        # Special probability adjustments.
+        # 'p_a'    : 0.01, # to overcome over-recognized alphas # didn't help much
+        # 'p_schwa': 0.01, # to overcome open-o being paired with schwa # didn't help much
+        'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
+        # p_tilda: 0.01, # to overcome under-recognized '~' top diacritic # didn't help
+    }
 }
 
 
 # Function definitions.
+def show_character_weights(vs):
+    print(f"Character weights:")
+    for k, v in vs.get('weights').items():
+        print(f"{k}: {v}")
+    print(f"NOTE: \"p_y\" is applied if a non-y consonant is chosen.\nThis is to increase the occurrences of \"y\" to correct for \"y\" being frequently\nrecognized as \"v\".")
+
 def show_character_combinations(vs):
     # Calculate total number of unique vowel+diacritic characters.
     num_vowels = len(vs.get('vowels'))
@@ -135,13 +160,13 @@ def show_character_combinations(vs):
     # combinations = num_chars * num_fonts * num_styles * num_cases
     combinations = (num_cased_chars * num_cases + num_uncased_chars) * num_fonts * num_styles
 
-    print(f"Character list:")
-    print(f"Consonants: {''.join(vs.get('consonants'))}")
-    print(f"Vowels: {''.join(vs.get('vowels'))}")
-    print(f"Top diacritics: {b', '.join(vs.get('diac_top'))}")
-    print(f"Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
-    print(f"Numbers: {''.join(vs.get('numbers'))}")
-    print(f"Punctuation: {''.join(vs.get('punctuation'))}")
+    print(f"CHARACTER LIST:")
+    print(f"  Consonants: {''.join(vs.get('consonants'))}")
+    print(f"  Vowels: {''.join(vs.get('vowels'))}")
+    print(f"  Top diacritics: {b', '.join(vs.get('diac_top'))}")
+    print(f"  Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
+    print(f"  Numbers: {''.join(vs.get('numbers'))}")
+    print(f"  Punctuation: {''.join(vs.get('punctuation'))}")
     print()
     print(f"Character counts:")
     print(f"{num_vowel_combos}\tvowels with or without top or bottom diacritics")
@@ -150,6 +175,10 @@ def show_character_combinations(vs):
     print(f"{num_punctuation_chars}\tpunctuation characters")
     print(f"-" * 40)
     print(f"{num_chars}\ttotal unique characters")
+    print()
+    print(f"FONT LIST:")
+    print(f"  Fonts: {', '.join(vs.get('fonts'))}")
+    print(f"  Styles: {', '.join(vs.get('styles'))}")
     print()
     print(f"{num_fonts}\tfonts")
     print(f"{num_styles}\tstyles (not all fonts support all styles)")
@@ -297,30 +326,13 @@ def generate_text_line_random_chars(vs, length=40):
 
 def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
     """return a line of given length with a weighted mixture of valid charachers"""
-    # Define probabilities.
-    # Base characters; should equal 100%,
-    p_space = 0.13
-    p_num   = 0.02
-    p_punct = 0.05
-    p_vowel = 0.40
-    p_conso = 0.40
-    # Modifications to base characters.
-    p_upper = 0.10 # of all consonants & vowels
-    p_vtpdi = 0.25 # of vowels (vowel top diacritic)
-    p_vbtdi = 0.10 # of vowels (vowel bottom diacritic)
-    p_ctpdi = 0.05 # of consonants (consonant top diacritic)
-    # Special probability adjustments.
-    p_a     = 0.01 # to overcome over-recognized alphas
-    p_schwa = 0.01 # to overcome open-o being paired with schwa
-    p_y     = 0.002 # to overcome over-recognized 'v' in place of 'y'
-    # p_tilda = 0.01 # to overcome under-recognized '~' top diacritic # didn't help
 
     default_options = {
-        'consonants': p_conso,
-        'numbers': p_num,
-        'punctuation': p_punct,
-        'space': p_space,
-        'vowels': p_vowel,
+        'consonants': vs.get('weights').get('p_conso'),
+        'numbers': vs.get('weights').get('p_num'),
+        'punctuation': vs.get('weights').get('p_punct'),
+        'space': vs.get('weights').get('p_space'),
+        'vowels': vs.get('weights').get('p_vowel'),
     }
 
     s = b''
@@ -339,18 +351,18 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         c = c_opts[get_random_index(len(c_opts))]
 
         # Special treatment to improve recognition of some base characters.
-        if c_type == 'consonants' and c != 'y' and get_binary_choice(p_y):
+        if c_type == 'consonants' and c != 'y' and get_binary_choice(vs.get('weights').get('p_y')):
             c = 'y'
         # if c_type == 'vowels':
         #     if c != 'a':
-        #         if get_binary_choice(p_a):
+        #         if get_binary_choice(vs.get('weights').get('p_a')):
         #             c = 'a'
         #     elif c != 'ə':
-        #         if get_binary_choice(p_schwa):
+        #         if get_binary_choice(vs.get('weights').get('p_schwa')):
         #             c = 'ə'
 
         # Set case.
-        if c_type in ['consonants', 'vowels'] and get_binary_choice(p_upper):
+        if c_type in ['consonants', 'vowels'] and get_binary_choice(vs.get('weights').get('p_upper')):
             c = c.upper()
 
         u = c.encode('unicode-escape')
@@ -359,10 +371,10 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
         use_bot_diac = False
         use_top_diac = False
         if c_type == 'consonants':
-            use_top_diac = get_binary_choice(p_ctpdi)
+            use_top_diac = get_binary_choice(vs.get('weights').get('p_ctpdi'))
         elif c_type == 'vowels':
-            use_top_diac = get_binary_choice(p_vtpdi)
-            use_bot_diac = get_binary_choice(p_vbtdi)
+            use_top_diac = get_binary_choice(vs.get('weights').get('p_vtpdi'))
+            use_bot_diac = get_binary_choice(vs.get('weights').get('p_vbtdi'))
         # Add lower diacritics first: https://www.unicode.org/reports/tr15/#Examples
         if use_bot_diac:
             diac_bot_list = vs.get('diac_bot')
@@ -371,7 +383,7 @@ def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5,
             diac_top_list = vs.get('diac_top')
             td = diac_top_list[get_random_index(len(diac_top_list))]
             # Special treatment to improve recognition of some base top diacritics.
-            # if td != b'\\u0303' and get_binary_choice(p_tilda): doesn't help
+            # if td != b'\\u0303' and get_binary_choice(vs.get('weights').get('p_tilda')): doesn't help
             #     td = b'\\u0303'
             u += td
 
@@ -493,6 +505,11 @@ def get_parsed_args():
         action='store_true',
         help="show verbose output"
     )
+    parser.add_argument(
+        '-w', '--weights',
+        action='store_true',
+        help="show weights used for each type of character"
+    )
     return parser.parse_args()
 
 def main():
@@ -506,6 +523,10 @@ def main():
 
     if args.combinations:
         show_character_combinations(variables)
+        exit()
+
+    if args.weights:
+        show_character_weights(variables)
         exit()
 
     if not args.iterations:
