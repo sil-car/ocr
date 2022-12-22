@@ -10,7 +10,7 @@ An attempt at creating a reliable character-based OCR solution for Latin-based w
 
 ## Current Testing
 
-Current best model: [tessdata/Latin_afr_20221219.traineddata](tessdata/Latin_afr_20221219.traineddata)
+Current best model: [Latin_afr_20221219.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_20221219.traineddata)
 
 >Average CER: 4.01% over 5,339 characters from 15 samples
 
