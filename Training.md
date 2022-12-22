@@ -27,13 +27,13 @@ All the fonts used for image generation for training can be found in [scripts/ge
 ```
 
 Several font families have been tested, including various SIL fonts, as well as common Microsoft, Android, and Open Source fonts. In the end, all of the following fonts were discarded after proving to be unable to render at least some of the combined glyphs:
-- Andika New Basic
-- Arial
-- Carlito
-- Comic Sans MS
-- Liberation Sans
-- Noto Sans/Serif
-- Times New Roman
+- ~Andika New Basic~
+- ~Arial~
+- ~Carlito~
+- ~Comic Sans MS~
+- ~Liberation Sans~
+- ~Noto Sans/Serif~
+- ~Times New Roman~
 
 ### Character selection during image generation
 
