@@ -30,7 +30,7 @@ Full test results can be found in [data/example-documents/](data/example-documen
    ```
    $ tesseract -l Latin_afr image.png
    ```
-You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language to be recognized after having copied the model to the appropriate place.
+You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language to be recognized after having copied the model to the appropriate tessdata folder.
 
 ## Background
 
