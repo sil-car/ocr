@@ -15,6 +15,11 @@ There are several factors considered when preparing and running the training:
 Each factor has been seen to influence the performance of the finished model, so more than two dozen models have been produced in order to compare the relative importance of each factor.
 *However*, not all factors have been tested in complete isolation, so there is no quantification of the importance of each factor. If changing a factor improved the resulting model, then that change was kept without first testing if a different change would have improved the model even more.
 
+Other factors to consider:
+- add noise to synthetic training data?
+- explicitly define the unicharset to remove composed characters?
+- increase the size of the top layer from 512?
+
 ### Unicode character list
 
 Since this OCR model is intended to improve character recognition for Latin script-based languages in the central Africa region, the vast majority of the unicode characters chosen for training come from SIL's [Cameroon Multilingual keyboard](https://langtechcameroon.info/keyboard/), which is widely used in the region. A few additional characters were added after getting feedback from linguists working in the region.
