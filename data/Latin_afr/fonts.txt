@@ -1,0 +1,27 @@
+## SIL
+### Abyssinica SIL # mainly for Ethiopic script
+# Andika
+# Andika Compact
+### Andika New Basic # doesn't handle all characters
+# Charis SIL
+# Charis SIL Compact
+# Doulos SIL
+# Doulos SIL Compact
+# Galatia SIL # mainly for basic Latin and Greek
+# Gentium
+## LibreOffice
+### Carlito # doesn't handle all characters
+# DejaVu Sans
+# DejaVu Sans Mono
+# DejaVu Serif
+# Liberation Sans # doesn't handle all characters
+## Microsoft
+Arial                # Win11 +FM -GT
+Calibri              # Win11 +FM -GT
+### Comic Sans MS      # doesn't handle all characters
+Microsoft Sans Serif # Win11 +FM +GT
+Tahoma               # Win11 +FM +GT
+Times New Roman      # Win11 +FM -GT
+## Android
+### Noto Sans # doesn't properly handle combined accents
+### Noto Serif # doesn't properly handle combined accents

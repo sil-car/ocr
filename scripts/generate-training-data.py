@@ -24,107 +24,96 @@ from PIL import Image
 writing_system_name = 'Latin_afr'
 image_ht = 48
 
-variables = {
-    # More info to be considered here:
-    # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
-    'cases': [
-        'lower', 'upper',
-    ],
-    'consonants': [
-        # Includes:
-        #   - nasalized consonants
-        #   - possibility that consonants take top diacritics b/c grammatical tone
-        #   - all consonants present on the CMB Multilingual keyboard
-        "b", "c", "d", "f", "g",
-        "h", "j", "k", "l", "m",
-        "n", "p", "q", "r", "s",
-        "t", "v", "w", "x", "z",
-        "ɓ", "ɗ", "ŋ", "ẅ", "ꞌ", "ʼ",
-    ],
-    'diac_top': [
-        # Includes all combining diacritics present on the CMB Multilingual keyboard.
-        b'\\u0300', # combining grave accent
-        b'\\u0301', # combining acute accent
-        b'\\u0302', # combining circumflex
-        b'\\u0303', # combining tilde above
-        b'\\u0304', # combining macron
-        b'\\u0308', # combining diaeresis
-        b'\\u030c', # combining caron
-        b'\\u030d', # combining vert. line above
-        b'\\u1dc4', # combining macron-acute
-        b'\\u1dc5', # combining grave-macron
-        b'\\u1dc6', # combining macron-grave
-        b'\\u1dc7', # combining acute-macron
-    ],
-    'diac_bot': [
-        # Includes all combining diacritics present on the CMB Multilingual keyboard.
-        b'\\u0323', # combining dot below
-        b'\\u0327', # combining cedilla
-        b'\\u0330', # combining tilde below
-    ],
-    'fonts': [
-        'Andika',
-        'Andika Compact',
-        'Charis SIL',
-        'Charis SIL Compact',
-        'DejaVu Sans',
-        'DejaVu Sans Mono',
-        'DejaVu Serif',
-        'Doulos SIL',
-        'Doulos SIL Compact',
-        'Gentium',
-        # 'Abyssinica SIL', # mainly for Ethiopic script
-        # 'Andika New Basic', # doesn't handle all characters
-        # 'Arial', # doesn't handle all characters
-        # 'Carlito', # doesn't handle all characters
-        # 'Comic Sans MS', # doesn't handle all characters
-        # 'Galatia SIL', # mainly for basic Latin and Greek
-        # 'Liberation Sans', # doesn't handle all characters
-        # 'Noto Sans', # doesn't properly handle combined accents
-        # 'Noto Serif', # doesn't properly handle combined accents
-        # 'Times New Roman', # doesn't handle all characters
-    ],
-    'numbers': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-    'space': [' '],
-    'styles': [
-        'Regular',
-        'Bold',
-        'Italic',
-        'Bold Italic'
-    ],
-    'punctuation': [
-        # TODO: This compiled without much effort. Some chars could be missing.
-        '!', '"', "'", "(", ")", ",", "-", ".", ":", ";", "?",
-        "[", "]", "¡", "«", "»", "“", "”", "‹", "›",
-    ],
-    'vowels': [
-        # Includes all vowels present on the CMB Multilingual keyboard.
-        "a", "e", "i", "o", "u",
-        "ɛ", "æ", "ɑ", "ə", "ı", "ɨ", "ɔ", "ø", "œ", "ʉ",
-    ],
-    'weights': {
-        # Define probabilities.
-        # Base characters; should equal 100%,
-        'p_space': 0.13,
-        'p_num'  : 0.02,
-        'p_punct': 0.05,
-        'p_vowel': 0.40,
-        'p_conso': 0.40,
-        # Modifications to base characters.
-        'p_upper': 0.10, # of all consonants & vowels
-        'p_vtpdi': 0.25, # of vowels (vowel top diacritic)
-        'p_vbtdi': 0.10, # of vowels (vowel bottom diacritic)
-        'p_ctpdi': 0.05, # of consonants (consonant top diacritic)
-        # Special probability adjustments.
-        # 'p_a'    : 0.01, # to overcome over-recognized alphas # didn't help much
-        # 'p_schwa': 0.01, # to overcome open-o being paired with schwa # didn't help much
-        'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
-        # p_tilda: 0.01, # to overcome under-recognized '~' top diacritic # didn't help
-    }
-}
-
 
 # Function definitions.
+def get_script_variables():
+    variables = {
+        # More info to be considered here:
+        # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
+        'cases': [
+            'lower', 'upper',
+        ],
+        'consonants': [
+            # Includes:
+            #   - nasalized consonants
+            #   - possibility that consonants take top diacritics b/c grammatical tone
+            #   - all consonants present on the CMB Multilingual keyboard
+            "b", "c", "d", "f", "g",
+            "h", "j", "k", "l", "m",
+            "n", "p", "q", "r", "s",
+            "t", "v", "w", "x", "z",
+            "ɓ", "ɗ", "ŋ", "ẅ", "ꞌ", "ʼ",
+        ],
+        'diac_top': [
+            # Includes all combining diacritics present on the CMB Multilingual keyboard.
+            b'\\u0300', # combining grave accent
+            b'\\u0301', # combining acute accent
+            b'\\u0302', # combining circumflex
+            b'\\u0303', # combining tilde above
+            b'\\u0304', # combining macron
+            b'\\u0308', # combining diaeresis
+            b'\\u030c', # combining caron
+            b'\\u030d', # combining vert. line above
+            b'\\u1dc4', # combining macron-acute
+            b'\\u1dc5', # combining grave-macron
+            b'\\u1dc6', # combining macron-grave
+            b'\\u1dc7', # combining acute-macron
+        ],
+        'diac_bot': [
+            # Includes all combining diacritics present on the CMB Multilingual keyboard.
+            b'\\u0323', # combining dot below
+            b'\\u0327', # combining cedilla
+            b'\\u0330', # combining tilde below
+        ],
+        'fonts': get_model_fonts(), # from data/<writing_system_name>/fonts.txt
+        'numbers': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+        'space': [' '],
+        'styles': [
+            'Regular',
+            'Bold',
+            'Italic',
+            'Bold Italic'
+        ],
+        'punctuation': [
+            # TODO: This compiled without much effort. Some chars could be missing.
+            '!', '"', "'", "(", ")", ",", "-", ".", ":", ";", "?",
+            "[", "]", "¡", "«", "»", "“", "”", "‹", "›",
+        ],
+        'vowels': [
+            # Includes all vowels present on the CMB Multilingual keyboard.
+            "a", "e", "i", "o", "u",
+            "ɛ", "æ", "ɑ", "ə", "ı", "ɨ", "ɔ", "ø", "œ", "ʉ",
+        ],
+        'weights': {
+            # Define probabilities.
+            # Base characters; should equal 100%,
+            'p_space': 0.13,
+            'p_num'  : 0.02,
+            'p_punct': 0.05,
+            'p_vowel': 0.40,
+            'p_conso': 0.40,
+            # Modifications to base characters.
+            'p_upper': 0.10, # of all consonants & vowels
+            'p_vtpdi': 0.25, # of vowels (vowel top diacritic)
+            'p_vbtdi': 0.10, # of vowels (vowel bottom diacritic)
+            'p_ctpdi': 0.05, # of consonants (consonant top diacritic)
+            # Special probability adjustments.
+            # 'p_a'    : 0.01, # to overcome over-recognized alphas # didn't help much
+            # 'p_schwa': 0.01, # to overcome open-o being paired with schwa # didn't help much
+            'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
+            # p_tilda: 0.01, # to overcome under-recognized '~' top diacritic # didn't help
+        }
+    }
+    return variables
+
+def get_model_dir(model_name):
+    proj_dir = get_git_root(__file__)
+    model_dir = proj_dir / 'data' / model_name
+    if not model_dir.is_dir():
+        print(f"Error: Couldn't find {model_dir}.")
+        exit(1)
+    return model_dir
+
 def show_character_weights(vs):
     print(f"Character weights:")
     for k, v in vs.get('weights').items():
@@ -185,6 +174,22 @@ def show_character_combinations(vs):
     print(f"{num_cases}\tcases (upper/lower)")
     print(f"-" * 40)
     print(f"{combinations}\t total possible combinations")
+
+def get_model_fonts(model_name=writing_system_name):
+    model_dir = get_model_dir(model_name)
+    fonts_file = model_dir / 'fonts.txt'
+    if not fonts_file.is_file():
+        print(f"Error: Couldn't find {fonts_file}")
+    with fonts_file.open() as f:
+        fonts_lines = [l for l in f.readlines() if l[0] != '#']
+    fonts = [l.split('#')[0].strip() for l in fonts_lines]
+    return fonts
+
+def show_fonts_list(model_name=writing_system_name):
+    fonts = get_model_fonts(model_name)
+    fonts.sort()
+    join_char = '\n'
+    print(f"{join_char.join(fonts)}")
 
 def get_git_root(path):
     """find repository root from the path's parents"""
@@ -481,6 +486,11 @@ def get_parsed_args():
         help="output character list and counts, then exit",
     )
     parser.add_argument(
+        '-f', '--list-fonts',
+        type=str,
+        help="list the fonts used for the given model",
+    )
+    parser.add_argument(
         '-i', '--iterations',
         type=int,
         help="create \"i\" iterations of ground truth data",
@@ -514,7 +524,7 @@ def get_parsed_args():
 
 def main():
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
-
+    variables = get_script_variables()
     system_fonts = get_available_fonts()
     verify_fonts(variables)
 
@@ -525,12 +535,18 @@ def main():
         show_character_combinations(variables)
         exit()
 
+    if args.list_fonts:
+        model_name = args.list_fonts
+        show_fonts_list(model_name)
+        exit()
+
     if args.weights:
         show_character_weights(variables)
         exit()
 
     if not args.iterations:
         args.iterations = 1
+
     if args.reset:
         reset_ground_truth(ground_truth_dir)
         exit()
