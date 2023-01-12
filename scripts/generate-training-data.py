@@ -65,7 +65,7 @@ def get_script_variables():
             b'\\u0327', # combining cedilla
             b'\\u0330', # combining tilde below
         ],
-        'fonts': get_model_fonts(), # from data/<writing_system_name>/fonts.txt
+        'fonts': get_model_fonts(), # from f"data/{writing_system_name}/fonts.txt"
         'numbers': ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         'space': [' '],
         'styles': [
@@ -185,11 +185,17 @@ def get_model_fonts(model_name=writing_system_name):
     fonts = [l.split('#')[0].strip() for l in fonts_lines]
     return fonts
 
-def show_fonts_list(model_name=writing_system_name):
+def show_model_fonts(model_name=writing_system_name):
     fonts = get_model_fonts(model_name)
     fonts.sort()
     join_char = '\n'
     print(f"{join_char.join(fonts)}")
+
+def show_installed_fonts(fonts_dict):
+    for n, d1 in fonts_dict.items():
+        print(f"\n{n}:")
+        for s, p in d1.items():
+            print(f"  {s}: {p}")
 
 def get_git_root(path):
     """find repository root from the path's parents"""
@@ -224,6 +230,7 @@ def get_available_fonts():
     # https://stackoverflow.com/a/68810954
     fonts = {}
     fpaths = font_manager.findSystemFonts()
+    fpaths.sort()
     for p in fpaths:
         try:
             f = font_manager.get_font(p)
@@ -231,6 +238,9 @@ def get_available_fonts():
             continue
         if not fonts.get(f.family_name):
             fonts[f.family_name] = {}
+        if fonts.get(f.family_name).get(f.style_name):
+            # Keep 1st version (in $HOME) of font found.
+            continue
         fonts[f.family_name][f.style_name] = p
     return fonts
 
@@ -412,7 +422,7 @@ def generate_text_line_png(chars, fontfile):
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
         # image_ht is a proxy; actual char ht is a few px less b/c spacing
-        dpi=int((88/13)*image_ht - 636/13) # calculated using (22, 100), (35, 188)
+        dpi=int((88/13)*image_ht - 636/13) # linear relationship calculated using (22, 100), (35, 188)
         pix = page.get_pixmap(dpi=dpi)
 
     # Crop the pixmap to remove extra whitespace.
@@ -431,11 +441,8 @@ def generate_text_line_png(chars, fontfile):
     # Crop and return the image.
     return img.crop(box_extents)
 
-# def generate_training_data_pair(chars, fontname, fontstyle, fontfile):
 def generate_training_data_pair(chars, fontfile):
-    # name = set_data_filename(fontname, fontstyle)
     pngdata = generate_text_line_png(chars, fontfile)
-    # return name, txtdata, pngdata
     return chars, pngdata
 
 def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle):
@@ -458,8 +465,7 @@ def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle)
         ]
         result = subprocess.run(cmd)
 
-def verify_fonts(vs):
-    installed_fonts = get_available_fonts()
+def verify_fonts(vs, installed_fonts):
     missing_fonts = []
     for f in vs.get('fonts'):
         if f not in installed_fonts.keys():
@@ -486,9 +492,14 @@ def get_parsed_args():
         help="output character list and counts, then exit",
     )
     parser.add_argument(
-        '-f', '--list-fonts',
+        '-f', '--model-fonts',
         type=str,
         help="list the fonts used for the given model",
+    )
+    parser.add_argument(
+        '-F', '--installed-fonts',
+        action='store_true',
+        help="list installed fonts"
     )
     parser.add_argument(
         '-i', '--iterations',
@@ -526,7 +537,7 @@ def main():
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
     variables = get_script_variables()
     system_fonts = get_available_fonts()
-    verify_fonts(variables)
+    verify_fonts(variables, system_fonts)
 
     # Handle command args.
     args = get_parsed_args()
@@ -535,9 +546,13 @@ def main():
         show_character_combinations(variables)
         exit()
 
-    if args.list_fonts:
-        model_name = args.list_fonts
-        show_fonts_list(model_name)
+    if args.installed_fonts:
+        show_installed_fonts(system_fonts)
+        exit()
+
+    if args.model_fonts:
+        model_name = args.model_fonts
+        show_model_fonts(model_name)
         exit()
 
     if args.weights:
