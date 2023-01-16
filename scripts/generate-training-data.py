@@ -166,7 +166,9 @@ def show_character_combinations(vs):
     print(f"{num_chars}\ttotal unique characters")
     print()
     print(f"FONT LIST:")
-    print(f"  Fonts: {', '.join(vs.get('fonts'))}")
+    fonts = list(vs.get('fonts').keys())
+    fonts.sort()
+    print(f"  Fonts: {', '.join(fonts)}")
     print(f"  Styles: {', '.join(vs.get('styles'))}")
     print()
     print(f"{num_fonts}\tfonts")
@@ -176,17 +178,30 @@ def show_character_combinations(vs):
     print(f"{combinations}\t total possible combinations")
 
 def get_model_fonts(model_name=writing_system_name):
+    fonts = {}
     model_dir = get_model_dir(model_name)
     fonts_file = model_dir / 'fonts.txt'
     if not fonts_file.is_file():
         print(f"Error: Couldn't find {fonts_file}")
-    with fonts_file.open() as f:
-        fonts_lines = [l for l in f.readlines() if l[0] != '#']
-    fonts = [l.split('#')[0].strip() for l in fonts_lines]
+    with fonts_file.open(mode='rb') as f:
+        fonts_lines = [l for l in f.readlines() if chr(l[0]) != '#']
+    # Remove comments.
+    lines_no_comments = [l.split(b'#')[0].strip() for l in fonts_lines]
+    for l in lines_no_comments:
+        l_split = l.split(b'|')
+        font = l_split[0].strip().decode()
+        bad_chars = []
+        if len(l_split) > 1:
+            bad_chars = l_split[1].split()
+
+        bad_chars = [c.decode('unicode-escape') for c in bad_chars]
+        fonts[font] = bad_chars
+
     return fonts
 
 def show_model_fonts(model_name=writing_system_name):
-    fonts = get_model_fonts(model_name)
+    fonts_dict = get_model_fonts(model_name)
+    fonts = list(fonts_dict.keys())
     fonts.sort()
     join_char = '\n'
     print(f"{join_char.join(fonts)}")
@@ -340,7 +355,7 @@ def generate_text_line_random_chars(vs, length=40):
     return s.decode('unicode-escape')
 
 def generate_text_line_weighted_chars(vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2):
-    """return a line of given length with a weighted mixture of valid charachers"""
+    """return a line (str) of given length with a weighted mixture of valid charachers"""
 
     default_options = {
         'consonants': vs.get('weights').get('p_conso'),
@@ -467,7 +482,7 @@ def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle)
 
 def verify_fonts(vs, installed_fonts):
     missing_fonts = []
-    for f in vs.get('fonts'):
+    for f in vs.get('fonts').keys():
         if f not in installed_fonts.keys():
             missing_fonts.append(f)
     if len(missing_fonts) > 0:
@@ -567,19 +582,25 @@ def main():
         exit()
 
     # Generate data.
+    fonts_dict = variables.get('fonts')
     for i in range(args.iterations):
-        line_length = 50
-        char_line = generate_text_line_weighted_chars(variables, length=line_length)
-        if args.verbose:
-            print(f"INFO: {char_line}")
-            print(f"INFO: {b''.join(c.encode('unicode-escape') for c in char_line)}")
-
         # Choose font family.
-        fonts = variables.get('fonts')
-        n = get_random_index(len(fonts))
-        font_fam = fonts[n]
+        n = get_random_index(len(fonts_dict))
+        font_fam = list(fonts_dict.keys())[n]
+        bad_chars = list(fonts_dict.values())[n]
         if args.verbose:
             print(f"INFO: {font_fam}")
+
+        line_length = 50
+        dirty_char_str = generate_text_line_weighted_chars(variables, length=line_length)
+        # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
+        clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
+        char_line = ''.join(clean_unicode_list)
+        if args.verbose:
+            print(f"INFO: dirty {len(dirty_char_str)}: {dirty_char_str}")
+            print(f"INFO: bad:   {bad_chars}")
+            print(f"INFO: clean {len(char_line)}: {char_line}")
+            print(f"INFO: {b''.join([c.encode('unicode-escape') for c in char_line])}")
 
         # Choose font style.
         fontfile = None
