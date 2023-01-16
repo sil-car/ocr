@@ -5,14 +5,14 @@
 ###  \u0300  combining grave accent
 ###  \u0301  combining acute accent
 ###  \u0302  combining circumflex
-###  \u0303  combining tilde above
+###  \u0303  combining tilda above
 ###  \u0304  combining macron
 ###  \u0308  combining diaeresis
 ###  \u030c  combining caron
 ###  \u030d  combining vert. line above
 ###  \u0323  combining dot below
 ###  \u0327  combining cedilla
-###  \u0330  combining tilde below
+###  \u0330  combining tilda below
 ###  \u1dc4  combining macron-acute
 ###  \u1dc5  combining grave-macron
 ###  \u1dc6  combining macron-grave
@@ -20,23 +20,23 @@
 ### ---------------------------------------------------------------------------
 ### SIL
 # Abyssinica SIL       # mainly for Ethiopic script
-#--Andika
-#--Andika Compact
+Andika
+Andika Compact
 # Andika New Basic     # doesn't handle all characters
-#--Charis SIL
-#--Charis SIL Compact
-#--Doulos SIL
-#--Doulos SIL Compact
+Charis SIL
+Charis SIL Compact
+Doulos SIL
+Doulos SIL Compact
 # Galatia SIL          # mainly for basic Latin and Greek
-#--Gentium
+Gentium
 ### LibreOffice
 # Carlito              # doesn't handle all characters
-#--DejaVu Sans
-#--DejaVu Sans Mono
-#--DejaVu Serif
+DejaVu Sans
+DejaVu Sans Mono
+DejaVu Serif
 # Liberation Sans      # doesn't handle all characters
 ### Microsoft
-#--Arial | \u0302 \u0304 \u0308 \u030c \u1dc6 \u1dc7               # Win11
+Arial | \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 # Calibri               # Win11; some unrecognized characters
 # Comic Sans MS        # Win11; some unrecognized characters
 # Microsoft Sans Serif | \u0300 \u0301 \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
