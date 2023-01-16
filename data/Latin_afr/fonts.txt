@@ -40,7 +40,7 @@
 # Calibri               # Win11; some unrecognized characters
 # Comic Sans MS        # Win11; some unrecognized characters
 # Microsoft Sans Serif | \u0300 \u0301 \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-#--Tahoma | \u0303 \u0304 \u030c \u0327 \u0330                     # Win11
+# Tahoma | \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 # Times New Roman | \u0300 \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 ### Android
 # Noto Sans | \u0300 \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
