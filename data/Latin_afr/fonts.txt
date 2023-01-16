@@ -36,7 +36,7 @@ DejaVu Sans Mono
 DejaVu Serif
 # Liberation Sans      # doesn't handle all characters
 ### Microsoft
-Arial | \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
+# Arial | \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 # Calibri               # Win11; some unrecognized characters
 # Comic Sans MS        # Win11; some unrecognized characters
 # Microsoft Sans Serif | \u0300 \u0301 \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
