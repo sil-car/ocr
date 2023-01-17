@@ -12,7 +12,7 @@ A summary showing the results of three particular models is given below. The mod
 ***Fine tuning*** involves giving additional training data to an existing model.
 ***Replacing a layer*** involves also rebuilding part of an existing model to make it better fit the new data, at the cost of additional computational effort and time.
 
-## Character Error Rates (CER)
+## Character Error Rates (CER), by inspection**
 
 Language     | ISO | # src chars | Latin  | 2022121409 (fine-tune)  | 20221219 (replace layer)
 :---         |:---:|---:         |---:    |---:                     |---:
@@ -40,3 +40,4 @@ count < 2%   |     |             | 2      | 7                       | 7
 *Source images are found in [data/example-documents/](data/example-documents)\<iso\>_\<language\>/block.png*
 
 > NOTE: This testing has been done without any image preprocessing (e.g. increasing contrast to remove specks that could be confused for characters). It has also not made use of tesseract's character blacklist or whitelist features, which in some cases would significantly reduce substitution and/or insertion errors.
+> NOTE 2: The values uses to calculate the CER were determined by visual inspection. This will soon be reevaluated using a machine inspection. It has already been recognized that tesseract has preferred composed characters over decomposed characters. This needs to be fixed.
