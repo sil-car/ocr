@@ -1,5 +1,6 @@
 ### Line format:
 ### "Font Family" | "characters" "to" "ignore" # "comment"
+### All lines beginning with "#" are ignored.
 ### ---------------------------------------------------------------------------
 ###  Character Reference Table
 ###  \u0300  combining grave accent
