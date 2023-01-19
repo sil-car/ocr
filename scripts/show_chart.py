@@ -50,7 +50,7 @@ cer_limit = 0.1
 model_names_limited = []
 cer_values_limited = []
 for i, m in enumerate(model_names):
-    if cer_values[i] <= cer_limit:
+    if cer_values[i] <= cer_limit or m == 'Latin':
         model_names_limited.append(m)
         cer_values_limited.append(cer_values[i])
 
