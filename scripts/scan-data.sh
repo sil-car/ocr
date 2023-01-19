@@ -3,6 +3,7 @@
 # Scan data/evaluation folder and ensure that OCR evalulation data is added to data.csv.
 
 list_png_files() {
+    # NOTE: Filenames must not have spaces for this work.
     base_dir="$(readlink -f "$1")"
     if [[ -n "$base_dir" ]]; then
         find "$base_dir" -iname '*.png'
