@@ -64,16 +64,18 @@ y = cer_values_limited
 
 # Generate and format plot.
 fig, ax = plt.subplots(figsize=(8,7))
-plt.subplots_adjust(left=0.1, bottom=0.30, right=0.9, top=0.8, wspace=0, hspace=0)
+
+plt.subplots_adjust(left=0.1, bottom=0.30, right=0.9, top=0.8, wspace=0.1, hspace=0.1)
 plt.xticks(horizontalalignment='right', rotation=60)
 plt.title("Tesseract Models Below 10% CER", pad=12.0)
-# ax.set_title("Tesseract Models Below 10% CER")
-ax.bar(x, y, width=0.25, edgecolor="white", linewidth=0.07)
+
+ax.bar(x, y, width=0.25, edgecolor="blue", linewidth=0)
+ax.tick_params(axis='x', grid_linewidth=0)
 ax.set_xlabel('Model Names')
 ax.set_ylabel('Character Error Rate')
-ax.axhspan(0, 0.05, alpha=0.1, color='yellow', zorder=0.0)  # 5% CER threshold
-ax.axhspan(0, 0.02, alpha=0.2, color='green', zorder=0.1)   # 2% CER threshold
+ax.axhspan(0, 0.05, alpha=0.1, color='yellow', zorder=0.0)  # 5% CER threshold shading
+ax.axhspan(0, 0.02, alpha=0.2, color='green', zorder=0.1)   # 2% CER threshold shading
 
 # Show plot.
 plt.savefig(csv_file.parent / 'models-below-0.10-CER.png')
-plt.show()
+# plt.show()
