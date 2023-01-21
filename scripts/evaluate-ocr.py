@@ -27,7 +27,7 @@ def convert_to_nfd(chars):
     return unicodedata.normalize('NFC', chars)
 
 def get_timestamp(file_path):
-    return str(file_path.stat().st_ctime)
+    return str(file_path.stat().st_mtime)
 
 def compare_text_files(truth_file, hypothesis_file):
     """
@@ -102,7 +102,7 @@ def main():
     parser.add_argument(
         "image_file",
         nargs=1,
-        help="image file on which tesseract is to be tested",
+        help="image file on which tesseract is to be tested; can also be a .gt.txt file",
     )
 
     args = parser.parse_args()
@@ -143,21 +143,21 @@ def main():
     model_name = args.model[0]
     image_file = validate_filelike_input(args.image_file[0])
     base_dir = image_file.parent
-    t_file = base_dir / f"{image_file.stem}.gt.txt"
-    h_file = base_dir / f"{image_file.stem}.{model_name}.txt"
+    if str(image_file).split('.')[-2:] == ['gt', 'txt']:
+        # Input file (args.image_file) actually a .gt.txt file.
+        t_file = image_file
+        stem = Path(str(t_file).replace('.gt', '')).stem
+        image_file = Path(str(t_file).replace('.gt.txt', '.png'))
+    elif image_file.suffix == '.png':
+        input_ext = '.png'
+        t_file = base_dir / f"{image_file.stem}.gt.txt"
+        stem = image_file.stem
+    else:
+        print(f"Error: Invalid image_file: {args.image_file}")
+        exit(1)
+    h_file = base_dir / f"{stem}.{model_name}.txt"
     truth = validate_filelike_input(t_file)
     hypothesis = validate_filelike_input(h_file)
-
-    results = {}
-    results['timestamp'] = get_timestamp(hypothesis) # UID for CSV entries
-    results['iso_lang'] = base_dir.name
-    results['image-file'] = str(image_file)
-    results['truth-text-file'] = str(t_file)
-    results['model'] = model_name
-    results['ocr-text-file'] = str(h_file)
-
-    results.update(compare_text_files(truth, hypothesis))
-    results['cer'] = round(results.get('cer'), 4)
 
     # Accept either two text files or a base directory plus language name.
     # Compare files, giving CER (and listing error chars?)
@@ -175,13 +175,23 @@ def main():
         reader = csv.reader(c)
         timestamps = [r[0] for r in reader]
 
+    # Initialize the CSV data.
+    results = {}
+    results['timestamp'] = get_timestamp(hypothesis) # UID for CSV entries
+
     if results.get('timestamp') not in timestamps:
+        # Complete the rest of the CSV data.
+        results['iso_lang'] = base_dir.name
+        results['image-file'] = str(image_file)
+        results['truth-text-file'] = str(t_file)
+        results['model'] = model_name
+        results['ocr-text-file'] = str(h_file)
+
+        results.update(compare_text_files(truth, hypothesis))
+        results['cer'] = round(results.get('cer'), 4)
         with open(data_csv, 'a', newline='') as c:
             dwriter = csv.DictWriter(c, fieldnames=csv_fieldnames)
             dwriter.writerow(results)
-
-    # for k, v in results.items():
-    #     print(f"{k}: {v}")
 
 if __name__ == '__main__':
     main()
