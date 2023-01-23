@@ -9,31 +9,38 @@ import sys
 from pathlib import Path
 
 
+class GroupedData():
+    def __init__(self, name, csv_data):
+        self.name = name
+        self.data = csv_data
+        self.data_ct = len(csv_data)
+        self.cer_sum = None
+        self.cer_avg = None
+        self.set_cer_avg()
+
+    def set_cer_avg(self):
+        self.cer_sum = sum([float(d.get('cer')) for d in self.data])
+        self.cer_avg = round(self.cer_sum / self.data_ct, 4)
+
+
 def get_csv_data(csv_file):
     with csv_file.open(newline='') as c:
         reader = csv.DictReader(c)
         csv_data = [r for r in reader]
     return csv_data
 
-def get_grouped_data(csv_data, key):
-    grouped_data = {}
-    for row in csv_data:
-        k = row.get(key)
-        if not grouped_data.get(k):
-            grouped_data[k] = {
-                'cer-avg': None,
-                'data': [row],
-            }
-        else:
-            grouped_data[k]['data'].append(row)
-    return grouped_data
-
-def update_computed_avg_cer(grouped_data):
-    for k, v in grouped_data.items():
-        data_ct = len(v.get('data'))
-        cer_sum = sum([float(d.get('cer')) for d in v.get('data')])
-        grouped_data[k]['cer-avg'] = round(cer_sum / data_ct, 4)
-    return grouped_data
+def show_data_table(csv_data, fields=['model', 'cer']):
+    filtered_data = [{k: v for k, v in r.items() if k in fields} for r in csv_data]
+    # Prepare sort order of output.
+    sort_keys = [r.get(fields[0]) for r in filtered_data]
+    sort_keys.sort()
+    # Print output.
+    print('\t'.join(fields))
+    for k in sort_keys:
+        for r in filtered_data:
+            if r.get(fields[0]) == k:
+                print('\t'.join(list(r.values())))
+                continue
 
 def build_3d_slices(data):
     # Each slice is a unique iso_lang set of (model_name, CER).
@@ -175,17 +182,28 @@ def plot_bar3d(slices_dict):
     plt.show()
 
 def main():
-    # Prepare data.
+    # Prepare csv_data.
     csv_file = Path(__file__).expanduser().resolve().parents[1] / 'data' / 'evaluation' / 'data.csv'
     if not csv_file.is_file():
         print(f"Error: File does not exist: {str(csv_file)}")
-
     csv_data = get_csv_data(csv_file)
-    model_data = get_grouped_data(csv_data, 'model')
-    # lang_data = get_grouped_data(csv_data, 'iso_lang')
 
-    # Update model_data with average CERs by model.
-    model_data = update_computed_avg_cer(model_data)
+    # Prepare sorted lists of model_names and iso_langs.
+    model_names = list(set([r.get('model') for r in csv_data]))
+    model_names.sort()
+    iso_langs = list(set([r.get('iso_lang') for r in csv_data]))
+    iso_langs.sort()
+
+    # model_data is a list of model GroupedData objects.
+    model_data = [GroupedData(m, [r for r in csv_data if r.get('model') == m]) for m in model_names]
+
+    # lang_data is a list of iso_lang GroupedData objects.
+    for m in model_data:
+        m.lang_data = []
+        for l in iso_langs:
+            sub_data = [r for r in m.data if r.get('iso_lang') == l]
+            if sub_data:
+                m.lang_data.append(GroupedData(l, sub_data))
 
     plt.style.use('_mpl-gallery')
     out_dir = csv_file.parent
@@ -199,25 +217,21 @@ def main():
 
             # Determine best_model and its CER.
             best_model = [None, None]
-            for m, v in model_data.items():
-                a = v.get('cer-avg')
+            for m in model_data:
+                a = m.cer_avg
                 if best_model[0] is None or a < best_model[1]:
-                    best_model = [m, a]
+                    best_model = [m.name, a]
 
-            # Gather data for best_model.
-            lang_data = get_grouped_data(csv_data, 'iso_lang')
-            lang_names = list(lang_data.keys())
-            lang_names.sort()
-            # print(lang_data)
             cer_values = []
             lang_names_filtered = []
-            for l in lang_names:
-                rows = lang_data.get(l).get('data')
-                for r in rows:
-                    if r.get('model') == best_model[0]:
-                        cer_values.append(float(r.get('cer')))
-                        lang_names_filtered.append(l)
-                        break
+            for m in model_data:
+                if m.name == best_model[0]:
+                    for l in m.lang_data:
+                        # print(f"{l.name}: {l.cer_sum}; {l.cer_avg}")
+                        cer_values.append(l.cer_avg)
+                        lang_names_filtered.append(l.name)
+                    show_data_table(m.data, fields=['iso_lang', 'cer'])
+                    break
 
             x = lang_names_filtered
             y = cer_values
@@ -228,11 +242,13 @@ def main():
             plot_bar2d(x, y, out_file, title, xlabel, ylabel)
     else:
         # Show summary chart of CER by Model Name.
+        # Output data table.
+        print(f"Model Name\tCER")
+        for m in model_data:
+            print(f"{m.name}\t{m.cer_avg}")
 
-        # Sort Model names alphabetically.
-        model_names = list(model_data.keys())
-        model_names.sort()
-        cer_values = [model_data.get(m).get('cer-avg') for m in model_names]
+        # Get CER averages by model.
+        cer_values = [m.cer_avg for m in model_data]
 
         # Remove models whose CERs are greater than cer_limit.
         cer_limit = 0.1
@@ -243,6 +259,7 @@ def main():
                 model_names_limited.append(m)
                 cer_values_limited.append(cer_values[i])
 
+        # Prepare plot data.
         x = model_names_limited
         y = cer_values_limited
         out_file = out_dir / 'models-below-0.10-CER.png'
