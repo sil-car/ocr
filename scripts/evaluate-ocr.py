@@ -3,21 +3,24 @@
 import argparse
 import csv
 import jiwer
+import os
+import pytesseract
 import sys
 import unicodedata
 
 from pathlib import Path
+from PIL import Image
 
 
 def validate_filelike_input(input_text, ftype='file'):
     input_path = Path(input_text)
     input_full_path = input_path.expanduser().resolve()
     if ftype == 'file' and not input_full_path.is_file():
-        print(f"Error: Could not find file: {input_text}")
-        exit()
+        # print(f"Error: Could not find file: {input_text}")
+        input_full_path = False
     elif ftype == 'dir' and not input_full_path.is_dir():
-        print(f"Error: Could not find folder: {input_text}")
-        exit()
+        # print(f"Error: Could not find folder: {input_text}")
+        input_full_path = False
     return input_full_path
 
 def convert_to_nfc(chars):
@@ -64,6 +67,16 @@ def compare_text_files(truth_file, hypothesis_file):
     result['number-truth'] = N
     return result
 
+def get_all_ocr_models(tessdata_dir):
+    model_files = tessdata_dir.glob('Latin*.traineddata')
+    return [f.stem for f in model_files]
+
+def run_ocr(infile_path, model, outfile_path):
+    print(f"Recognizing text from {infile_path.name} using model {model}...")
+    with Image.open(infile_path) as img:
+        htext = pytesseract.image_to_string(img, lang=model)
+    outfile_path.write_text(htext)
+
 def main():
     description = "Provide CER between a reference text file and a hypothesis text file."
     parser = argparse.ArgumentParser(
@@ -106,11 +119,20 @@ def main():
     )
 
     args = parser.parse_args()
+    # Set env variables.
+    tessdata_dir = Path(__file__).parents[1] / 'tessdata'
+    os.environ['TESSDATA_PREFIX'] = str(tessdata_dir)
 
     # Simple comparison if truth and hypothesis files given.
     if args.truth and args.hypothesis:
         truth = validate_filelike_input(args.truth[0])
+        if truth is False:
+            print(f"Error: Could not find file: {args.truth[0]}")
+            exit(1)
         hypothesis = validate_filelike_input(args.hypothesis[0])
+        if hypothesis is False:
+            print(f"Error: Could not find file: {args.hypothesis[0]}")
+            exit(1)
         results = compare_text_files(truth, hypothesis)
         for k, v in results.items():
             print(f"{k}: {v}")
@@ -140,8 +162,14 @@ def main():
         print(f"Error: No image file given.")
         exit(1)
 
-    model_name = args.model[0]
+    model_names = [args.model[0]]
+    if model_names == ['all']:
+        model_names = get_all_ocr_models(tessdata_dir)
+
     image_file = validate_filelike_input(args.image_file[0])
+    if image_file is False:
+        print(f"Error: Could not find file: {args.image_file[0]}")
+        exit(1)
     base_dir = image_file.parent
     if str(image_file).split('.')[-2:] == ['gt', 'txt']:
         # Input file (args.image_file) actually a .gt.txt file.
@@ -155,43 +183,40 @@ def main():
     else:
         print(f"Error: Invalid image_file: {args.image_file}")
         exit(1)
-    h_file = base_dir / f"{stem}.{model_name}.txt"
     truth = validate_filelike_input(t_file)
-    hypothesis = validate_filelike_input(h_file)
+    if truth is False:
+        print(f"Error: Could not find file: {t_file}")
+        exit(1)
+    for model_name in model_names:
+        h_file = base_dir / f"{stem}.{model_name}.txt"
+        hypothesis = validate_filelike_input(h_file)
+        if hypothesis is False:
+            run_ocr(image_file, model_name, h_file)
+            hypothesis = validate_filelike_input(h_file)
+            if hypothesis is False:
+                print(f"Error: File not properly created: {str(h_file)}")
 
-    # Accept either two text files or a base directory plus language name.
-    # Compare files, giving CER (and listing error chars?)
-    # Update spreadsheet with new data.
-    #   - Timestamp
-    #   - ISO_Lang
-    #   - Image file
-    #   - Truth text file
-    #   - Model name
-    #   - OCR text file
-    #   - CER
-    #   - N, S, D, I, H counts
+        with open(data_csv) as c:
+            reader = csv.reader(c)
+            timestamps = [r[0] for r in reader]
 
-    with open(data_csv) as c:
-        reader = csv.reader(c)
-        timestamps = [r[0] for r in reader]
+        # Initialize the CSV data.
+        results = {}
+        results['timestamp'] = get_timestamp(hypothesis) # UID for CSV entries
 
-    # Initialize the CSV data.
-    results = {}
-    results['timestamp'] = get_timestamp(hypothesis) # UID for CSV entries
+        if results.get('timestamp') not in timestamps:
+            # Complete the rest of the CSV data.
+            results['iso_lang'] = base_dir.name
+            results['image-file'] = str(image_file)
+            results['truth-text-file'] = str(t_file)
+            results['model'] = model_name
+            results['ocr-text-file'] = str(h_file)
 
-    if results.get('timestamp') not in timestamps:
-        # Complete the rest of the CSV data.
-        results['iso_lang'] = base_dir.name
-        results['image-file'] = str(image_file)
-        results['truth-text-file'] = str(t_file)
-        results['model'] = model_name
-        results['ocr-text-file'] = str(h_file)
-
-        results.update(compare_text_files(truth, hypothesis))
-        results['cer'] = round(results.get('cer'), 4)
-        with open(data_csv, 'a', newline='') as c:
-            dwriter = csv.DictWriter(c, fieldnames=csv_fieldnames)
-            dwriter.writerow(results)
+            results.update(compare_text_files(truth, hypothesis))
+            results['cer'] = round(results.get('cer'), 4)
+            with open(data_csv, 'a', newline='') as c:
+                dwriter = csv.DictWriter(c, fieldnames=csv_fieldnames)
+                dwriter.writerow(results)
 
 if __name__ == '__main__':
     main()
