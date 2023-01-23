@@ -29,19 +29,6 @@ def get_csv_data(csv_file):
         csv_data = [r for r in reader]
     return csv_data
 
-def show_data_table(csv_data, fields=['model', 'cer']):
-    filtered_data = [{k: v for k, v in r.items() if k in fields} for r in csv_data]
-    # Prepare sort order of output.
-    sort_keys = [r.get(fields[0]) for r in filtered_data]
-    sort_keys.sort()
-    # Print output.
-    print('\t'.join(fields))
-    for k in sort_keys:
-        for r in filtered_data:
-            if r.get(fields[0]) == k:
-                print('\t'.join(list(r.values())))
-                continue
-
 def build_3d_slices(data):
     # Each slice is a unique iso_lang set of (model_name, CER).
     #   slices = {iso_lang: {model_name: CER}, ...}
@@ -222,6 +209,7 @@ def main():
                 if best_model[0] is None or a < best_model[1]:
                     best_model = [m.name, a]
 
+            # List CER values and filtered ISO_Langs.
             cer_values = []
             lang_names_filtered = []
             for m in model_data:
@@ -230,8 +218,12 @@ def main():
                         # print(f"{l.name}: {l.cer_sum}; {l.cer_avg}")
                         cer_values.append(l.cer_avg)
                         lang_names_filtered.append(l.name)
-                    show_data_table(m.data, fields=['iso_lang', 'cer'])
                     break
+
+            # Print data table to stdout.
+            print(f"ISO_Language\tCER")
+            for l, c in zip(lang_names_filtered, cer_values):
+                print(f"{l}\t{c}")
 
             x = lang_names_filtered
             y = cer_values
@@ -242,7 +234,7 @@ def main():
             plot_bar2d(x, y, out_file, title, xlabel, ylabel)
     else:
         # Show summary chart of CER by Model Name.
-        # Output data table.
+        # Print data table to stdout.
         print(f"Model Name\tCER")
         for m in model_data:
             print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
