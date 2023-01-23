@@ -12,11 +12,9 @@ An attempt at creating a reliable character-based OCR solution for Latin-based w
 
 Current best model: [Latin_afr_20221219.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_20221219.traineddata)
 
->Average CER: 4.01% over 5,339 characters from 15 samples
-
 Summary test results can be seen in [Testing.md](Testing.md).
 
-Full test results can be found in [data/example-documents/](data/example-documents/)
+Full test results can be found in [data/evaluation/](data/evaluation/)
 
 ## Usage
 
@@ -63,8 +61,12 @@ The CER is composed of 5 quantities:
 1. I: number of insertion errors (i.e. character was added to results)
 
 The simple CER is calculated as follows:
-```
+```py
 CER = (S + D + I) / N
+```
+or
+```py
+CER = (S + D + I) / (C + S + D) # used by jiwer
 ```
 
 However, this can result in a CER > 100% if there are many insertion errors. So
