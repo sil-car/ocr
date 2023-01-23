@@ -245,7 +245,7 @@ def main():
         # Output data table.
         print(f"Model Name\tCER")
         for m in model_data:
-            print(f"{m.name}\t{m.cer_avg}")
+            print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
 
         # Get CER averages by model.
         cer_values = [m.cer_avg for m in model_data]
