@@ -199,8 +199,8 @@ def main():
         if sys.argv[1] == '3d':
             data_slices = build_3d_slices(model_data)
             plot_bar3d(data_slices)
-        elif sys.argv[1] == 'lang':
-            # Show summary chart of CER by ISO_Language with given Model Name.
+        elif sys.argv[1] == 'best':
+            # Show best model summary chart of CER by ISO_Language.
 
             # Determine best_model and its CER.
             best_model = [None, None]
@@ -215,7 +215,6 @@ def main():
             for m in model_data:
                 if m.name == best_model[0]:
                     for l in m.lang_data:
-                        # print(f"{l.name}: {l.cer_sum}; {l.cer_avg}")
                         cer_values.append(l.cer_avg)
                         lang_names_filtered.append(l.name)
                     break
@@ -228,7 +227,33 @@ def main():
             x = lang_names_filtered
             y = cer_values
             out_file = out_dir / 'best-model-perf-by-lang.png'
-            title = f"CERs by ISO_Language for {best_model[0]}"
+            title = f"CERs by ISO_Language for model: {best_model[0]}"
+            xlabel = "ISO_Language"
+            ylabel = "Character Error Rate"
+            plot_bar2d(x, y, out_file, title, xlabel, ylabel)
+        elif sys.argv[1] == 'model':
+            # Show summary chart of CER by ISO_Language for the given model.
+            model_name = sys.argv[2]
+
+            # List CER values and filtered ISO_Langs.
+            cer_values = []
+            lang_names_filtered = []
+            for m in model_data:
+                if m.name == model_name:
+                    for l in m.lang_data:
+                        cer_values.append(l.cer_avg)
+                        lang_names_filtered.append(l.name)
+                    break
+
+            # Print data table to stdout.
+            print(f"ISO_Language\tCER")
+            for l, c in zip(lang_names_filtered, cer_values):
+                print(f"{l}\t{c}")
+
+            x = lang_names_filtered
+            y = cer_values
+            out_file = out_dir / f"{model_name}-perf-by-lang.png"
+            title = f"CERs by ISO_Language for model: {model_name}"
             xlabel = "ISO_Language"
             ylabel = "Character Error Rate"
             plot_bar2d(x, y, out_file, title, xlabel, ylabel)

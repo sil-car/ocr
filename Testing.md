@@ -6,6 +6,8 @@
 
 ![Best Model's Performance by ISO_Language](data/evaluation/best-model-perf-by-lang.png)
 
+![Latin Model's Performance by ISO_Language](data/evaluation/Latin-perf-by-lang.png)
+
 > - Chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
 > - data.csv populated from evalutation of files in [data/evaluation/\<iso_langname\>](data/evaluation).
 
