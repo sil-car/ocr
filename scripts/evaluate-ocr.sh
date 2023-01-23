@@ -1,6 +1,8 @@
 #!/bin/bash
 
 ### Sequence of scriptable steps for creating and testing OCR via tesseract.
+echo "This script has been superseded by ocr/scripts/evaluate-ocr.py"
+exit
 
 # Set global variables.
 lang="Latin"
