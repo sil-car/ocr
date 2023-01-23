@@ -16,11 +16,30 @@ class GroupedData():
         self.data_ct = len(csv_data)
         self.cer_sum = None
         self.cer_avg = None
+        self.cer_group = None
+
+        self.c_sum = sum([float(d.get('hits')) for d in self.data])
+        self.d_sum = sum([float(d.get('deletions')) for d in self.data])
+        self.i_sum = sum([float(d.get('insertions')) for d in self.data])
+        self.s_sum = sum([float(d.get('substitutions')) for d in self.data])
         self.set_cer_avg()
+        self.set_group_cer()
 
     def set_cer_avg(self):
         self.cer_sum = sum([float(d.get('cer')) for d in self.data])
         self.cer_avg = round(self.cer_sum / self.data_ct, 4)
+
+    def set_group_cer(self):
+        # CER = (S + D + I) / (C + S + D)
+        self.cer_group = (
+            round(
+                float(
+                    self.s_sum + self.d_sum + self.i_sum
+                ) / float(
+                    self.c_sum + self.s_sum + self.d_sum
+                ), 4
+            )
+        )
 
 
 def get_csv_data(csv_file):
@@ -181,7 +200,7 @@ def main():
     iso_langs = list(set([r.get('iso_lang') for r in csv_data]))
     iso_langs.sort()
 
-    # model_data is a list of model GroupedData objects.
+    # model_data is a list of GroupedData objects of models.
     model_data = [GroupedData(m, [r for r in csv_data if r.get('model') == m]) for m in model_names]
 
     # lang_data is a list of iso_lang GroupedData objects.
@@ -215,7 +234,7 @@ def main():
             for m in model_data:
                 if m.name == best_model[0]:
                     for l in m.lang_data:
-                        cer_values.append(l.cer_avg)
+                        cer_values.append(l.cer_group)
                         lang_names_filtered.append(l.name)
                     break
 
@@ -241,7 +260,7 @@ def main():
             for m in model_data:
                 if m.name == model_name:
                     for l in m.lang_data:
-                        cer_values.append(l.cer_avg)
+                        cer_values.append(l.cer_group)
                         lang_names_filtered.append(l.name)
                     break
 
@@ -262,10 +281,12 @@ def main():
         # Print data table to stdout.
         print(f"Model Name\tCER")
         for m in model_data:
-            print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
+            # print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
+            print(f"{m.name}\t{m.cer_group}")
 
         # Get CER averages by model.
-        cer_values = [m.cer_avg for m in model_data]
+        # cer_values = [m.cer_avg for m in model_data]
+        cer_values = [m.cer_group for m in model_data]
 
         # Remove models whose CERs are greater than cer_limit.
         cer_limit = 0.1
