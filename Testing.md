@@ -11,6 +11,11 @@
 > - Chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
 > - data.csv populated from evalutation of files in [data/evaluation/\<iso_langname\>](data/evaluation).
 
+### Shortcomings
+
+- Standalone tilda (~) doesn't seem to be recognized.
+- i + grave accent commonly recognized as either i + macron-grave or dotless i + grave
+
 ## By Visual Inspection**
 
 Each tesseract language model is used to OCR the same set of 15 sample images.
