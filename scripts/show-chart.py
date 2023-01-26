@@ -90,6 +90,7 @@ def build_3d_slices(data):
 def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel):
     # Generate and format plot.
     bw = 0.3 # bar width
+    lw = 0.5 # line width
 
     fig, ax = plt.subplots(figsize=(8,7))
 
@@ -102,8 +103,8 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel):
         lx = title.split('&')[0].split()[-1].strip()    # hack
         lz = title.split('&')[1].strip()                # hack
         plt.xticks(ind+bw/2, x, horizontalalignment='right', rotation=60)
-        ax.bar(ind-0.1, y, width=bw, edgecolor="w", linewidth=0, label=lx)
-        ax.bar(ind+0.1, z, width=bw, edgecolor="w", linewidth=0, facecolor='rosybrown', label=lz)
+        ax.bar(ind-0.1, y, width=bw, edgecolor="w", linewidth=lw, label=lx)
+        ax.bar(ind+0.1, z, width=bw, edgecolor="w", linewidth=lw, facecolor='rosybrown', label=lz)
         plt.legend(loc='best')
     else:
         plt.xticks(horizontalalignment='right', rotation=60)
