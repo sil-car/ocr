@@ -187,6 +187,96 @@ def plot_bar3d(slices_dict):
 
     plt.show()
 
+def prepare_chart_data(chart_type, model_data, out_dir, model_name=None, comp_name=None):
+    x = None
+    y = None
+    out_file = None
+    title = None
+    xlabel = None
+    ylabel = None
+
+    if chart_type == 'summary':
+        # Print data table to stdout.
+        print(f"Model Name\tCER")
+        for m in model_data:
+            # print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
+            print(f"{m.name}\t{m.cer_group}")
+
+        # Get CER averages by model.
+        # cer_values = [m.cer_avg for m in model_data]
+        cer_values = [m.cer_group for m in model_data]
+
+        # Remove models whose CERs are greater than cer_limit.
+        cer_limit = 0.1
+        model_names_limited = []
+        cer_values_limited = []
+        for i, m in enumerate(model_names):
+            if cer_values[i] <= cer_limit or m == 'Latin':
+                model_names_limited.append(m)
+                cer_values_limited.append(cer_values[i])
+
+        # Prepare plot data.
+        x = model_names_limited
+        y = cer_values_limited
+        out_file = out_dir / 'models-below-0.10-CER.png'
+        title = "Models Below 10% CER"
+        xlabel = "Model Name"
+        ylabel = "Character Error Rate"
+    elif chart_type == 'best':
+        # Determine best_model and its CER.
+        best_model = [None, None]
+        for m in model_data:
+            a = m.cer_avg
+            if best_model[0] is None or a < best_model[1]:
+                best_model = [m.name, a]
+
+        # List CER values and filtered ISO_Langs.
+        cer_values = []
+        lang_names_filtered = []
+        for m in model_data:
+            if m.name == best_model[0]:
+                for l in m.lang_data:
+                    cer_values.append(l.cer_group)
+                    lang_names_filtered.append(l.name)
+                break
+
+        # Print data table to stdout.
+        print(f"ISO_Language\tCER")
+        for l, c in zip(lang_names_filtered, cer_values):
+            print(f"{l}\t{c}")
+
+        x = lang_names_filtered
+        y = cer_values
+        out_file = out_dir / 'best-model-perf-by-lang.png'
+        title = f"CERs by ISO_Language for model: {best_model[0]}"
+        xlabel = "ISO_Language"
+        ylabel = "Character Error Rate"
+    elif chart_type == 'comp' and model_name is not None and comp_name is not None:
+        pass
+    elif chart_type == 'model' and model_name is not None:
+        # List CER values and filtered ISO_Langs.
+        cer_values = []
+        lang_names_filtered = []
+        for m in model_data:
+            if m.name == model_name:
+                for l in m.lang_data:
+                    cer_values.append(l.cer_group)
+                    lang_names_filtered.append(l.name)
+                break
+
+        # Print data table to stdout.
+        print(f"ISO_Language\tCER")
+        for l, c in zip(lang_names_filtered, cer_values):
+            print(f"{l}\t{c}")
+
+        x = lang_names_filtered
+        y = cer_values
+        out_file = out_dir / f"{model_name}-perf-by-lang.png"
+        title = f"CERs by ISO_Language for model: {model_name}"
+        xlabel = "ISO_Language"
+        ylabel = "Character Error Rate"
+    return x, y, out_file, title, xlabel, ylabel
+
 def main():
     # Prepare csv_data.
     csv_file = Path(__file__).expanduser().resolve().parents[1] / 'data' / 'evaluation' / 'data.csv'
@@ -221,34 +311,35 @@ def main():
         elif sys.argv[1] == 'best':
             # Show best model summary chart of CER by ISO_Language.
 
-            # Determine best_model and its CER.
-            best_model = [None, None]
-            for m in model_data:
-                a = m.cer_avg
-                if best_model[0] is None or a < best_model[1]:
-                    best_model = [m.name, a]
-
-            # List CER values and filtered ISO_Langs.
-            cer_values = []
-            lang_names_filtered = []
-            for m in model_data:
-                if m.name == best_model[0]:
-                    for l in m.lang_data:
-                        cer_values.append(l.cer_group)
-                        lang_names_filtered.append(l.name)
-                    break
-
-            # Print data table to stdout.
-            print(f"ISO_Language\tCER")
-            for l, c in zip(lang_names_filtered, cer_values):
-                print(f"{l}\t{c}")
-
-            x = lang_names_filtered
-            y = cer_values
-            out_file = out_dir / 'best-model-perf-by-lang.png'
-            title = f"CERs by ISO_Language for model: {best_model[0]}"
-            xlabel = "ISO_Language"
-            ylabel = "Character Error Rate"
+            # # Determine best_model and its CER.
+            # best_model = [None, None]
+            # for m in model_data:
+            #     a = m.cer_avg
+            #     if best_model[0] is None or a < best_model[1]:
+            #         best_model = [m.name, a]
+            #
+            # # List CER values and filtered ISO_Langs.
+            # cer_values = []
+            # lang_names_filtered = []
+            # for m in model_data:
+            #     if m.name == best_model[0]:
+            #         for l in m.lang_data:
+            #             cer_values.append(l.cer_group)
+            #             lang_names_filtered.append(l.name)
+            #         break
+            #
+            # # Print data table to stdout.
+            # print(f"ISO_Language\tCER")
+            # for l, c in zip(lang_names_filtered, cer_values):
+            #     print(f"{l}\t{c}")
+            #
+            # x = lang_names_filtered
+            # y = cer_values
+            # out_file = out_dir / 'best-model-perf-by-lang.png'
+            # title = f"CERs by ISO_Language for model: {best_model[0]}"
+            # xlabel = "ISO_Language"
+            # ylabel = "Character Error Rate"
+            x, y, out_file, title, xlabel, ylabel = prepare_chart_data('best', model_data, out_dir)
             plot_bar2d(x, y, out_file, title, xlabel, ylabel)
         elif sys.argv[1] == 'model':
             # Show summary chart of CER by ISO_Language for the given model.
@@ -276,6 +367,10 @@ def main():
             xlabel = "ISO_Language"
             ylabel = "Character Error Rate"
             plot_bar2d(x, y, out_file, title, xlabel, ylabel)
+    elif sys.argv[1] == 'comp':
+        # Produce summary chart with both 'best' and 'Latin' models together.
+        pass
+
     else:
         # Show summary chart of CER by Model Name.
         # Print data table to stdout.
