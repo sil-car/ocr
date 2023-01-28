@@ -10,7 +10,7 @@ An attempt at creating a reliable character-based OCR solution for Latin-based w
 
 ## Current Testing
 
-Current best model: [Latin_afr_20221219.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_20221219.traineddata)
+Current best model: [Latin_afr_202212178613.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_202212178613.traineddata)
 
 Summary test results can be seen in [Testing.md](Testing.md).
 
