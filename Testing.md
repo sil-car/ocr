@@ -4,7 +4,7 @@
 
 ![Models below 10% CER](data/evaluation/models-below-0.10-CER.png)
 
-![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_20221219.png)
+![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_2022121705.png)
 
 > - Chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
 > - data.csv populated from evalutation of files in [data/evaluation/\<iso_langname\>](data/evaluation).
