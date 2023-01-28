@@ -208,7 +208,8 @@ def get_best_model(model_data):
     # Determine best_model and its CER.
     best_model = [None, None]
     for m in model_data:
-        a = m.cer_avg
+        # a = m.cer_avg
+        a = m.cer_group
         if best_model[0] is None or a < best_model[1]:
             best_model = [m.name, a]
     return best_model
@@ -374,8 +375,8 @@ def main():
 
     else:
         # Show summary chart of CER by Model Name.
-        x, y, outf, t, xl, yl = prepare_chart_data('summary', model_data, out_dir, model_names=model_names)
-        plot_bar2d(x, y, outf, t, xl, yl)
+        x, y, z, outf, t, xl, yl = prepare_chart_data('summary', model_data, out_dir, model_names=model_names)
+        plot_bar2d(x, y, z, outf, t, xl, yl)
 
 
 if __name__ == '__main__':
