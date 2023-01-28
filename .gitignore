@@ -1,3 +1,6 @@
+# HTML
+*.html
+
 # Lock files
 .~lock.*
 
