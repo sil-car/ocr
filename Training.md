@@ -1,5 +1,7 @@
 # Training
 
+## Overview
+
 There are several factors considered when preparing and running the training:
 - precise list of unicode characters used
 - number of fonts and font styles used
@@ -78,3 +80,20 @@ Fine tuning works reasonably well and is fairly straightforward to run. But test
 ### Format of replaced top layer
 
 It seems other models with large numbers of output characters use a top layer size of 512 nodes, while some use 256 or something in between. Both 512 and 256 were tested, and 512 seems to perform better.
+
+## Notes on specific models
+
+Model | No. of Fonts | No. of Actual GT | No. of Gen. Chars. | Char. Tweaks | Char. Ht. | Top Layer | Iterations | BCER
+:-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :--
+Latin_afr_2022121409 | 8 | 25,600 | 1,280,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 23,000 | 8.70%
+Latin_afr_2022121416 | 8 | 50,000 | 2,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 45,000 | 5.33%
+Latin_afr_2022121520 | 8 | 50,000 | 2,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx256 | 45,000 | 11.31%
+Latin_afr_2022121606 | 8 | 100,000 | 5,000,000 | p_a, p_schwa = 0.01 | 40px | Lfx256 | 90,000 | 8.84%
+Latin_afr_2022121705 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 41,300 | 9.34%
+Latin_afr_2022121714 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 100,000 | 6.88%
+Latin_afr_202212179339 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 41,300 | 9.34%
+Latin_afr_202212178613 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 49,800 | 8.61%
+Latin_afr_202212178057 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 59,300 | 8.06%
+Latin_afr_20221218 | 10 | 64,000 | 3,200,000 | None | 48px | Lfx512 | 58,000 | 8.97%
+Latin_afr_20221219 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx512 | 58,000 | 8.94%
+Latin_afr_20221221 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx256 | 58,000 | 11.04%
