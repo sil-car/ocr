@@ -83,7 +83,7 @@ It seems other models with large numbers of output characters use a top layer si
 
 ## Notes on specific models
 
-Model | No. of Fonts | No. of Actual GT | No. of Gen. Chars. | Char. Tweaks | Char. Ht. | Top Layer | Iterations | BCER
+Model | Fonts ct. | GT Images ct. | Generated Chars. ct. | Char. Tweaks | Char. Ht. | Top Layer | Iterations | BCER
 :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :--
 Latin_afr_2022121409 | 8 | 25,600 | 1,280,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 23,000 | 8.70%
 Latin_afr_2022121416 | 8 | 50,000 | 2,500,000 | p_a, p_schwa = 0.01 | 40px | Lfx512 | 45,000 | 5.33%
