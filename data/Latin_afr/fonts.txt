@@ -53,7 +53,7 @@ Segoe UI Variable | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Tahoma | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Times New Roman | \u0327 # Win11
 ### Android
-Noto Sans
+Noto Sans # fonts-noto-core
 Noto Sans Display
 Noto Sans Mono
 Noto Serif
