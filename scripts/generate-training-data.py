@@ -16,6 +16,7 @@ import tempfile
 import time
 
 from matplotlib import font_manager
+from os import environ
 from pathlib import Path
 from PIL import Image
 
@@ -23,6 +24,7 @@ from PIL import Image
 # Global variables.
 writing_system_name = 'Latin_afr'
 image_ht = 48
+chars_per_line = 50
 
 
 # Function definitions.
@@ -77,7 +79,7 @@ def get_script_variables():
         'punctuation': [
             # TODO: This compiled without much effort. Some chars could be missing.
             '!', '"', "'", "(", ")", ",", "-", ".", ":", ";", "?",
-            "[", "]", "¡", "«", "»", "“", "”", "‹", "›",
+            "[", "]", "¡", "«", "»", "“", "”", "‹", "›", "~",
         ],
         'vowels': [
             # Includes all vowels present on the CMB Multilingual keyboard.
@@ -149,6 +151,12 @@ def show_character_combinations(vs):
     # combinations = num_chars * num_fonts * num_styles * num_cases
     combinations = (num_cased_chars * num_cases + num_uncased_chars) * num_fonts * num_styles
 
+    wts = vs.get('weights')
+    img_min = int(
+        (num_consonants + num_vowels) / wts.get('p_conso') / wts.get('p_ctpdi') / wts.get('p_upper')
+        * num_fonts * num_styles * 2 / chars_per_line / 0.9
+    )
+
     print(f"CHARACTER LIST:")
     print(f"  Consonants: {''.join(vs.get('consonants'))}")
     print(f"  Vowels: {''.join(vs.get('vowels'))}")
@@ -156,6 +164,14 @@ def show_character_combinations(vs):
     print(f"  Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
     print(f"  Numbers: {''.join(vs.get('numbers'))}")
     print(f"  Punctuation: {''.join(vs.get('punctuation'))}")
+    print()
+    print(f"Character weights:")
+    for k, v in wts.items():
+        print(f"{v}\t{k}")
+    print()
+    print(f"Training recommendations:")
+    print(f"{img_min}\timages (min.)")
+    print(f"{int(img_min * 0.9)}\titerations (min.)")
     print()
     print(f"Character counts:")
     print(f"{num_vowel_combos}\tvowels with or without top or bottom diacritics")
@@ -244,8 +260,15 @@ def get_binary_choice(prob=0.5):
 def get_available_fonts():
     # https://stackoverflow.com/a/68810954
     fonts = {}
+    search_paths = [
+        '/usr/share/fonts',
+        f"{environ['HOME']}/.local/share/fonts",
+    ]
     fpaths = font_manager.findSystemFonts()
     fpaths.sort()
+    # print(fpaths)
+    # print(len(fpaths))
+    # exit()
     for p in fpaths:
         try:
             f = font_manager.get_font(p)
@@ -591,8 +614,7 @@ def main():
         if args.verbose:
             print(f"INFO: {font_fam}")
 
-        line_length = 50
-        dirty_char_str = generate_text_line_weighted_chars(variables, length=line_length)
+        dirty_char_str = generate_text_line_weighted_chars(variables, length=chars_per_line)
         # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
         clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
         char_line = ''.join(clean_unicode_list)
@@ -604,15 +626,20 @@ def main():
 
         # Choose font style.
         fontfile = None
-        while not fontfile:
-            styles = variables.get('styles')
+        styles = variables.get('styles')
+        tried = set()
+        while not fontfile and len(tried) != len(styles):
             n = get_random_index(len(styles))
+            tried.add(n)
             font_sty = styles[n]
             if args.verbose:
                 print(f"INFO: {font_sty}")
-            if args.verbose and fontfile is not None:
-                print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
+            # if args.verbose and fontfile is not None:
+            #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
             fontfile = system_fonts.get(font_fam).get(font_sty)
+        if not fontfile:
+            print(f"WARNING: {font_fam} doesn't have any matching font styles. Skipping.")
+            continue
 
         # Generate files.
         filename = set_data_filename(font_fam, font_sty)
