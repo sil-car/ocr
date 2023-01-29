@@ -1,6 +1,7 @@
 ### Line format:
 ### "Font Family" | "characters" "to" "ignore" # "comment"
 ### All lines beginning with "#" are ignored.
+### String tested in font-manager: ɓɗɔɛæɑɨʉƴœəẅøìíŝF̃īöěa̍ụɔ̧ɛ̧o̰o᷄a᷅i᷆e᷇
 ### ---------------------------------------------------------------------------
 ###  Character Reference Table
 ###  \u0300  combining grave accent
@@ -29,20 +30,36 @@ Charis SIL Compact
 Doulos SIL
 Doulos SIL Compact
 # Galatia SIL          # mainly for basic Latin and Greek
-Gentium
+Gentium | \u1dc4 \u1dc5 \u1dc6 \u1dc7
+Gentium Book Plus
+Gentium Plus
+Gentium Plus Compact
 ### LibreOffice
 # Carlito              # doesn't handle all characters
-DejaVu Sans
-DejaVu Sans Mono
+DejaVu Sans | \u1dc4 \u1dc5 \u1dc6 \u1dc7
+# DejaVu Sans Mono
 DejaVu Serif
-# Liberation Sans      # doesn't handle all characters
+Liberation Sans | \u0327
+Liberation Serif | \u030d \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
 ### Microsoft
-# Arial | \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-# Calibri               # Win11; some unrecognized characters
+Arial | \u0327 # ttf-mscorefonts-installer (not Win11)
+Calibri # Win11
+Cambria # Win11
 # Comic Sans MS        # Win11; some unrecognized characters
-# Microsoft Sans Serif | \u0300 \u0301 \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-# Tahoma | \u0302 \u0303 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-# Times New Roman | \u0300 \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
+Consolas | \u0327 # Win11
+Microsoft Sans Serif | \u0327 # Win11
+Segoe UI | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
+Segoe UI Variable | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
+Tahoma | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
+Times New Roman | \u0327 # Win11
 ### Android
-# Noto Sans | \u0300 \u0302 \u0304 \u0308 \u030c \u030d \u0323 \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
-# Noto Serif           # assume same as Noto Sans: too many failed combinations
+Noto Sans
+Noto Sans Display
+Noto Sans Mono
+Noto Serif
+Noto Serif Display
+### Other
+Lato | \u030d # fonts-lato
+Lucida Sans Unicode | \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Bigelow & Holmes; Win11?
+Symbola # fonts-symbola
+# Unifont # ttf-unifont # doesn't have style "Regular"
