@@ -102,7 +102,7 @@ def get_script_variables():
             # Special probability adjustments.
             # 'p_a'    : 0.01, # to overcome over-recognized alphas # didn't help much
             # 'p_schwa': 0.01, # to overcome open-o being paired with schwa # didn't help much
-            'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
+            # 'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
             # p_tilda: 0.01, # to overcome under-recognized '~' top diacritic # didn't help
         }
     }
