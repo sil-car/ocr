@@ -1,40 +1,39 @@
 # OCR for African Latin-based writing systems
 
-An attempt at creating a reliable character-based OCR solution for Latin-based writing scripts in Africa. The strategy is to start with **Tesseract's** Latin script training data and improve it using additional data relevant to languages in the central African region.
+Download the current language model: [Latin_afr.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr.traineddata)
+
+A character-based OCR solution for Latin-based writing scripts in Africa. This language model is based on **Tesseract's** Latin script language model, then improved with additional training on synthetic data generated from Unicode characters used in the central African region. More details at [Training.md](Training.md).
 
 ## Goals
 
 1. Develop an accurate system for OCRing text at the character level from documents produced/discovered in the central Africa region. (Theoretically, this could apply to *any* language that uses a Latin-based script, but the generated training data will only explicitly consider characters important to the central Africa region.)
-1. Ideally, allow for the OCR scope to be narrowed by a specific language's
-   given character set.
+1. Ideally, allow for the OCR scope to be narrowed by a specific language's given character set.
 
-## Current Testing
+## Language Model Evaluation
 
-Current best model: [Latin_afr_202212178613.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_202212178613.traineddata)
+![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr.png)
 
-Summary test results can be seen in [Testing.md](Testing.md).
+Summary comparison results can be seen in [Evaluation.md](Evaluation.md).
 
-Full test results can be found in [data/evaluation/](data/evaluation/)
+Full comparison results can be found in [data/evaluation/](data/evaluation/)
 
 ## Usage
 
 1. Install **Tesseract** on your system. How to do this depends on your OS.
 1. Copy the above model into **Tesseract's** *tessdata* folder; e.g.
    ```
-   $ sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr_20221219.traineddata -O /usr/share/tesseract-ocr/4.00/tessdata/Latin_afr.traineddata # on Ubuntu/Wasta 20.04
+   $ sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr.traineddata -O /usr/share/tesseract-ocr/4.00/tessdata/Latin_afr.traineddata # on Ubuntu/Wasta 20.04
    ```
    This will install the current best model using the name "Latin_afr". Windows users will need to adapt the instructions to their particular setup.
 1. Use the model with **Tesseract**; e.g.
    ```
    $ tesseract -l Latin_afr image.png
    ```
-You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language to be recognized after having copied the model to the appropriate tessdata folder.
+You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language/script to be recognized after having copied the model to the appropriate tessdata folder.
 
 ## Background
 
-**[Tesseract](https://github.com/tesseract-ocr)** seems to be a reasonable option for character-based OCR work because it provides script-based "language" options while other solutions use are strictly language-based. But when **Tesseract** was tried on a document in a central African language with a Latin-based script (Banda-Linda [liy]) it clearly struggled to properly identify less-common Latin script characters (e.g. ɓ, ɗ, ɛ, ə, ŋ, ɔ), as well as both those and more-common glyphs that were combined with various diacritics. Nevertheless, **Tesseract** was still able to properly identify *~90-95%* of the Banda-Linda characters using the "Latin" language option.
-
-This was further tested on more than 15 other documents from the region that use some of the same "special" characters and diacritics. Details of those results can be found in [data/example-documents](data/example-documents). In all cases the same kinds of characters as with Banda-Linda were poorly recognized.
+**[Tesseract](https://github.com/tesseract-ocr)** seems to be a reasonable option for character-based OCR work because it provides script-based "language" options while other solutions use are strictly language-based. But when **Tesseract** was tried on a document in a central African language with a Latin-based script (Banda-Linda [liy]) it clearly struggled to properly identify less-common Latin script characters (e.g. ɓ, ɗ, ɛ, ə, ŋ, ɔ), as well as both those and more-common glyphs that were combined with various diacritics. Nevertheless, **Tesseract** was still able to properly identify *~90%* of the Banda-Linda characters using the "Latin" language option.
 
 ## Scope
 
@@ -81,6 +80,6 @@ Ideally, this solution will prove to be **98%-99%** accurate; i.e. CER <= 2%.
 - *http://www.dlib.org/dlib/march09/holley/03holley.html*
 - *https://towardsdatascience.com/evaluating-ocr-output-quality-with-character-error-rate-cer-and-word-error-rate-wer-853175297510*
 
-## Character set
+## Character set & font list
 
-See [Training.md](Training.md).
+See [Training.md](Training.md) and [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt).

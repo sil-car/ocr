@@ -28,19 +28,10 @@ Since this OCR model is intended to improve character recognition for Latin scri
 
 ### Fonts and font styles
 
-All the fonts used for image generation for training can be found in [scripts/generate-training-data.py](scripts/generate-training-data.py) or by passing the '-c' option to the command:
+All the fonts used for image generation for training can be found in [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt) or by passing the '-c' option to the command:
 ```bash
 (env) $ ./scripts/generate-training-data.py -c
 ```
-
-Several font families have been tested, including various SIL fonts, as well as common Microsoft, Android, and Open Source fonts. In the end, all of the following fonts were discarded after proving to be unable to render at least some of the combined glyphs:
-- ~Andika New Basic~
-- ~Arial~
-- ~Carlito~
-- ~Comic Sans MS~
-- ~Liberation Sans~
-- ~Noto Sans/Serif~
-- ~Times New Roman~
 
 ### Character selection during image generation
 
@@ -97,3 +88,4 @@ Latin_afr_202212178057 | 8 | 110,000 | 5,500,000 | p_a, p_schwa = 0.01 | 40px | 
 Latin_afr_20221218 | 10 | 64,000 | 3,200,000 | None | 48px | Lfx512 | 58,000 | 8.97%
 Latin_afr_20221219 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx512 | 58,000 | 8.94%
 Latin_afr_20221221 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx256 | 58,000 | 11.04%
+Latin_afr_20230129 | 31 | 115,000 | 5,750,000 | extra 'y' | 48px | Lfx512 | 102,000 |
