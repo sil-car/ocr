@@ -65,24 +65,29 @@ def main():
 
     # ocr_ready_files = get_ocr_files_by_ext('.png', eval_dir)
     ocr_gt_files = find_files_by_ext('.gt.txt', eval_dir)
+    ocr_gt_files.sort()
     models = [f.stem for f in models_dir.iterdir() if not f.is_dir() and f.stem != 'Latin_afr']
     models.sort()
 
     print(f"Base dir: {eval_dir}")
     for m in models:
-        # print(f"Checking for {m}.txt files...")
-        # Verify that model has been used to create OCR output.
-        ocr_recognized_files = get_ocr_files_by_ext(f".{m}.txt", eval_dir)
-        # Verify that a corresponding gt file exists.
+        # # Verify that model has been used to create OCR output.
+        # ocr_recognized_files = get_ocr_files_by_ext(f".{m}.txt", eval_dir)
+        # # Verify that a corresponding gt file exists.
         print(f"  Running OCR evaluations for {m}...")
-        for f in ocr_recognized_files:
-            gt_file = Path(str(f).replace(f".{m}.", '.gt.'))
-            if gt_file.is_file():
-                # Ensure that model evaluation is added to data.csv.
-                cmd = [scripts_dir / 'evaluate-ocr.py', '-l', m, gt_file]
-                proc = subprocess.run(cmd, capture_output=True)
-                print(proc.stdout.decode(), end='')
-
+        # for f in ocr_recognized_files:
+        #     gt_file = Path(str(f).replace(f".{m}.", '.gt.'))
+        #     if gt_file.is_file():
+        #         # Ensure that model evaluation is added to data.csv.
+        #         cmd = [scripts_dir / 'evaluate-ocr.py', '-l', m, gt_file]
+        #         proc = subprocess.run(cmd, capture_output=True)
+        #         print(proc.stdout.decode(), end='')
+        ## Idea 2
+        for gt_file in ocr_gt_files:
+            # Ensure that model evaluation is added to data.csv.
+            cmd = [scripts_dir / 'evaluate-ocr.py', '-l', m, gt_file]
+            proc = subprocess.run(cmd, capture_output=True)
+            print(proc.stdout.decode(), end='')
 
 if __name__ == '__main__':
     main()
