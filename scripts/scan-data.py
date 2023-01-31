@@ -65,7 +65,7 @@ def main():
 
     # ocr_ready_files = get_ocr_files_by_ext('.png', eval_dir)
     ocr_gt_files = find_files_by_ext('.gt.txt', eval_dir)
-    models = [f.stem for f in models_dir.iterdir() if not f.is_dir()]
+    models = [f.stem for f in models_dir.iterdir() if not f.is_dir() and f.stem != 'Latin_afr']
     models.sort()
 
     print(f"Base dir: {eval_dir}")

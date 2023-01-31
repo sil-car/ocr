@@ -69,7 +69,7 @@ def compare_text_files(truth_file, hypothesis_file):
 
 def get_all_ocr_models(tessdata_dir):
     model_files = tessdata_dir.glob('Latin*.traineddata')
-    return [f.stem for f in model_files]
+    return [f.stem for f in model_files if f.stem != 'Latin_afr']
 
 def run_ocr(infile_path, model, outfile_path):
     print(f"Recognizing text from {infile_path.name} using model {model}...")
