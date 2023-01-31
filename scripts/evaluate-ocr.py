@@ -95,11 +95,11 @@ def main():
         type=str,
         help="name of tesseract model used to create hypothesis file",
     )
-    parser.add_argument(
-        '-s', '--update-spreadsheet',
-        action='store_true',
-        help="update spreadsheet with character comparison data",
-    )
+    # parser.add_argument(
+    #     '-s', '--update-spreadsheet',
+    #     action='store_true',
+    #     help="update spreadsheet with character comparison data",
+    # )
     parser.add_argument(
         '-t', '--truth',
         nargs=1,
