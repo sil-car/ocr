@@ -210,7 +210,7 @@ elif [[ -n "$replace_layer" ]]; then
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
-    make $d training \
+    make $d -f "${ocr_script_dir}/Makefile-seq" training \
         MODEL_NAME="$model_name" \
         CORES=2 \
         START_MODEL="$start_model" \

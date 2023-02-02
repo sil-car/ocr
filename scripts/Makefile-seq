@@ -314,9 +314,7 @@ $(LAST_CHECKPOINT): unicharset lists $(PROTO_MODEL)
 	  --eval_listfile $(OUTPUT_DIR)/list.eval \
 	  --max_iterations $(MAX_ITERATIONS) \
 	  --target_error_rate $(TARGET_ERROR_RATE) \
-	  --sequential_training \
-	  --append_index 5 \
-	  --net_spec "$(subst c###,c`head -n1 $(OUTPUT_DIR)/unicharset`,$(NET_SPEC))"
+	  --sequential_training
 $(OUTPUT_DIR).traineddata: $(LAST_CHECKPOINT)
 	lstmtraining \
 	--stop_training \
