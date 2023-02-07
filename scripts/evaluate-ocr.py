@@ -74,7 +74,7 @@ def get_all_ocr_models(tessdata_dir):
 def run_ocr(infile_path, model, outfile_path):
     print(f"Recognizing text from {infile_path.name} using model {model}...")
     with Image.open(infile_path) as img:
-        htext = pytesseract.image_to_string(img, lang=model)
+        htext = pytesseract.image_to_string(img, lang=model, config="-c page_separator=''")
     outfile_path.write_text(htext)
 
 def main():
