@@ -2,6 +2,7 @@
 
 # Show bar chart with CER on Y-axis and Model Name on X-axis.
 
+import argparse
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
@@ -321,21 +322,54 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
         ylabel = "Character Error Rate"
     return x, y, z, out_file, title, xlabel, ylabel
 
+def get_args():
+    description = "Create and show various charts of CERs vs Tesseract models and languages."
+    parser = argparse.ArgumentParser(
+        description=description,
+        # formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+    parser.add_argument(
+        '-t', '--chart-type',
+        nargs=1,
+        type=str,
+        help="type of chart to display",
+    )
+    parser.add_argument(
+        '-l', '--models',
+        nargs='+',
+        type=str,
+        help="language models to display",
+    )
+
+    return parser.parse_args()
+
 def main():
+
+    chart_types = {
+        '3d',
+        'best',
+        'comp',
+        'comparison',
+        'model',
+        'summary',
+    }
+
+    args = get_args()
+
     # Prepare csv_data.
     csv_file = Path(__file__).expanduser().resolve().parents[1] / 'data' / 'evaluation' / 'data.csv'
     if not csv_file.is_file():
-        print(f"Error: File does not exist: {str(csv_file)}")
+        print(f"ERROR: File does not exist: {str(csv_file)}")
     csv_data = get_csv_data(csv_file)
 
     # Prepare sorted lists of model_names and iso_langs.
-    model_names = list(set([r.get('model') for r in csv_data]))
-    model_names.sort()
+    all_model_names = list(set([r.get('model') for r in csv_data]))
+    all_model_names.sort()
     iso_langs = list(set([r.get('iso_lang') for r in csv_data]))
     iso_langs.sort()
 
     # model_data is a list of GroupedData objects of models.
-    model_data = [GroupedData(m, [r for r in csv_data if r.get('model') == m]) for m in model_names]
+    model_data = [GroupedData(m, [r for r in csv_data if r.get('model') == m]) for m in all_model_names]
 
     # lang_data is a list of iso_lang GroupedData objects.
     for m in model_data:
@@ -348,39 +382,52 @@ def main():
     plt.style.use('_mpl-gallery')
     out_dir = csv_file.parent
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == '3d':
-            data_slices = build_3d_slices(model_data)
-            plot_bar3d(data_slices)
-        elif sys.argv[1] == 'best':
-            # Show best model summary chart of CER by ISO_Language.
-            x, y, z, out_file, title, xlabel, ylabel = prepare_chart_data('best', model_data, out_dir)
-            plot_bar2d(x, y, z, out_file, title, xlabel, ylabel)
-        elif sys.argv[1] == 'model':
-            # Show summary chart of CER by ISO_Language for the given model.
-            model_name = sys.argv[2]
-            x, y, z, outf, t, xl, yl = prepare_chart_data('model', model_data, out_dir, model_names=[model_name])
-            plot_bar2d(x, y, z, outf, t, xl, yl)
-        elif sys.argv[1] == 'comp':
-            # Set model_names.
-            if len(sys.argv) < 3:
-                model_names = ['Latin', 'best']
-            else:
-                model_names = [sys.argv[2]]
-                if len(sys.argv) > 3:
-                    model_names.append(sys.argv[3])
-                else:
-                    model_names.insert(0, 'Latin')
+    # Set output variables.
+    chart_type = 'summary'
+    if args.chart_type is not None:
+        if args.chart_type[0] in chart_types:
+            chart_type = args.chart_type[0]
+        else:
+            print(f"ERROR: Valid chart types: {', '.join(chart_types)}")
+            exit(1)
+    if chart_type == 'summary' and args.models is not None:
+        print(f"INFO: Models not needed for summary chart")
+    models = ['Latin', 'best']
+    if len(args.models) == 1:
+        models = ['Latin', args.models[0]]
+    elif len(args.models) >= 2:
+        models = args.models[:2]
+        if len(args.models) > 2:
+            print(f"INFO: Ignoring extra models: {', '.join(args.models[2:])}")
 
-            print(f"Comparing {model_names = }")
+    # Output chosen chart with chosen language models.
+    if chart_type == '3d':
+        data_slices = build_3d_slices(model_data)
+        plot_bar3d(data_slices)
 
-            # Produce summary chart with both 'best' and 'Latin' models together.
-            x, y, z, outf, t, xl, yl = prepare_chart_data('comp', model_data, out_dir, model_names=model_names)
-            plot_bar2d(x, y, z, outf, t, xl, yl)
+    elif chart_type == 'best':
+        # Show best model summary chart of CER by ISO_Language.
+        x, y, z, out_file, title, xlabel, ylabel = prepare_chart_data('best', model_data, out_dir)
+        plot_bar2d(x, y, z, out_file, title, xlabel, ylabel)
 
-    else:
+    elif chart_type in ['comp', 'comparison']:
+        print(f"INFO: Comparing {models = }")
+
+        # Produce summary chart with both 'best' and 'Latin' models together.
+        x, y, z, outf, t, xl, yl = prepare_chart_data('comp', model_data, out_dir, model_names=models)
+        plot_bar2d(x, y, z, outf, t, xl, yl)
+
+    elif chart_type == 'model':
+        # Show summary chart of CER by ISO_Language for the given model.
+        model = models[0]
+        if len(models) > 1:
+            print(f"INFO: Ignoring extra models: {', '.join(models[1:])}")
+        x, y, z, outf, t, xl, yl = prepare_chart_data('model', model_data, out_dir, model_names=[model])
+        plot_bar2d(x, y, z, outf, t, xl, yl)
+
+    elif chart_type == 'summary':
         # Show summary chart of CER by Model Name.
-        x, y, z, outf, t, xl, yl = prepare_chart_data('summary', model_data, out_dir, model_names=model_names)
+        x, y, z, outf, t, xl, yl = prepare_chart_data('summary', model_data, out_dir, model_names=all_model_names)
         plot_bar2d(x, y, z, outf, t, xl, yl)
 
 
