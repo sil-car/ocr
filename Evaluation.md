@@ -20,7 +20,6 @@
 ```bash
 (env) $ # Verify that all models have been used and evaluated with all image/GT pairs.
 (env) $ ./scripts/scan-data.py
-(env) $ ./scripts/scan-data.py
 Base dir: /home/nate/g/ocr/data/evaluation
   Running OCR evaluations for Latin...
   [...]
