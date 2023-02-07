@@ -283,6 +283,7 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
         m1 = model_names[0]
         m2 = model_names[1]
 
+        print(f"Updated {model_names = }")
         x1, y1, z1, outf1, t1, xl1, yl1 = prepare_chart_data('model', model_data, out_dir, model_names=[m1])
         x2, y2, z2, outf2, t2, xl2, yl2 = prepare_chart_data('model', model_data, out_dir, model_names=[m2])
 
@@ -304,6 +305,8 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
                     cer_values.append(l.cer_group)
                     lang_names_filtered.append(l.name)
                 break
+
+        print(f"{model_name = }")
 
         # Print data table to stdout.
         print(f"ISO_Language\tCER")
@@ -368,6 +371,8 @@ def main():
                     model_names.append(sys.argv[3])
                 else:
                     model_names.insert(0, 'Latin')
+
+            print(f"Comparing {model_names = }")
 
             # Produce summary chart with both 'best' and 'Latin' models together.
             x, y, z, outf, t, xl, yl = prepare_chart_data('comp', model_data, out_dir, model_names=model_names)
