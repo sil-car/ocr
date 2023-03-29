@@ -16,7 +16,7 @@ apt_pkgs=(
     wireguard
 )
 for pkg in "${apt_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg" | awk '{print $1}') != 'ii' ]]; then
+    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
         echo "Installing ${pkg}..."
         sudo apt-get install $pkg
     fi
@@ -50,7 +50,7 @@ font_pkgs=(
     ttf-mscorefonts-installer
 )
 for pkg in "${font_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg" | awk '{print $1}') != 'ii' ]]; then
+    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
         echo "Installing ${pkg}..."
         sudo apt-get install $pkg
     fi
