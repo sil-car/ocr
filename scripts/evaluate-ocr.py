@@ -114,7 +114,7 @@ def main():
     )
     parser.add_argument(
         "image_file",
-        nargs=1,
+        nargs='?',
         help="image file on which tesseract is to be tested; can also be a .gt.txt file",
     )
 
