@@ -177,7 +177,7 @@ if [[ -n "$t2i" ]]; then
     lstmtraining \
         --traineddata "${output_dir}/${model_name}.traineddata" \
         --model_output "${output_dir}/${model_name}"  \
-        --train_listfile  "${output_dir}/${model_name}/${model_name}.training_files.txt" \
+        --train_listfile  "${output_dir}/${model_name}/${model_name}.training_files.txt" \
         --max_iterations "$max_iter"
 
     # Create Final traineddata.
