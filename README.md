@@ -71,7 +71,7 @@ CER = (S + D + I) / (C + S + D) # used by jiwer
 However, this can result in a CER > 100% if there are many insertion errors. So
 an alternative *Normalized CER* can be calculated as follows:
 
-```
+```py
 CERn = (S + D + I) / (S + D + I + C)
 ```
 
