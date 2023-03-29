@@ -21,7 +21,7 @@ pkgs=(
     fonts-symbola
     ttf-mscorefonts-installer
 )
-for pkg in ${pkgs[@]}; do
+for pkg in "${pkgs[@]}"; do
     if [[ $(dpkg -l | grep $pkg | awk '{print $1}') != 'ii' ]]; then
         echo "Installing ${pkg}..."
         sudo apt-get install $pkg
@@ -30,3 +30,5 @@ done
 # Install non-packaged fonts.
 echo "Copying user fonts..."
 cp -fr "${repo_dir}/data/extra-fonts/"* "${HOME}/.local/share/fonts/"
+
+# TODO: tesstrain?
