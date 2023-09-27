@@ -1,6 +1,6 @@
 # OCR for African Latin-based writing systems
 
-Download the current language model: [Latin_afr.traineddata](https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr.traineddata)
+Download the current language model, Latin_afr.traineddata, from the [Releases page](https://github.com/sil-car/ocr/releases/latest).
 
 A character-based OCR solution for Latin-based writing scripts in Africa. This language model is based on **Tesseract's** Latin script language model, then improved with additional training on synthetic data generated from Unicode characters used in the central African region. More details at [Training.md](Training.md).
 
