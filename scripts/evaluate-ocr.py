@@ -52,20 +52,30 @@ def compare_text_files(truth_file, hypothesis_file):
         ]
     )
 
-    result = jiwer.cer(
-        truth,
-        hypothesis,
-        return_dict=True,
-        truth_transform=cer_default_transform,
+    # result = jiwer.cer(
+    #     truth,
+    #     hypothesis,
+    #     return_dict=True,
+    #     truth_transform=cer_default_transform,
+    #     hypothesis_transform=cer_default_transform,
+    # )
+    result = jiwer.process_characters(
+        reference=truth,
+        hypothesis=hypothesis,
+        reference_transform=cer_default_transform,
         hypothesis_transform=cer_default_transform,
     )
     # Ref. for CER/WER:
     #   CER = (S + D + I) / (S + D + H)
     #   https://github.com/jitsi/jiwer/blob/33067d50224717e20da0ec1a3ae388b9f5a0327d/jiwer/measures.py#L207
-    H = result.get("hits")
-    S = result.get("substitutions")
-    D = result.get("deletions")
+    # H = result.get("hits")
+    H = result.hits
+    # S = result.get("substitutions")
+    S = result.substitutions
+    # D = result.get("deletions")
+    D = result.deletions
     # I = result.get("insertions")
+    I = result.insertions
     # Ref. for 'hits' calculation:
     #   H = N - (S + D)
     #   https://github.com/jitsi/jiwer/blob/33067d50224717e20da0ec1a3ae388b9f5a0327d/jiwer/measures.py#L373
