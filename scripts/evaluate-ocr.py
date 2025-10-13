@@ -192,9 +192,9 @@ def main():
     if model_names == ["all"]:
         model_names = get_all_ocr_models(tessdata_dir)
 
-    image_file = validate_filelike_input(args.image_file[0])
+    image_file = validate_filelike_input(args.image_file)
     if image_file is False:
-        print(f"Error: Could not find file: {args.image_file[0]}")
+        print(f"Error: Could not find file: {args.image_file}")
         exit(1)
     base_dir = image_file.parent
     if str(image_file).split(".")[-2:] == ["gt", "txt"]:
