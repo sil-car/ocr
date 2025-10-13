@@ -80,6 +80,7 @@ def compare_text_files(truth_file, hypothesis_file):
     #   https://github.com/jitsi/jiwer/blob/33067d50224717e20da0ec1a3ae388b9f5a0327d/jiwer/measures.py#L373
     N = S + D + H
     return {
+        "cer": result.cer,
         "deletions": result.deletions,
         "hits": result.hits,
         "insertions": result.insertions,
