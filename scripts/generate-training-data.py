@@ -484,12 +484,12 @@ def generate_text_line_weighted_chars(
         c = c_opts[get_random_index(len(c_opts))]
 
         # Special treatment to improve recognition of some base characters.
-        if (
-            c_type == "consonants"
-            and c != "y"
-            and get_binary_choice(vs.get("weights").get("p_y"))
-        ):
-            c = "y"
+        # if (
+        #     c_type == "consonants"
+        #     and c != "y"
+        #     and get_binary_choice(vs.get("weights").get("p_y"))
+        # ):
+        #     c = "y"
         # if c_type == 'vowels':
         #     if c != 'a':
         #         if get_binary_choice(vs.get('weights').get('p_a')):
