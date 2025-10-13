@@ -777,7 +777,7 @@ def main():
         "simulate": args.simulate,
         "use_text2image": args.use_text2image,
     }
-    with multiprocessing.Pool(process=4) as pool:
+    with multiprocessing.Pool(processes=4) as pool:
         for i in range(args.iterations):
             pool.apply_async(run_iteration, iter_args)
 
