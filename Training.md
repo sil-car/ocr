@@ -26,17 +26,22 @@ Other factors to consider:
 
 Since this OCR model is intended to improve character recognition for Latin script-based languages in the central Africa region, the vast majority of the unicode characters chosen for training come from SIL's [Cameroon Multilingual keyboard](https://langtechcameroon.info/keyboard/), which is widely used in the region. A few additional characters were added after getting feedback from linguists working in the region.
 
+### Install dependencies
+```
+(env) $ sudo apt install python3-venv fonts-lato fonts-liberation fonts-noto fonts-sil-andika fonts-sil-andika-compact fonts-sil-charis fonts-sil-charis-compact fonts-sil-doulos fonts-sil-doulos-compact fonts-sil-gentium fonts-sil-gentiumplus fonts-sil-gentiumplus-compact fonts-symbola ttf-mscorefonts-installer
+```
+
 ### Fonts and font styles
 
 All the fonts used for image generation for training can be found in [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt) or by passing the '-c' option to the command:
-```bash
+```
 (env) $ ./scripts/generate-training-data.py -c
 ```
 
 ### Character selection during image generation
 
 At first it was assumed that simply generating random combinations of valid characters would be sufficient when generating the training images. However, that proved to give very poor and unusable results. So the character selection is now based on a weighting system that attempts to mimic real-world rates of the various types of characters. The weights can be found in [scripts/generate-training-data.py](scripts/generate-training-data.py) or by passing the '-w' option to the command:
-```bash
+```
 (env) $ ./scripts/generate-training-data.py -w
 ```
 

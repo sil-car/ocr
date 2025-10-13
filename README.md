@@ -19,15 +19,18 @@ Full comparison results can be found in [data/evaluation/](data/evaluation/)
 
 ## Usage
 
-1. Install **Tesseract** on your system. How to do this depends on your OS.
+1. Install **Tesseract** on your system. How to do this depends on your OS; e.g.
+   ```
+   $ sudo apt install tesseract-ocr  # ubuntu
+   ```
 1. Copy the above model into **Tesseract's** *tessdata* folder; e.g.
    ```
-   $ sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr.traineddata -O /usr/share/tesseract-ocr/4.00/tessdata/Latin_afr.traineddata # on Ubuntu/Wasta 20.04
+   $ sudo wget https://github.com/sil-car/ocr/raw/main/tessdata/Latin_afr.traineddata -O /usr/share/tesseract-ocr/5/tessdata/Latin_afr.traineddata # on Ubuntu 25.04
    ```
    This will install the current best model using the name "Latin_afr". Windows users will need to adapt the instructions to their particular setup.
 1. Use the model with **Tesseract**; e.g.
    ```
-   $ tesseract -l Latin_afr image.png
+   $ tesseract -l Latin_afr ./data/example-documents/bdt_bhogoto/Guide_transition_bhogoto__bdt__2021-01.png stdout
    ```
 You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language/script to be recognized after having copied the model to the appropriate tessdata folder.
 
