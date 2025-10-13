@@ -782,14 +782,6 @@ def main():
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
         pool.map(run_iteration, range(args.iterations))
-        # processes = [
-        #     multiprocessing.Process(target=run_iteration, args=(iter_args,))
-        #     for j in range(i, i + procs)
-        # ]
-        # for process in processes:
-        #     process.start()
-        # for process in processes:
-        #     process.join()
 
     if args.simulate:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
