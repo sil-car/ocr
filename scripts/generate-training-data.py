@@ -10,6 +10,7 @@
 
 import argparse
 import fitz  # PyMuPDF: https://pymupdf.readthedocs.io/en/latest/
+import multiprocessing
 import random
 import subprocess
 import tempfile
@@ -666,6 +667,70 @@ def get_parsed_args():
     return parser.parse_args()
 
 
+def run_iteration(args):
+    # Unpack args.
+    variables = args.get("variables")
+    ground_truth_dir = args.get("ground_truth_dir")
+    fonts_dict = args.get("fonts_dict")
+    system_fonts = args.get("system_fonts")
+    verbose = args.get("verbose")
+    simulate = args.get("simulate")
+    use_text2image = args.get("use_text2image")
+
+    # Choose font family.
+    n = get_random_index(len(fonts_dict))
+    font_fam = list(fonts_dict.keys())[n]
+    bad_chars = list(fonts_dict.values())[n]
+    if verbose:
+        print(f"INFO: {font_fam}")
+
+    dirty_char_str = generate_text_line_weighted_chars(variables, length=chars_per_line)
+    # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
+    clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
+    char_line = "".join(clean_unicode_list)
+    if verbose:
+        print(f"INFO: dirty {len(dirty_char_str)}: {dirty_char_str}")
+        print(f"INFO: bad:   {bad_chars}")
+        print(f"INFO: clean {len(char_line)}: {char_line}")
+        print(f"INFO: {b''.join([c.encode('unicode-escape') for c in char_line])}")
+
+    # Choose font style.
+    fontfile = None
+    styles = variables.get("styles")
+    tried = set()
+    while not fontfile and len(tried) != len(styles):
+        n = get_random_index(len(styles))
+        tried.add(n)
+        font_sty = styles[n]
+        if verbose:
+            print(f"INFO: {font_sty}")
+        # if args.verbose and fontfile is not None:
+        #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
+        fontfile = system_fonts.get(font_fam).get(font_sty)
+    if not fontfile:
+        print(f"WARNING: {font_fam} doesn't have any matching font styles. Skipping.")
+        return
+
+    # Generate files.
+    filename = set_data_filename(font_fam, font_sty)
+    txtdata = char_line
+    if verbose:
+        print(f"INFO: base name: {filename}")
+    if not use_text2image:
+        # name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
+        # txtdata, pngdata = generate_training_data_pair(char_line, fontfile)
+        pngdata = generate_text_line_png(txtdata, fontfile)
+        if not simulate:
+            # if args.verbose:
+            #     print(f"INFO: base name: {name}")
+            # save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
+            save_training_data_pair(ground_truth_dir, filename, txtdata, pngdata)
+    else:
+        generate_text2image_data_pair(
+            ground_truth_dir, filename, txtdata, font_fam, font_sty
+        )
+
+
 def main():
     ground_truth_dir = get_ground_truth_dir(writing_system_name)
     variables = get_script_variables()
@@ -701,63 +766,20 @@ def main():
 
     # Generate data.
     fonts_dict = variables.get("fonts")
-    for i in range(args.iterations):
-        # Choose font family.
-        n = get_random_index(len(fonts_dict))
-        font_fam = list(fonts_dict.keys())[n]
-        bad_chars = list(fonts_dict.values())[n]
-        if args.verbose:
-            print(f"INFO: {font_fam}")
 
-        dirty_char_str = generate_text_line_weighted_chars(
-            variables, length=chars_per_line
-        )
-        # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
-        clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
-        char_line = "".join(clean_unicode_list)
-        if args.verbose:
-            print(f"INFO: dirty {len(dirty_char_str)}: {dirty_char_str}")
-            print(f"INFO: bad:   {bad_chars}")
-            print(f"INFO: clean {len(char_line)}: {char_line}")
-            print(f"INFO: {b''.join([c.encode('unicode-escape') for c in char_line])}")
-
-        # Choose font style.
-        fontfile = None
-        styles = variables.get("styles")
-        tried = set()
-        while not fontfile and len(tried) != len(styles):
-            n = get_random_index(len(styles))
-            tried.add(n)
-            font_sty = styles[n]
-            if args.verbose:
-                print(f"INFO: {font_sty}")
-            # if args.verbose and fontfile is not None:
-            #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
-            fontfile = system_fonts.get(font_fam).get(font_sty)
-        if not fontfile:
-            print(
-                f"WARNING: {font_fam} doesn't have any matching font styles. Skipping."
-            )
-            continue
-
-        # Generate files.
-        filename = set_data_filename(font_fam, font_sty)
-        txtdata = char_line
-        if args.verbose:
-            print(f"INFO: base name: {filename}")
-        if not args.use_text2image:
-            # name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
-            # txtdata, pngdata = generate_training_data_pair(char_line, fontfile)
-            pngdata = generate_text_line_png(txtdata, fontfile)
-            if not args.simulate:
-                # if args.verbose:
-                #     print(f"INFO: base name: {name}")
-                # save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
-                save_training_data_pair(ground_truth_dir, filename, txtdata, pngdata)
-        else:
-            generate_text2image_data_pair(
-                ground_truth_dir, filename, txtdata, font_fam, font_sty
-            )
+    # Create args dict.
+    iter_args = {
+        "variables": variables,
+        "ground_truth_dir": ground_truth_dir,
+        "fonts_dict": fonts_dict,
+        "system_fonts": system_fonts,
+        "verbose": args.verbose,
+        "simulate": args.simulate,
+        "use_text2image": args.use_text2image,
+    }
+    with multiprocessing.Pool(process=4) as pool:
+        for i in range(args.iterations):
+            pool.apply_async(run_iteration, iter_args)
 
     if args.simulate:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
