@@ -75,13 +75,17 @@ def compare_text_files(truth_file, hypothesis_file):
     # D = result.get("deletions")
     D = result.deletions
     # I = result.get("insertions")
-    I = result.insertions
     # Ref. for 'hits' calculation:
     #   H = N - (S + D)
     #   https://github.com/jitsi/jiwer/blob/33067d50224717e20da0ec1a3ae388b9f5a0327d/jiwer/measures.py#L373
     N = S + D + H
-    result["number-truth"] = N
-    return result
+    return {
+        "deletions": result.deletions,
+        "hits": result.hits,
+        "insertions": result.insertions,
+        "number-truth": N,
+        "substitutions": result.substitutions,
+    }
 
 
 def get_all_ocr_models(tessdata_dir):
