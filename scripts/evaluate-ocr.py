@@ -186,12 +186,13 @@ def main():
     if not args.image_file:
         print("Error: No image file given.")
         exit(1)
+    print(f"image file: {args.image_file}")
 
     model_names = [args.model[0]]
     if model_names == ["all"]:
         model_names = get_all_ocr_models(tessdata_dir)
 
-    image_file = validate_filelike_input(args.image_file)
+    image_file = validate_filelike_input(args.image_file[0])
     if image_file is False:
         print(f"Error: Could not find file: {args.image_file[0]}")
         exit(1)
