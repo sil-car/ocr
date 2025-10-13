@@ -667,15 +667,15 @@ def get_parsed_args():
     return parser.parse_args()
 
 
-def run_iteration(args):
+def run_iteration(iter_num):
     # Unpack args.
-    variables = args.get("variables")
-    ground_truth_dir = args.get("ground_truth_dir")
-    fonts_dict = args.get("fonts_dict")
-    system_fonts = args.get("system_fonts")
-    verbose = args.get("verbose")
-    simulate = args.get("simulate")
-    use_text2image = args.get("use_text2image")
+    variables = iter_args.get("variables")
+    ground_truth_dir = iter_args.get("ground_truth_dir")
+    fonts_dict = iter_args.get("fonts_dict")
+    system_fonts = iter_args.get("system_fonts")
+    verbose = iter_args.get("verbose")
+    simulate = iter_args.get("simulate")
+    use_text2image = iter_args.get("use_text2image")
 
     # Choose font family.
     n = get_random_index(len(fonts_dict))
@@ -768,6 +768,7 @@ def main():
     fonts_dict = variables.get("fonts")
 
     # Create args dict.
+    global iter_args
     iter_args = {
         "variables": variables,
         "ground_truth_dir": ground_truth_dir,
@@ -780,16 +781,15 @@ def main():
 
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
-        for i in range(args.iterations):
-            pool.apply_async(run_iteration, iter_args)
-            # processes = [
-            #     multiprocessing.Process(target=run_iteration, args=(iter_args,))
-            #     for j in range(i, i + procs)
-            # ]
-            # for process in processes:
-            #     process.start()
-            # for process in processes:
-            #     process.join()
+        pool.map(run_iteration, range(args.iterations))
+        # processes = [
+        #     multiprocessing.Process(target=run_iteration, args=(iter_args,))
+        #     for j in range(i, i + procs)
+        # ]
+        # for process in processes:
+        #     process.start()
+        # for process in processes:
+        #     process.join()
 
     if args.simulate:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
