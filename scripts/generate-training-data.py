@@ -781,7 +781,7 @@ def main():
     procs = multiprocessing.cpu_count()
     for i in range(0, args.iterations, procs):
         processes = [
-            multiprocessing.Process(target=run_iteration, args=iter_args)
+            multiprocessing.Process(target=run_iteration, args=(iter_args,))
             for j in range(i, i + procs)
         ]
         for process in processes:
