@@ -3,6 +3,7 @@
 ### Start tesseract training on cloud server with relevant options.
 
 # Set initial variables.
+cores=$(nproc)
 convert_checkpoint=
 debug=
 reset=
@@ -201,7 +202,7 @@ elif [[ -n "$replace_layer" ]]; then
     echo "NET_SPEC = $net_spec"
     make $d -f "${ocr_script_dir}/Makefile-layer" training \
         MODEL_NAME="$model_name" \
-        CORES=2 \
+        CORES="$cores" \
         START_MODEL="$start_model" \
         TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
@@ -212,7 +213,7 @@ else
     # Standard training with GT.TXT files.
     make $d -f "${ocr_script_dir}/Makefile-seq" training \
         MODEL_NAME="$model_name" \
-        CORES=2 \
+        CORES="$cores" \
         START_MODEL="$start_model" \
         TESSDATA="$tessdata" \
         MAX_ITERATIONS="$max_iter" \
