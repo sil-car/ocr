@@ -111,6 +111,7 @@ if [[ -n "$debug" ]]; then
 fi
 
 make_common_opts=(
+    DATA_DIR="$data_dir"
     MODEL_NAME="$model_name"
     CORES="$cores"
     TESSDATA="$tessdata"
