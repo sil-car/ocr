@@ -13,6 +13,7 @@ import fitz  # PyMuPDF: https://pymupdf.readthedocs.io/en/latest/
 import multiprocessing
 import random
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -789,4 +790,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)
