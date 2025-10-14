@@ -19,6 +19,7 @@ debug_interval=0
 t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
+touch "$log"
 ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
 d=
