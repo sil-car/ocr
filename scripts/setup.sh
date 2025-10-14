@@ -26,6 +26,7 @@ done
 
 # Install packaged fonts.
 font_pkgs=(
+    fonts-dejavu-core
     fonts-lato
     fonts-noto-core
     fonts-noto-mono
