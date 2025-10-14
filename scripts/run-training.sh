@@ -31,10 +31,12 @@ v=
 usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
 help_text="$usage
 
-  -c\tconvert checkpoint
+  -c CHECKPOINT
+    \tconvert checkpoint
   -d\tdebug
   -h\tshow help
-  -i\tset number of iterations
+  -i NUM
+    \tset number of iterations
   -l LAYER
     \tdefine new top layer
   -r\treset training files
@@ -137,17 +139,23 @@ if [[ -n "$convert_checkpoint" ]]; then
     # Verify that files exist.
     traineddata_file="${data_dir}/${model_name}/${model_name}.traineddata"
     checkpoints_dir="${data_dir}/${model_name}/checkpoints"
+
+    echo "Checking if file exists: $checkpoint_file"
     if [[ ! -f "$checkpoint_file" ]]; then
-        if [[ -f "${checkpoints_dir}/${checkpoint_file}" ]]; then
-            checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
-        else
+        checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
+        echo "Checking if file exists: $checkpoint_file"
+        if [[ ! -f "$checkpoint_file" ]]; then
             echo "Error: File not found: $checkpoint_file"
             exit 1
         fi
+    fi
+
+    echo "Checking if file exists: $traineddata_file"
     elif [[ ! -f "$traineddata_file" ]]; then
         echo "Error: File not found: $traineddata_file"
         exit 1
     fi
+
     # Convert checkpoint file to traineddata file.
     checkpoint_filename="$(basename "$checkpoint_file")"
     checkpoint_name="${checkpoint_filename%.checkpoint}"
