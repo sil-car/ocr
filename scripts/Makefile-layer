@@ -11,7 +11,7 @@ SHELL := /bin/bash
 LOCAL := $(PWD)/usr
 PATH := $(LOCAL)/bin:$(PATH)
 
-# Path to the .traineddata directory with traineddata suitable for training 
+# Path to the .traineddata directory with traineddata suitable for training
 # (for example from tesseract-ocr/tessdata_best). Default: $(LOCAL)/share/tessdata
 TESSDATA =  $(LOCAL)/share/tessdata
 
@@ -28,7 +28,7 @@ LANGDATA_DIR = $(DATA_DIR)/langdata
 OUTPUT_DIR = $(DATA_DIR)/$(MODEL_NAME)
 
 # Ground truth directory. Default: $(GROUND_TRUTH_DIR)
-GROUND_TRUTH_DIR := $(OUTPUT_DIR)-ground-truth
+GROUND_TRUTH_DIR := $(DATA_DIR)/training/$(MODEL_NAME)-ground-truth
 
 # Optional Wordlist file for Dictionary dawg. Default: $(WORDLIST_FILE)
 WORDLIST_FILE := $(OUTPUT_DIR)/$(MODEL_NAME).wordlist
@@ -412,4 +412,4 @@ clean-output:
 	rm -rf $(OUTPUT_DIR)
 
 # Clean all generated files
-clean: clean-box clean-lstmf clean-output	
+clean: clean-box clean-lstmf clean-output
