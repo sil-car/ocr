@@ -13,7 +13,6 @@ fi
 # Install apt packages.
 apt_pkgs=(
     screen
-    wireguard
 )
 for pkg in "${apt_pkgs[@]}"; do
     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
@@ -21,15 +20,6 @@ for pkg in "${apt_pkgs[@]}"; do
         sudo apt-get install $pkg
     fi
 done
-
-# Get wireguard-vpn-setup repo.
-if [[ ! -d $HOME/wireguard-vpn-setup ]]; then
-    git clone --depth=1 "https://github.com/sil-car/wireguard-vpn-setup.git"
-fi
-# TODO: Run wireguard setup script.
-
-# TODO: Add SSH key.
-# TODO: Allow SSH only on wireguard port.
 
 # Install packaged fonts.
 font_pkgs=(
@@ -57,7 +47,12 @@ for pkg in "${font_pkgs[@]}"; do
 done
 # Install non-packaged fonts.
 echo "Copying user fonts..."
-cp -fr "${repo_dir}/data/extra-fonts/"* "${HOME}/.local/share/fonts/"
+if [[ $USER == root ]]; then
+    dest_dir=/usr/share/fonts/
+else
+    dest_dir="${HOME}/.local/share/fonts/"
+fi
+cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 
 # Get tesstrain repo.
 if [[ ! -d $HOME/tesstrain ]]; then
