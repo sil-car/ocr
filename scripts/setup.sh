@@ -15,6 +15,7 @@ apt_pkgs=(
     make
     python3-venv
     screen
+    tesseract-ocr
 )
 for pkg in "${apt_pkgs[@]}"; do
     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
@@ -62,10 +63,10 @@ if [[ ! -d $HOME/tesstrain ]]; then
 fi
 mkdir -p "${HOME}/tesstrain/data"
 
-# Get tesseract repo.
-if [[ ! -d $HOME/tesseract ]]; then
-    git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
-fi
+# # Get tesseract repo.
+# if [[ ! -d $HOME/tesseract ]]; then
+#     git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
+# fi
 
 # Create venv.
 cd "${HOME}/ocr"
