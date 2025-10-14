@@ -308,7 +308,7 @@ def get_git_root(path):
 
 
 def get_ground_truth_dir(script):
-    return get_git_root(__file__) / "data" / "training" / f"{script}-ground-truth"
+    return get_git_root(__file__) / "data" / f"{script}-ground-truth"
 
 
 def reset_ground_truth(gt_dir_path):
