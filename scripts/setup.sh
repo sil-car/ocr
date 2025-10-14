@@ -60,16 +60,17 @@ cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
-
-if [[ ! -f $HOME/tesstrain/env/bin/activate ]]; then
-    cd tesstrain
-    python3 -m venv env
-    source ./env/bin/activate && python -m pip install -r requirements.txt && deactivate
-    cd "$HOME"
-fi
 mkdir -p "${HOME}/tesstrain/data"
 
 # Get tesseract repo.
 if [[ ! -d $HOME/tesseract ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
 fi
+
+# Create venv.
+cd "${HOME}/ocr"
+python3 -m venv env
+source ./env/bin/activate
+python3 -m pip install -r ../tesstrain/requirements.txt
+python3 -m pip install -r requirements.txt
+cd "$HOME"
