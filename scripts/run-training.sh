@@ -24,12 +24,23 @@ debug_interval=0
 t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
-touch "$log"
 
 d=
 v=
 
-help_text="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+help_text="$usage
+
+  -c\tconvert checkpoint
+  -d\tdebug
+  -h\tshow help
+  -i\tset number of iterations
+  -l LAYER
+    \tdefine new top layer
+  -r\treset training files
+  -t\ttrain based on text2image
+  -v\tverbose output
+"
 while getopts ":c:dhi:l:rtv" opt; do
     case $opt in
         c) # convert checkpoint
@@ -42,7 +53,7 @@ while getopts ":c:dhi:l:rtv" opt; do
             d='-d'
             ;;
         h) # help text
-            echo "$help_text"
+            echo -e "$help_text"
             exit 0
             ;;
         i) # max. iterations
@@ -68,6 +79,9 @@ while getopts ":c:dhi:l:rtv" opt; do
     esac
 done
 shift $(($OPTIND - 1))
+
+# Create log file.
+touch "$log"
 
 # # Ensure no other virtual environment is active.
 # if which deactivate >/dev/null 2>&1; then
