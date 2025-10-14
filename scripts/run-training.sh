@@ -85,10 +85,17 @@ export TESSDATA_PREFIX="$tessdata"
 # Create log file.
 touch "$log"
 
-# # Ensure no other virtual environment is active.
-# if which deactivate >/dev/null 2>&1; then
-#     deactivate
-# fi
+# Ensure no other virtual environment is active.
+if which deactivate >/dev/null 2>&1; then
+    deactivate
+fi
+
+# Activate virtual environment.
+source "${repo_dir}/env/bin/activate"
+if [[ $? -ne 0 ]]; then
+    echo "Error: Failed to activate virtual environment."
+    exit 1
+fi
 
 # Enter tesstrain folder; needed for access to generate_*.py scripts.
 cd "$tess_tr_dir"
@@ -96,16 +103,6 @@ if [[ $? -ne 0 ]]; then
     echo "Error: Failed to enter \"$tess_tr_dir\"."
     exit 1
 fi
-
-# # Activate virtual environment.
-# if [[ ! -d ./env ]]; then
-#     python3 -m venv env
-# fi
-# source ./env/bin/activate
-# if [[ $? -ne 0 ]]; then
-#     echo "Error: Failed to activate virtual environment."
-#     exit 1
-# fi
 
 # Handle debug option.
 if [[ -n "$debug" ]]; then
