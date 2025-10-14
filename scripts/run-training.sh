@@ -3,8 +3,8 @@
 ### Start tesseract training on cloud server with relevant options.
 
 # Ensure we're in the ocr repo.
-script_dir="$(dirname "$(realpath "$0")")"
-repo_dir="$(dirname "$script_dir")"
+ocr_script_dir="$(readlink -f "$(dirname "$0")")"
+repo_dir="$(dirname "$ocr_script_dir")"
 cd "$repo_dir" || exit 1
 
 # Set initial variables.
@@ -25,7 +25,6 @@ t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
 touch "$log"
-ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
 d=
 v=
@@ -103,7 +102,7 @@ if [[ -n "$reset" ]]; then
     echo "Resetting generated files (not GT data). No other option will be handled."
     make clean "MODEL_NAME=${model_name}"
     rm -fv "${data_dir}/"*.traineddata
-    cp -rv "$HOME/ocr/data/${model_name}" "${data_dir}/"
+    cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
 fi
 
@@ -156,7 +155,7 @@ if [[ -n "$t2i" ]]; then
     # Copy prepared unicharset & other files.
     langdata_dir="${data_dir}/langdata"
     mkdir -p "${langdata_dir}/${model_name}"
-    cp "$HOME/ocr/data/${model_name}/${model_name}."* "${langdata_dir}/${model_name}/"
+    cp "${repo_dir}/data/${model_name}/${model_name}."* "${langdata_dir}/${model_name}/"
 
     # Create starter traineddatda (aka recoder).
     combine_lang_model \
@@ -220,6 +219,7 @@ elif [[ -n "$replace_layer" ]]; then
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
+    echo "Using Makefile \"${ocr_script_dir}/Makefile-seq\""
     make $d -f "${ocr_script_dir}/Makefile-seq" training \
         MODEL_NAME="$model_name" \
         CORES="$cores" \
