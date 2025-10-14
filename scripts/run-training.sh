@@ -74,12 +74,12 @@ if which deactivate >/dev/null 2>&1; then
     deactivate
 fi
 
-# # Enter tesstrain folder.
-# cd "$tess_tr_dir"
-# if [[ $? -ne 0 ]]; then
-#     echo "Error: Failed to enter \"$tess_tr_dir\"."
-#     exit 1
-# fi
+# Enter tesstrain folder.
+cd "$tess_tr_dir"
+if [[ $? -ne 0 ]]; then
+    echo "Error: Failed to enter \"$tess_tr_dir\"."
+    exit 1
+fi
 
 # # Activate virtual environment.
 # if [[ ! -d ./env ]]; then
