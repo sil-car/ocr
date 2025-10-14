@@ -88,12 +88,12 @@ touch "$log"
 #     deactivate
 # fi
 
-# # Enter tesstrain folder.
-# cd "$tess_tr_dir"
-# if [[ $? -ne 0 ]]; then
-#     echo "Error: Failed to enter \"$tess_tr_dir\"."
-#     exit 1
-# fi
+# Enter tesstrain folder; needed for access to generate_*.py scripts.
+cd "$tess_tr_dir"
+if [[ $? -ne 0 ]]; then
+    echo "Error: Failed to enter \"$tess_tr_dir\"."
+    exit 1
+fi
 
 # # Activate virtual environment.
 # if [[ ! -d ./env ]]; then
@@ -122,7 +122,7 @@ make_common_opts=(
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
-    # Clean/reset generated files & exit (for now).
+    # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
     make $d -f "${tess_tr_dir}/Makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
@@ -251,3 +251,4 @@ duration=$(($time_end - $time_start))
 echo "Training lasted ${duration}s."
 echo "Log file: $log"
 # per_iter=$(($max_iter / $duration))
+cd "$repo_dir"
