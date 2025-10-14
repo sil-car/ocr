@@ -120,6 +120,9 @@ make_common_opts=(
     DEBUG_INTERVAL="$debug_interval"
 )
 
+# Ensure langdata folder.
+make $d -f "${tess_tr_dir}/Makefile" tesseract-langdata "${make_common_opts[@]}"
+
 # Handle reset option.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
