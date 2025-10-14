@@ -81,7 +81,7 @@ done
 shift $(($OPTIND - 1))
 
 # Set TESSDATA_PREFIX in env.
-export TESSDATA_PREFIX="$tessdata"
+export TESSDATA_PREFIX=/usr/local/share/tessdata  # f/ git install
 # Create log file.
 touch "$log"
 
