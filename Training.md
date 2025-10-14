@@ -26,9 +26,9 @@ Other factors to consider:
 
 Since this OCR model is intended to improve character recognition for Latin script-based languages in the central Africa region, the vast majority of the unicode characters chosen for training come from SIL's [Cameroon Multilingual keyboard](https://langtechcameroon.info/keyboard/), which is widely used in the region. A few additional characters were added after getting feedback from linguists working in the region.
 
-### Install dependencies
+### Run setup.sh script to install dependencies and prepare tesstrain
 ```
-(env) $ sudo apt install python3-venv fonts-lato fonts-liberation fonts-noto fonts-sil-andika fonts-sil-andika-compact fonts-sil-charis fonts-sil-charis-compact fonts-sil-doulos fonts-sil-doulos-compact fonts-sil-gentium fonts-sil-gentiumplus fonts-sil-gentiumplus-compact fonts-symbola ttf-mscorefonts-installer
+(env) $ ./scripts/setup.sh
 ```
 
 ### Fonts and font styles

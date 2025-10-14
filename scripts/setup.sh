@@ -63,7 +63,8 @@ fi
 
 if [[ ! -f $HOME/tesstrain/env/bin/activate ]]; then
     cd tesstrain
-    python3 -m venv env && python -m pip install -r requirements.txt
+    python3 -m venv env
+    source ./env/bin/activate && python -m pip install -r requirements.txt && deactivate
     cd "$HOME"
 fi
 mkdir -p "${HOME}/tesstrain/data"
