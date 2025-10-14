@@ -26,21 +26,39 @@ Other factors to consider:
 
 Since this OCR model is intended to improve character recognition for Latin script-based languages in the central Africa region, the vast majority of the unicode characters chosen for training come from SIL's [Cameroon Multilingual keyboard](https://langtechcameroon.info/keyboard/), which is widely used in the region. A few additional characters were added after getting feedback from linguists working in the region.
 
+### Run setup.sh script to install dependencies and prepare tesstrain (ubuntu)
+```
+(env) $ ./scripts/setup.sh
+```
+
+### Generate training data and run the training.
+See help for primary scripts:
+```
+(env) $ ./scripts/generate-training-data.py -h
+(env) $ ./scripts/run-training.sh -h
+```
+
 ### Fonts and font styles
 
 All the fonts used for image generation for training can be found in [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt) or by passing the '-c' option to the command:
-```bash
+```
 (env) $ ./scripts/generate-training-data.py -c
 ```
 
 ### Character selection during image generation
 
 At first it was assumed that simply generating random combinations of valid characters would be sufficient when generating the training images. However, that proved to give very poor and unusable results. So the character selection is now based on a weighting system that attempts to mimic real-world rates of the various types of characters. The weights can be found in [scripts/generate-training-data.py](scripts/generate-training-data.py) or by passing the '-w' option to the command:
-```bash
+```
 (env) $ ./scripts/generate-training-data.py -w
 ```
 
 In addition to the basic weighted system, some characters were especially poorly recognized. These characters are given an added weighting to increase their generation rates. They are noted at the end of the output from the above command.
+
+### Generating the training data
+Corresponding text line images and ground truth text files will be created.
+```
+(env) $ ./scripts/generate-training-data.py -i 500 # more likely over 100_000
+```
 
 ### Image line length
 
@@ -66,11 +84,11 @@ Then it seems that it's best if each generated image is only seen once during tr
 
 ### Type of training (fine tuning vs layer replacement)
 
-Fine tuning works reasonably well and is fairly straightforward to run. But test results show that replacing the top layer works even better. See [Testing.md](Testing.md) for more details.
+Fine tuning works reasonably well and is fairly straightforward to run. But test results show that replacing the top layer works even better. See [Evaluation.md](Evaluation.md) for more details.
 
 ### Format of replaced top layer
 
-It seems other models with large numbers of output characters use a top layer size of 512 nodes, while some use 256 or something in between. Both 512 and 256 were tested, and 512 seems to perform better.
+It seems other models with large numbers of output characters use a top layer size of 512 nodes, while some use 256 or something in between. Both 512 and 256 were tested, and 512 (option `-l Lfx512`) seems to perform better.
 
 ## Notes on specific models
 

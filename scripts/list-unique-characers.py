@@ -7,7 +7,6 @@
 #   - For each language show all non-ASCII chars (all > \u0127)
 
 import argparse
-import sys
 
 from pathlib import Path
 
@@ -20,26 +19,30 @@ def get_chars_from_file(file_pathobj):
         chars.update(c for c in file_pathobj.read_text())
     except UnicodeDecodeError as e:
         # print(f"Warning: Skipping file \"{file_pathobj.name}\"; {e}")
-        print(f"Warning: Skipping file \"{file_pathobj.name}\"")
+        print(f'Warning: Skipping file "{file_pathobj.name}"')
         # print(e)
     return chars
+
 
 def get_parsed_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-    '-l', '--list',
-    action='store_true',
-    help="list files that character list was built from"
+        "-l",
+        "--list",
+        action="store_true",
+        help="list files that character list was built from",
     )
     parser.add_argument(
-        '-p', '--paratext',
-        action='store_true',
-        help="pass source as a Paratext project name or folder"
+        "-p",
+        "--paratext",
+        action="store_true",
+        help="pass source as a Paratext project name or folder",
     )
     parser.add_argument(
-        '-u', '--unicode',
-        action='store_true',
-        help="show unicode value of output characters"
+        "-u",
+        "--unicode",
+        action="store_true",
+        help="show unicode value of output characters",
     )
     # parser.add_argument(
     #     '-k', '--trim',
@@ -61,12 +64,11 @@ def get_parsed_args():
     #     help="Use lower bitrate and fewer fps for short tutorial videos."
     # )
     parser.add_argument(
-        "file",
-        nargs='*',
-        help="space-separated list of source files or folders"
+        "file", nargs="*", help="space-separated list of source files or folders"
     )
 
     return parser.parse_args()
+
 
 def set_search_paths(script_args):
     search_paths = []
@@ -83,31 +85,35 @@ def set_search_paths(script_args):
                     search_paths.append(test_path)
                     project_found = True
             if not project_found:
-                print(f"Warning: \"{f}\" was not found in Paratext project folders and will be ignored.")
+                print(
+                    f'Warning: "{f}" was not found in Paratext project folders and will be ignored.'
+                )
         else:
             # Not a valid folder.
-            print(f"Warning: \"{f}\" is not a valid folder and will be ignored.")
+            print(f'Warning: "{f}" is not a valid folder and will be ignored.')
     return search_paths
 
+
 def remove_ascii_from_string(given_string):
-    return ''.join([c for c in given_string if ord(c) >= 128])
+    return "".join([c for c in given_string if ord(c) >= 128])
+
 
 def get_unicode_values_from_string(given_string):
-    return [c.encode('unicode-escape') for c in given_string]
+    return [c.encode("unicode-escape") for c in given_string]
 
 
 user_home = Path.home()
 args = get_parsed_args()
 
 file_types = [
-    '.sfm',
-    '.txt',
+    ".sfm",
+    ".txt",
 ]
 if args.paratext:
     # Only search SFM files.
     file_types = [
-        '.sfm',
-        ]
+        ".sfm",
+    ]
 
 paratext_project_dirs = [
     # Linux
@@ -121,18 +127,18 @@ paratext_project_dirs = [
 ]
 
 car_paratext_projects = [
-    'Ban',
-    'BGT',
-    'GBP',
-    'GTSag',
-    'Kab',
-    'Mpyemo',
-    'Mza',
-    'NDY',
-    'NGB',
-    'Nzk',
-    'SAB',
-    'Tali',
+    "Ban",
+    "BGT",
+    "GBP",
+    "GTSag",
+    "Kab",
+    "Mpyemo",
+    "Mza",
+    "NDY",
+    "NGB",
+    "Nzk",
+    "SAB",
+    "Tali",
 ]
 
 search_paths = set_search_paths(args)
@@ -147,25 +153,25 @@ for fpath in search_paths:
             proj_name = fpath.name
             if not paratext_results.get(proj_name):
                 paratext_results[proj_name] = {
-                    'characters': set(),
-                    'files': [fpath.as_uri()],
+                    "characters": set(),
+                    "files": [fpath.as_uri()],
                 }
             else:
-                paratext_results[proj_name]['files'].append(fpath.as_uri())
+                paratext_results[proj_name]["files"].append(fpath.as_uri())
         # Use globbing to find all file_types recursively within given directory.
         valid_files = []
         for t in file_types:
-            valid_files.extend(fpath.glob(f'**/*{t}'))
-            valid_files.extend(fpath.glob(f'**/*{t.upper()}'))
+            valid_files.extend(fpath.glob(f"**/*{t}"))
+            valid_files.extend(fpath.glob(f"**/*{t.upper()}"))
         scraped_files.extend(f.as_uri() for f in valid_files)
         for fp in valid_files:
             # Get characters from file.
             chars = get_chars_from_file(fp)
             if args.paratext:
-                if not paratext_results.get(proj_name).get('characters'):
-                    paratext_results[proj_name]['characters'] = set(chars)
+                if not paratext_results.get(proj_name).get("characters"):
+                    paratext_results[proj_name]["characters"] = set(chars)
                 else:
-                    paratext_results[proj_name]['characters'].update(chars)
+                    paratext_results[proj_name]["characters"].update(chars)
             all_chars.update(chars)
     elif fpath.is_file():
         # Get characters from file.
@@ -187,9 +193,9 @@ if args.list:
         print(f)
     print()
 else:
-    print(f"Found {c_ct} characters in {f_ct} files. Use \"-l\" option to see file list.")
+    print(f'Found {c_ct} characters in {f_ct} files. Use "-l" option to see file list.')
 
-all_chars_str = ''.join(all_chars_list)
+all_chars_str = "".join(all_chars_list)
 print("Characters:")
 print(all_chars_str)
 if args.unicode:
@@ -199,15 +205,15 @@ if args.unicode:
         if i % 4 == 3:
             print(f"{c} ")
         else:
-            print(f"{c} ", end='')
+            print(f"{c} ", end="")
 print()
 
 if args.paratext:
     print(f"Non-ASCII characters by Paratext project:")
     for p, v in paratext_results.items():
-        p_chars = list(v.get('characters'))
+        p_chars = list(v.get("characters"))
         p_chars.sort()
-        p_chars_str = ''.join(p_chars)
+        p_chars_str = "".join(p_chars)
         x_chars_str = remove_ascii_from_string(p_chars_str)
         print(f"{p}\t{x_chars_str}")
 
@@ -219,5 +225,5 @@ if args.paratext:
                 if i % 4 == 3:
                     print(f"{c} ")
                 else:
-                    print(f"{c} ", end='')
+                    print(f"{c} ", end="")
             print()

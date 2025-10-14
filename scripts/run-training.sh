@@ -2,33 +2,52 @@
 
 ### Start tesseract training on cloud server with relevant options.
 
+# Ensure we're in the ocr repo.
+ocr_script_dir="$(readlink -f "$(dirname "$0")")"
+repo_dir="$(dirname "$ocr_script_dir")"
+cd "$repo_dir" || exit 1
+
 # Set initial variables.
+cores=$(nproc)
 convert_checkpoint=
 debug=
 reset=
 replace_layer=
 net_spec_top='Lfx512'
-start_model="Latin"
+start_model="lat" # "Latin"
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
 data_dir="${tess_tr_dir}/data"
-tessdata="/usr/local/share/tessdata"
+tessdata="${HOME}/tessdata_best"
 max_iter=100000
 debug_interval=0
 t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
-ocr_script_dir="$(readlink -f "$(dirname "$0")")"
 
 d=
 v=
 
-help_text="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+help_text="$usage
+
+  -c CHECKPOINT
+    \tconvert checkpoint
+  -d\tdebug
+  -h\tshow help
+  -i NUM
+    \tset number of iterations
+  -l LAYER
+    \tdefine new top layer
+  -r\treset training files
+  -t\ttrain based on text2image
+  -v\tverbose output
+"
 while getopts ":c:dhi:l:rtv" opt; do
     case $opt in
         c) # convert checkpoint
             convert_checkpoint=YES
-            checkpoint_file="$OPTARG"
+            checkpoint_file="$(basename "$OPTARG")"
             ;;
         d) # debug
             debug=YES
@@ -36,7 +55,7 @@ while getopts ":c:dhi:l:rtv" opt; do
             d='-d'
             ;;
         h) # help text
-            echo "$help_text"
+            echo -e "$help_text"
             exit 0
             ;;
         i) # max. iterations
@@ -63,22 +82,27 @@ while getopts ":c:dhi:l:rtv" opt; do
 done
 shift $(($OPTIND - 1))
 
+# Set TESSDATA_PREFIX in env.
+export TESSDATA_PREFIX=/usr/local/share/tessdata  # f/ git install
+# Create log file.
+touch "$log"
+
 # Ensure no other virtual environment is active.
 if which deactivate >/dev/null 2>&1; then
     deactivate
 fi
 
-# Enter tesstrain folder.
-cd "$tess_tr_dir"
+# Activate virtual environment.
+source "${repo_dir}/env/bin/activate"
 if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to enter \"$tess_tr_dir\"."
+    echo "Error: Failed to activate virtual environment."
     exit 1
 fi
 
-# Activate virtual environment.
-source ./env/bin/activate
+# Enter tesstrain folder; needed for access to generate_*.py scripts.
+cd "$tess_tr_dir"
 if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to activate virtual environment."
+    echo "Error: Failed to enter \"$tess_tr_dir\"."
     exit 1
 fi
 
@@ -87,13 +111,26 @@ if [[ -n "$debug" ]]; then
     set -x
 fi
 
+make_common_opts=(
+    DATA_DIR="$data_dir"
+    MODEL_NAME="$model_name"
+    CORES="$cores"
+    TESSDATA="$tessdata"
+    GROUND_TRUTH_DIR="${repo_dir}/data/training/${model_name}-ground-truth"
+    MAX_ITERATIONS="$max_iter"
+    DEBUG_INTERVAL="$debug_interval"
+)
+
+# Ensure langdata folder.
+make $d -f "${tess_tr_dir}/Makefile" tesseract-langdata "${make_common_opts[@]}"
+
 # Handle reset option.
 if [[ -n "$reset" ]]; then
-    # Clean/reset generated files & exit (for now).
+    # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
-    make clean "MODEL_NAME=${model_name}"
+    make $d -f "${tess_tr_dir}/Makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
-    cp -rv "$HOME/ocr/data/${model_name}" "${data_dir}/"
+    cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
 fi
 
@@ -102,17 +139,23 @@ if [[ -n "$convert_checkpoint" ]]; then
     # Verify that files exist.
     traineddata_file="${data_dir}/${model_name}/${model_name}.traineddata"
     checkpoints_dir="${data_dir}/${model_name}/checkpoints"
+
+    echo "Checking if file exists: $checkpoint_file"
     if [[ ! -f "$checkpoint_file" ]]; then
-        if [[ -f "${checkpoints_dir}/${checkpoint_file}" ]]; then
-            checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
-        else
+        checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
+        echo "Checking if file exists: $checkpoint_file"
+        if [[ ! -f "$checkpoint_file" ]]; then
             echo "Error: File not found: $checkpoint_file"
             exit 1
         fi
-    elif [[ ! -f "$traineddata_file" ]]; then
+    fi
+
+    echo "Checking if file exists: $traineddata_file"
+    if [[ ! -f "$traineddata_file" ]]; then
         echo "Error: File not found: $traineddata_file"
         exit 1
     fi
+
     # Convert checkpoint file to traineddata file.
     checkpoint_filename="$(basename "$checkpoint_file")"
     checkpoint_name="${checkpoint_filename%.checkpoint}"
@@ -146,7 +189,7 @@ if [[ -n "$t2i" ]]; then
     # Copy prepared unicharset & other files.
     langdata_dir="${data_dir}/langdata"
     mkdir -p "${langdata_dir}/${model_name}"
-    cp "$HOME/ocr/data/${model_name}/${model_name}."* "${langdata_dir}/${model_name}/"
+    cp "${repo_dir}/data/${model_name}/${model_name}."* "${langdata_dir}/${model_name}/"
 
     # Create starter traineddatda (aka recoder).
     combine_lang_model \
@@ -200,23 +243,16 @@ elif [[ -n "$replace_layer" ]]; then
     net_spec="[$net_spec_top O1c###]"
     echo "NET_SPEC = $net_spec"
     make $d -f "${ocr_script_dir}/Makefile-layer" training \
-        MODEL_NAME="$model_name" \
-        CORES=2 \
+        "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
-        TESSDATA="$tessdata" \
-        MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval" \
         NET_SPEC="$net_spec" \
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
+    echo "Using Makefile \"${ocr_script_dir}/Makefile-seq\""
     make $d -f "${ocr_script_dir}/Makefile-seq" training \
-        MODEL_NAME="$model_name" \
-        CORES=2 \
+        "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
-        TESSDATA="$tessdata" \
-        MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval" \
         2>&1 | tee "$log"
 fi
 time_end=$(date +%s)
@@ -225,3 +261,4 @@ duration=$(($time_end - $time_start))
 echo "Training lasted ${duration}s."
 echo "Log file: $log"
 # per_iter=$(($max_iter / $duration))
+cd "$repo_dir"

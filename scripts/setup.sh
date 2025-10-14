@@ -1,7 +1,7 @@
 #!/bin/bash
 
-script_dir="$(dirname "$0")"
-repo_dir="$(dirname "$script_dir")"
+script_dir="$(realpath "$(dirname "$0")")"
+repo_dir="$(realpath "$(dirname "$script_dir")")"
 
 # Ensure running from $HOME.
 cd "$HOME"
@@ -12,27 +12,26 @@ fi
 
 # Install apt packages.
 apt_pkgs=(
+    automake
+    ca-certificates
+    g++
+    git
+    libcairo2-dev
+    libicu-dev
+    libleptonica-dev
+    libpango1.0-dev
+    libtool
+    make
+    pkg-config
+    python3-venv
     screen
-    wireguard
+    unzip
 )
-for pkg in "${apt_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-        echo "Installing ${pkg}..."
-        sudo apt-get install $pkg
-    fi
-done
-
-# Get wireguard-vpn-setup repo.
-if [[ ! -d $HOME/wireguard-vpn-setup ]]; then
-    git clone --depth=1 "https://github.com/sil-car/wireguard-vpn-setup.git"
-fi
-# TODO: Run wireguard setup script.
-
-# TODO: Add SSH key.
-# TODO: Allow SSH only on wireguard port.
+sudo apt-get install -y "${apt_pkgs[@]}"
 
 # Install packaged fonts.
 font_pkgs=(
+    fonts-dejavu-core
     fonts-lato
     fonts-noto-core
     fonts-noto-mono
@@ -49,21 +48,59 @@ font_pkgs=(
     fonts-symbola
     ttf-mscorefonts-installer
 )
-for pkg in "${font_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-        echo "Installing ${pkg}..."
-        sudo apt-get install $pkg
-    fi
-done
+sudo apt-get install -y "${font_pkgs[@]}"
+
 # Install non-packaged fonts.
 echo "Copying user fonts..."
-cp -fr "${repo_dir}/data/extra-fonts/"* "${HOME}/.local/share/fonts/"
+if [[ $USER == root ]]; then
+    dest_dir=/usr/share/fonts/
+else
+    dest_dir="${HOME}/.local/share/fonts/"
+fi
+cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 
 # Get tesstrain repo.
 if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
-# Get tesseract repo.
-if [[ ! -d $HOME/tesseract ]]; then
-    git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
+
+# Get tesseract, build & install.
+tesseract_ver="5.5.1"
+tesseract_dir="tesseract-$tesseract_ver"
+if [[ -z $(which lstmtraining) ]]; then
+    rm -f "${tesseract_ver}.zip"
+    rm -rf "$tesseract_dir"
+    wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
+    unzip "$tesseract_ver"
+    cd "$tesseract_dir"
+    ./autogen.sh
+    mkdir -p bin/release
+    cd bin/release
+    ../../configure \
+        --disable-debug \
+        --disable-graphics \
+        --disable-shared \
+        'CXXFLAGS=-g -O2 -fno-math-errno -Wall -Wextra -Wpedantic'
+    make
+    sudo make install
+    make training
+    sudo make training-install
+    # eng.traineddata needed to init tesseract
+    wget -P /usr/local/share/tessdata https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/eng.traineddata
 fi
+
+# Get best Latin script traineddata model.
+if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
+    # NOTE: Cloning the full repo requires downloading > 1 GB of data.
+    # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
+    mkdir -p $HOME/tessdata_best
+    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
+fi
+
+# Create venv.
+cd "${HOME}/ocr"
+python3 -m venv env
+source ./env/bin/activate
+python3 -m pip install -r ../tesstrain/requirements.txt
+python3 -m pip install -r requirements.txt
+cd "$HOME"
