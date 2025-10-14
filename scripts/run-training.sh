@@ -77,6 +77,9 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Activate virtual environment.
+if [[ ! -d ./env ]]; then
+    python3 -m venv env
+fi
 source ./env/bin/activate
 if [[ $? -ne 0 ]]; then
     echo "Error: Failed to activate virtual environment."
