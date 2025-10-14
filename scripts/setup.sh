@@ -1,7 +1,7 @@
 #!/bin/bash
 
-script_dir="$(dirname "$0")"
-repo_dir="$(dirname "$script_dir")"
+script_dir="$(realpath "$(dirname "$0")")"
+repo_dir="$(realpath "$(dirname "$script_dir")")"
 
 # Ensure running from $HOME.
 cd "$HOME"
