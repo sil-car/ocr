@@ -74,14 +74,6 @@ if [[ ! -d $HOME/tesstrain ]]; then
 fi
 #mkdir -p "${HOME}/tesstrain/data"
 
-# Get best Latin script traineddata model.
-if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
-    # NOTE: Cloning the full repo requires downloading > 1 GB of data.
-    # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
-    mkdir -p $HOME/tessdata_best
-    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
-fi
-
 # Get tesseract, build & install.
 tesseract_ver="5.5.1"
 tesseract_dir="tesseract-$tesseract_ver"
@@ -93,7 +85,6 @@ if [[ -z $(which lstmtraining) ]]; then
     mkdir -p bin/release
     cd bin/release
     ../../configure \
-        --disable-openmp \
         --disable-debug \
         --disable-graphics \
         --disable-shared \
@@ -102,6 +93,16 @@ if [[ -z $(which lstmtraining) ]]; then
     sudo make install
     make training
     sudo make training-install
+    # eng.traineddata needed to init tesseract
+    wget -P /usr/local/share/tessdata https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/eng.traineddata
+fi
+
+# Get best Latin script traineddata model.
+if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
+    # NOTE: Cloning the full repo requires downloading > 1 GB of data.
+    # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
+    mkdir -p $HOME/tessdata_best
+    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
 fi
 
 # Create venv.
