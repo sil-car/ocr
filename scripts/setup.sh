@@ -79,6 +79,7 @@ if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
     # NOTE: Cloning the full repo requires downloading > 1 GB of data.
     # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
     mkdir -p $HOME/tessdata_best
+    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/eng.traineddata
     wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
 fi
 

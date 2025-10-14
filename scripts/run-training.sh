@@ -80,6 +80,8 @@ while getopts ":c:dhi:l:rtv" opt; do
 done
 shift $(($OPTIND - 1))
 
+# Set TESSDATA_PREFIX in env.
+export TESSDATA_PREFIX="$tessdata"
 # Create log file.
 touch "$log"
 
