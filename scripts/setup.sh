@@ -46,7 +46,7 @@ font_pkgs=(
 for pkg in "${font_pkgs[@]}"; do
     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
         echo "Installing ${pkg}..."
-        sudo apt-get install $pkg
+        sudo apt-get -y install $pkg
     fi
 done
 # Install non-packaged fonts.

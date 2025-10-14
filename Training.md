@@ -26,9 +26,16 @@ Other factors to consider:
 
 Since this OCR model is intended to improve character recognition for Latin script-based languages in the central Africa region, the vast majority of the unicode characters chosen for training come from SIL's [Cameroon Multilingual keyboard](https://langtechcameroon.info/keyboard/), which is widely used in the region. A few additional characters were added after getting feedback from linguists working in the region.
 
-### Run setup.sh script to install dependencies and prepare tesstrain
+### Run setup.sh script to install dependencies and prepare tesstrain (ubuntu)
 ```
 (env) $ ./scripts/setup.sh
+```
+
+### Generate training data and run the training.
+See help for primary scripts:
+```
+(env) $ ./scripts/generate-training-data.py -h
+(env) $ ./scripts/run-training.sh -h
 ```
 
 ### Fonts and font styles
@@ -46,6 +53,12 @@ At first it was assumed that simply generating random combinations of valid char
 ```
 
 In addition to the basic weighted system, some characters were especially poorly recognized. These characters are given an added weighting to increase their generation rates. They are noted at the end of the output from the above command.
+
+### Generating the training data
+Corresponding text line images and ground truth text files will be created.
+```
+(env) $ ./scripts/generate-training-data.py -i 500 # more likely over 100_000
+```
 
 ### Image line length
 
