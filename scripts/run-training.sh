@@ -151,7 +151,7 @@ if [[ -n "$convert_checkpoint" ]]; then
     fi
 
     echo "Checking if file exists: $traineddata_file"
-    elif [[ ! -f "$traineddata_file" ]]; then
+    if [[ ! -f "$traineddata_file" ]]; then
         echo "Error: File not found: $traineddata_file"
         exit 1
     fi
