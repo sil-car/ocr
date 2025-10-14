@@ -13,6 +13,7 @@ fi
 # Install apt packages.
 apt_pkgs=(
     make
+    python3-venv
     screen
 )
 for pkg in "${apt_pkgs[@]}"; do
@@ -58,6 +59,12 @@ cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 # Get tesstrain repo.
 if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
+fi
+
+if [[ ! -f $HOME/tesstrain/env/bin/activate ]]; then
+    cd tesstrain
+    python3 -m venv env && python -m pip install -r requirements.txt
+    cd "$HOME"
 fi
 mkdir -p "${HOME}/tesstrain/data"
 
