@@ -27,12 +27,13 @@ apt_pkgs=(
     screen
     unzip
 )
-for pkg in "${apt_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-        echo "Installing ${pkg}..."
-        sudo apt-get install -y $pkg
-    fi
-done
+# for pkg in "${apt_pkgs[@]}"; do
+#     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
+#         echo "Installing ${pkg}..."
+#         sudo apt-get install -y $pkg
+#     fi
+# done
+sudo apt-get install -y "${apt_pkgs[@]}"
 
 # Install packaged fonts.
 font_pkgs=(
@@ -53,12 +54,14 @@ font_pkgs=(
     fonts-symbola
     ttf-mscorefonts-installer
 )
-for pkg in "${font_pkgs[@]}"; do
-    if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-        echo "Installing ${pkg}..."
-        sudo apt-get -y install $pkg
-    fi
-done
+# for pkg in "${font_pkgs[@]}"; do
+#     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
+#         echo "Installing ${pkg}..."
+#         sudo apt-get -y install $pkg
+#     fi
+# done
+sudo apt-get install -y "${font_pkgs[@]}"
+
 # Install non-packaged fonts.
 echo "Copying user fonts..."
 if [[ $USER == root ]]; then
@@ -72,7 +75,6 @@ cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
-#mkdir -p "${HOME}/tesstrain/data"
 
 # Get tesseract, build & install.
 tesseract_ver="5.5.1"
