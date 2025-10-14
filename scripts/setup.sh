@@ -12,15 +12,25 @@ fi
 
 # Install apt packages.
 apt_pkgs=(
+    automake
+    ca-certificates
+    g++
+    git
+    libcairo2-dev
+    libicu-dev
+    libleptonica-dev
+    libpango1.0-dev
+    libtool
     make
+    pkg-config
     python3-venv
     screen
-    tesseract-ocr
+    unzip
 )
 for pkg in "${apt_pkgs[@]}"; do
     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
         echo "Installing ${pkg}..."
-        sudo apt-get install $pkg
+        sudo apt-get install -y $pkg
     fi
 done
 
@@ -72,10 +82,27 @@ if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
     wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
 fi
 
-# # Get tesseract repo.
-# if [[ ! -d $HOME/tesseract ]]; then
-#     git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
-# fi
+# Get tesseract, build & install.
+tesseract_ver="5.5.1"
+tesseract_dir="tesseract-$tesseract_ver"
+if [[ ! -d $tesseract_dir ]]; then
+    wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
+    unzip "$tesseract_ver"
+    cd "$tesseract_dir"
+    ./autogen.sh
+    mkdir -p bin/release
+    cd bin/release
+    ../../configure \
+        --disable-openmp \
+        --disable-debug \
+        --disable-graphics \
+        --disable-shared \
+        'CXXFLAGS=-g -O2 -fno-math-errno -Wall -Wextra -Wpedantic'
+    make
+    sudo make install
+    make training
+    sudo make training-install
+fi
 
 # Create venv.
 cd "${HOME}/ocr"
