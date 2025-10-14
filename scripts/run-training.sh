@@ -123,7 +123,7 @@ make_common_opts=(
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit (for now).
     echo "Resetting generated files (not GT data). No other option will be handled."
-    make clean "MODEL_NAME=${model_name}"
+    make $d -f "${tess_tr_dir}/Makefile" clean "MODEL_NAME=${model_name}"
     rm -fv "${data_dir}/"*.traineddata
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
