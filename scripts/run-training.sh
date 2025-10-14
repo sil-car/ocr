@@ -47,7 +47,7 @@ while getopts ":c:dhi:l:rtv" opt; do
     case $opt in
         c) # convert checkpoint
             convert_checkpoint=YES
-            checkpoint_file="$(realpath "$OPTARG")"
+            checkpoint_file="$(basename "$OPTARG")"
             ;;
         d) # debug
             debug=YES
@@ -142,7 +142,7 @@ if [[ -n "$convert_checkpoint" ]]; then
 
     echo "Checking if file exists: $checkpoint_file"
     if [[ ! -f "$checkpoint_file" ]]; then
-        checkpoint_file="${checkpoints_dir}/$(basename "${checkpoint_file}")"
+        checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
         echo "Checking if file exists: $checkpoint_file"
         if [[ ! -f "$checkpoint_file" ]]; then
             echo "Error: File not found: $checkpoint_file"
