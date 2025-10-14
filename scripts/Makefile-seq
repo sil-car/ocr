@@ -28,7 +28,7 @@ LANGDATA_DIR = $(DATA_DIR)/langdata
 OUTPUT_DIR = $(DATA_DIR)/$(MODEL_NAME)
 
 # Ground truth directory. Default: $(GROUND_TRUTH_DIR)
-GROUND_TRUTH_DIR := $(DATA_DIR)/training/$(MODEL_NAME)-ground-truth
+GROUND_TRUTH_DIR := $(DATA_DIR)/$(MODEL_NAME)-ground-truth
 
 # Optional Wordlist file for Dictionary dawg. Default: $(WORDLIST_FILE)
 WORDLIST_FILE := $(OUTPUT_DIR)/$(MODEL_NAME).wordlist

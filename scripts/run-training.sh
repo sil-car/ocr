@@ -69,17 +69,17 @@ while getopts ":c:dhi:l:rtv" opt; do
 done
 shift $(($OPTIND - 1))
 
-# Ensure no other virtual environment is active.
-if which deactivate >/dev/null 2>&1; then
-    deactivate
-fi
+# # Ensure no other virtual environment is active.
+# if which deactivate >/dev/null 2>&1; then
+#     deactivate
+# fi
 
-# Enter tesstrain folder.
-cd "$tess_tr_dir"
-if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to enter \"$tess_tr_dir\"."
-    exit 1
-fi
+# # Enter tesstrain folder.
+# cd "$tess_tr_dir"
+# if [[ $? -ne 0 ]]; then
+#     echo "Error: Failed to enter \"$tess_tr_dir\"."
+#     exit 1
+# fi
 
 # # Activate virtual environment.
 # if [[ ! -d ./env ]]; then
@@ -95,6 +95,15 @@ fi
 if [[ -n "$debug" ]]; then
     set -x
 fi
+
+make_common_opts=(
+    MODEL_NAME="$model_name"
+    CORES="$cores"
+    TESSDATA="$tessdata"
+    GROUND_TRUTH_DIR="${repo_dir}/data/training/${model_name}-ground-truth"
+    MAX_ITERATIONS="$max_iter"
+    DEBUG_INTERVAL="$debug_interval"
+)
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
@@ -209,24 +218,16 @@ elif [[ -n "$replace_layer" ]]; then
     net_spec="[$net_spec_top O1c###]"
     echo "NET_SPEC = $net_spec"
     make $d -f "${ocr_script_dir}/Makefile-layer" training \
-        MODEL_NAME="$model_name" \
-        CORES="$cores" \
+        "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
-        TESSDATA="$tessdata" \
-        MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval" \
         NET_SPEC="$net_spec" \
         2>&1 | tee "$log"
 else
     # Standard training with GT.TXT files.
     echo "Using Makefile \"${ocr_script_dir}/Makefile-seq\""
     make $d -f "${ocr_script_dir}/Makefile-seq" training \
-        MODEL_NAME="$model_name" \
-        CORES="$cores" \
+        "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
-        TESSDATA="$tessdata" \
-        MAX_ITERATIONS="$max_iter" \
-        DEBUG_INTERVAL="$debug_interval" \
         2>&1 | tee "$log"
 fi
 time_end=$(date +%s)
