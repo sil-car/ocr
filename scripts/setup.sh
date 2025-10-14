@@ -78,6 +78,8 @@ fi
 tesseract_ver="5.5.1"
 tesseract_dir="tesseract-$tesseract_ver"
 if [[ -z $(which lstmtraining) ]]; then
+    rm -f "${tesseract_ver}.zip"
+    rm -rf "$tesseract_dir"
     wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
     unzip "$tesseract_ver"
     cd "$tesseract_dir"
