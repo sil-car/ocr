@@ -85,7 +85,7 @@ fi
 # Get tesseract, build & install.
 tesseract_ver="5.5.1"
 tesseract_dir="tesseract-$tesseract_ver"
-if [[ ! -d $tesseract_dir ]]; then
+if [[ -z $(which lstmtraining) ]]; then
     wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
     unzip "$tesseract_ver"
     cd "$tesseract_dir"
