@@ -27,12 +27,6 @@ apt_pkgs=(
     screen
     unzip
 )
-# for pkg in "${apt_pkgs[@]}"; do
-#     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-#         echo "Installing ${pkg}..."
-#         sudo apt-get install -y $pkg
-#     fi
-# done
 sudo apt-get install -y "${apt_pkgs[@]}"
 
 # Install packaged fonts.
@@ -54,12 +48,6 @@ font_pkgs=(
     fonts-symbola
     ttf-mscorefonts-installer
 )
-# for pkg in "${font_pkgs[@]}"; do
-#     if [[ $(dpkg -l | grep -E "^.{4}$pkg\s" | awk '{print $1}') != 'ii' ]]; then
-#         echo "Installing ${pkg}..."
-#         sudo apt-get -y install $pkg
-#     fi
-# done
 sudo apt-get install -y "${font_pkgs[@]}"
 
 # Install non-packaged fonts.
