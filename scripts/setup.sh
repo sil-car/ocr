@@ -12,6 +12,7 @@ fi
 
 # Install apt packages.
 apt_pkgs=(
+    make
     screen
 )
 for pkg in "${apt_pkgs[@]}"; do
