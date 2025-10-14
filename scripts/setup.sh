@@ -58,8 +58,9 @@ cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 # Get tesstrain repo.
 if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
-    mkdir -p "${HOME}/tesstrain/data"
 fi
+mkdir -p "${HOME}/tesstrain/data"
+
 # Get tesseract repo.
 if [[ ! -d $HOME/tesseract ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesseract.git"
