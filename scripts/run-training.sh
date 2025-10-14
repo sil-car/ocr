@@ -2,6 +2,11 @@
 
 ### Start tesseract training on cloud server with relevant options.
 
+# Ensure we're in the ocr repo.
+script_dir="$(dirname "$(realpath "$0")")"
+repo_dir="$(dirname "$script_dir")"
+cd "$repo_dir" || exit 1
+
 # Set initial variables.
 cores=$(nproc)
 convert_checkpoint=
