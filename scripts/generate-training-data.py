@@ -25,7 +25,8 @@ from PIL import Image
 
 # Global variables.
 writing_system_name = "Latin_afr"
-image_ht = 48
+DEFAULT_CHARACTER_HEIGHT = 48
+DEFAULT_ITERATIONS = 1
 chars_per_line = 50
 
 
@@ -548,14 +549,13 @@ def generate_text_line_png(chars, fontfile):
         rc = page.insert_text(pt, chars, fontname="test")
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        # image_ht is a proxy; actual char ht is a few px less b/c spacing
+        # CHARACTER_HEIGHT is a proxy; actual char ht is a few px less b/c spacing
         dpi = int(
-            (88 / 13) * image_ht - 636 / 13
+            (88 / 13) * CHARACTER_HEIGHT - 636 / 13
         )  # linear relationship calculated using (22, 100), (35, 188)
         pix = page.get_pixmap(dpi=dpi)
 
-    # Crop the pixmap to remove extra whitespace.
-    # Convert to PIL Image.
+    # Crop the pixmap to remove extra whitespace; convert to PIL Image.
     #   Ref: https://github.com/pymupdf/PyMuPDF/issues/322#issuecomment-512561756
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
     # Get boundary extents.
@@ -636,10 +636,18 @@ def get_parsed_args():
         "-F", "--installed-fonts", action="store_true", help="list installed fonts"
     )
     parser.add_argument(
+        "-H",
+        "--character-height",
+        type=int,
+        default=DEFAULT_CHARACTER_HEIGHT,
+        help=f"set max height (px) of generated characters [{DEFAULT_CHARACTER_HEIGHT}]",
+    )
+    parser.add_argument(
         "-i",
         "--iterations",
         type=int,
-        help='create "i" iterations of ground truth data',
+        default=DEFAULT_ITERATIONS,
+        help=f'create "i" iterations of ground truth data [{DEFAULT_ITERATIONS}]',
     )
     parser.add_argument(
         "-n",
@@ -669,27 +677,18 @@ def get_parsed_args():
 
 
 def run_iteration(iter_num):
-    # Unpack args.
-    variables = iter_args.get("variables")
-    ground_truth_dir = iter_args.get("ground_truth_dir")
-    fonts_dict = iter_args.get("fonts_dict")
-    system_fonts = iter_args.get("system_fonts")
-    verbose = iter_args.get("verbose")
-    simulate = iter_args.get("simulate")
-    use_text2image = iter_args.get("use_text2image")
-
     # Choose font family.
-    n = get_random_index(len(fonts_dict))
-    font_fam = list(fonts_dict.keys())[n]
-    bad_chars = list(fonts_dict.values())[n]
-    if verbose:
+    n = get_random_index(len(CHAR_VARS.get("fonts")))
+    font_fam = list(CHAR_VARS.get("fonts").keys())[n]
+    bad_chars = list(CHAR_VARS.get("fonts").values())[n]
+    if VERBOSE:
         print(f"INFO: {font_fam}")
 
-    dirty_char_str = generate_text_line_weighted_chars(variables, length=chars_per_line)
+    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=chars_per_line)
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
     clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
     char_line = "".join(clean_unicode_list)
-    if verbose:
+    if VERBOSE:
         print(f"INFO: dirty {len(dirty_char_str)}: {dirty_char_str}")
         print(f"INFO: bad:   {bad_chars}")
         print(f"INFO: clean {len(char_line)}: {char_line}")
@@ -697,17 +696,17 @@ def run_iteration(iter_num):
 
     # Choose font style.
     fontfile = None
-    styles = variables.get("styles")
+    styles = CHAR_VARS.get("styles")
     tried = set()
     while not fontfile and len(tried) != len(styles):
         n = get_random_index(len(styles))
         tried.add(n)
         font_sty = styles[n]
-        if verbose:
+        if VERBOSE:
             print(f"INFO: {font_sty}")
         # if args.verbose and fontfile is not None:
         #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
-        fontfile = system_fonts.get(font_fam).get(font_sty)
+        fontfile = SYSTEM_FONTS.get(font_fam).get(font_sty)
     if not fontfile:
         print(f"WARNING: {font_fam} doesn't have any matching font styles. Skipping.")
         return
@@ -715,76 +714,77 @@ def run_iteration(iter_num):
     # Generate files.
     filename = set_data_filename(font_fam, font_sty)
     txtdata = char_line
-    if verbose:
+    if VERBOSE:
         print(f"INFO: base name: {filename}")
-    if not use_text2image:
+    if not USE_TEXT2IMAGE:
         # name, txtdata, pngdata = generate_training_data_pair(char_line, font_fam, font_sty, fontfile)
         # txtdata, pngdata = generate_training_data_pair(char_line, fontfile)
         pngdata = generate_text_line_png(txtdata, fontfile)
-        if not simulate:
-            # if args.verbose:
+        if not SIMULATE:
+            # if VERBOSE:
             #     print(f"INFO: base name: {name}")
-            # save_training_data_pair(ground_truth_dir, name, txtdata, pngdata)
-            save_training_data_pair(ground_truth_dir, filename, txtdata, pngdata)
+            # save_training_data_pair(GROUND_TRUTH_DIR, name, txtdata, pngdata)
+            save_training_data_pair(GROUND_TRUTH_DIR, filename, txtdata, pngdata)
     else:
         generate_text2image_data_pair(
-            ground_truth_dir, filename, txtdata, font_fam, font_sty
+            GROUND_TRUTH_DIR, filename, txtdata, font_fam, font_sty
         )
 
 
 def main():
-    ground_truth_dir = get_ground_truth_dir(writing_system_name)
-    variables = get_script_variables()
-    system_fonts = get_available_fonts()
-    verify_fonts(variables, system_fonts)
-
     # Handle command args.
     args = get_parsed_args()
 
+    # FIXME: Using globals is not ideal, but it makes setting up muliprocessing
+    # a lot easier.
+    global GROUND_TRUTH_DIR
+    GROUND_TRUTH_DIR = get_ground_truth_dir(writing_system_name)
+
+    global CHAR_VARS
+    CHAR_VARS = get_script_variables()
+
+    global SYSTEM_FONTS
+    SYSTEM_FONTS = get_available_fonts()
+    verify_fonts(CHAR_VARS, SYSTEM_FONTS)
+
     if args.combinations:
-        show_character_combinations(variables)
+        show_character_combinations(CHAR_VARS)
         exit()
 
     if args.installed_fonts:
-        show_installed_fonts(system_fonts)
+        show_installed_fonts(SYSTEM_FONTS)
         exit()
 
     if args.model_fonts:
-        model_name = args.model_fonts
-        show_model_fonts(model_name)
+        show_model_fonts(args.model_fonts)
         exit()
 
     if args.weights:
-        show_character_weights(variables)
+        show_character_weights(CHAR_VARS)
         exit()
-
-    if not args.iterations:
-        args.iterations = 1
 
     if args.reset:
-        reset_ground_truth(ground_truth_dir)
+        reset_ground_truth(GROUND_TRUTH_DIR)
         exit()
 
-    # Generate data.
-    fonts_dict = variables.get("fonts")
+    # Set globals.
+    global CHARACTER_HEIGHT
+    CHARACTER_HEIGHT = args.character_height
 
-    # Create args dict.
-    global iter_args
-    iter_args = {
-        "variables": variables,
-        "ground_truth_dir": ground_truth_dir,
-        "fonts_dict": fonts_dict,
-        "system_fonts": system_fonts,
-        "verbose": args.verbose,
-        "simulate": args.simulate,
-        "use_text2image": args.use_text2image,
-    }
+    global VERBOSE
+    VERBOSE = args.verbose
+
+    global SIMULATE
+    SIMULATE = args.simulate
+
+    global USE_TEXT2IMAGE
+    USE_TEXT2IMAGE = args.use_text2image
 
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
         pool.map(run_iteration, range(args.iterations))
 
-    if args.simulate:
+    if SIMULATE:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
         print("INFO: Simulation; no files generated.")
 
