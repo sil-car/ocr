@@ -58,7 +58,7 @@ fi
 
 # Get & install tesseract build.
 install_prefix=/usr/local
-tesseract_ver="5.5.1+25.04"
+tesseract_ver="5.5.1"
 rel_ver="25.04"
 if [[ -z $(which lstmtraining) ]]; then
     echo "Installing tesseract binaries..."
