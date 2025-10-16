@@ -13,6 +13,8 @@ fi
 # Install apt packages.
 apt_pkgs=(
     git
+    libgomp1
+    libleptonica6
     make
     python3-venv
     screen
