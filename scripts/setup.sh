@@ -12,17 +12,7 @@ fi
 
 # Install apt packages.
 apt_pkgs=(
-    automake
-    ca-certificates
-    g++
     git
-    libcairo2-dev
-    libicu-dev
-    libleptonica-dev
-    libpango1.0-dev
-    libtool
-    make
-    pkg-config
     python3-venv
     screen
     unzip
@@ -51,56 +41,59 @@ font_pkgs=(
 sudo apt-get install -y "${font_pkgs[@]}"
 
 # Install non-packaged fonts.
-echo "Copying user fonts..."
 if [[ $USER == root ]]; then
     dest_dir=/usr/share/fonts/
 else
     dest_dir="${HOME}/.local/share/fonts/"
 fi
+echo "Copying user fonts..."
 cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 
 # Get tesstrain repo.
 if [[ ! -d $HOME/tesstrain ]]; then
+    echo "Getting \"tesstrain\" repository..."
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
 
-# Get tesseract, build & install.
+# Get & install tesseract build.
+install_prefix=/usr/local
 tesseract_ver="5.5.1"
-tesseract_dir="tesseract-$tesseract_ver"
 if [[ -z $(which lstmtraining) ]]; then
-    rm -f "${tesseract_ver}.zip"
-    rm -rf "$tesseract_dir"
-    wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
-    unzip "$tesseract_ver"
-    cd "$tesseract_dir"
-    ./autogen.sh
-    mkdir -p bin/release
-    cd bin/release
-    ../../configure \
-        --disable-debug \
-        --disable-graphics \
-        --disable-shared \
-        'CXXFLAGS=-g -O2 -fno-math-errno -Wall -Wextra -Wpedantic'
-    make
-    sudo make install
-    make training
-    sudo make training-install
-    # eng.traineddata needed to init tesseract
-    wget -P /usr/local/share/tessdata https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/eng.traineddata
+    echo "Installing tesseract binaries..."
+    rm -rf "${tesseract_ver}"*  # just in case...
+    wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}.zip"
+    unzip "${tesseract_ver}.zip"
+    chmod +x "${tesseract_ver}/bin/"*
+    sudo cp --preserve=mode -frv "$tesseract_ver"/* ${install_prefix}/
+    rm -rf "${tesseract_ver}"*  # free up disk space
+fi
+
+# eng.traineddata needed to init tesseract
+tessdata_best_repo="https://github.com/tesseract-ocr/tessdata_best"
+if [[ ! -r ${install_prefix}/share/tessdata/eng.traineddata ]]; then
+    echo "Installing \"eng.traineddata\" for tesseract initialization..."
+    wget -P ${install_prefix}/share/tessdata "${tessdata_best_repo}/raw/refs/heads/main/eng.traineddata"
 fi
 
 # Get best Latin script traineddata model.
-if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
+if [[ ! -r $HOME/tessdata_best/lat.traineddata ]]; then
+    echo "Installing \"lat.traineddata\"..."
     # NOTE: Cloning the full repo requires downloading > 1 GB of data.
     # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
     mkdir -p $HOME/tessdata_best
-    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
+    wget -P $HOME/tessdata_best "${tessdata_best_repo}/raw/refs/heads/main/lat.traineddata"
 fi
 
-# Create venv.
-cd "${HOME}/ocr"
-python3 -m venv env
-source ./env/bin/activate
-python3 -m pip install -r ../tesstrain/requirements.txt
-python3 -m pip install -r requirements.txt
-cd "$HOME"
+# Create & activate venv.
+env_path=$HOME/ocr/env
+if [[ ! -d $env_path ]]; then
+    echo "Setting up virtual env for Python..."
+    python3 -m venv "$env_path"
+    source ${env_path}/bin/activate
+    if [[ $VIRTUAL_ENV != $env_path ]]; then
+        echo "Error: Failed to activate virtual env."
+        exit 1
+    fi
+    python3 -m pip install -r $HOME/tesstrain/requirements.txt
+    python3 -m pip install -r $HOME/ocr/requirements.txt
+fi
