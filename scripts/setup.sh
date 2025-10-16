@@ -88,5 +88,5 @@ if [[ $VIRTUAL_ENV != $env_path ]]; then
     echo "Error: Failed to activate virtual env."
     exit 1
 fi
-python3 -m pip install -r ../tesstrain/requirements.txt
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r $HOME/tesstrain/requirements.txt
+python3 -m pip install -r $HOME/ocr/requirements.txt
