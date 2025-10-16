@@ -61,11 +61,12 @@ install_prefix=/usr/local
 tesseract_ver="5.5.1"
 if [[ -z $(which lstmtraining) ]]; then
     echo "Installing tesseract binaries..."
-    rm -rf "${tesseract_ver}"*
+    rm -rf "${tesseract_ver}"*  # just in case...
     wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}.zip"
     unzip "${tesseract_ver}.zip"
     chmod +x "${tesseract_ver}/bin/"*
-    sudo cp -frv "$tesseract_ver"/* ${install_prefix}/
+    sudo cp --preserve=mode -frv "$tesseract_ver"/* ${install_prefix}/
+    rm -rf "${tesseract_ver}"*  # free up disk space
 fi
 
 # eng.traineddata needed to init tesseract
