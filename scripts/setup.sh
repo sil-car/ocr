@@ -64,6 +64,7 @@ if [[ -z $(which lstmtraining) ]]; then
     rm -rf "${tesseract_ver}"*
     wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}.zip"
     unzip "${tesseract_ver}.zip"
+    chmod +x "${tesseract_ver}/bin/"*
     sudo cp -rv "$tesseract_ver"/* ${install_prefix}/
 fi
 
