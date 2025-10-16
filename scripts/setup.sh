@@ -12,17 +12,8 @@ fi
 
 # Install apt packages.
 apt_pkgs=(
-    automake
-    ca-certificates
-    g++
     git
-    libcairo2-dev
-    libicu-dev
-    libleptonica-dev
-    libpango1.0-dev
-    libtool
     make
-    pkg-config
     python3-venv
     screen
     unzip
@@ -64,43 +55,38 @@ if [[ ! -d $HOME/tesstrain ]]; then
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
 
-# Get tesseract, build & install.
+# Get & install tesseract build.
 tesseract_ver="5.5.1"
-tesseract_dir="tesseract-$tesseract_ver"
 if [[ -z $(which lstmtraining) ]]; then
-    rm -f "${tesseract_ver}.zip"
-    rm -rf "$tesseract_dir"
-    wget "https://github.com/tesseract-ocr/tesseract/archive/refs/tags/${tesseract_ver}.zip"
-    unzip "$tesseract_ver"
-    cd "$tesseract_dir"
-    ./autogen.sh
-    mkdir -p bin/release
-    cd bin/release
-    ../../configure \
-        --disable-debug \
-        --disable-graphics \
-        --disable-shared \
-        'CXXFLAGS=-g -O2 -fno-math-errno -Wall -Wextra -Wpedantic'
-    make
+    rm -rf "${tesseract_ver}"*
+    wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}.zip"
+    unzip "${tesseract_ver}.zip"
+    cd "$tesseract_ver"
     sudo make install
-    make training
     sudo make training-install
-    # eng.traineddata needed to init tesseract
-    wget -P /usr/local/share/tessdata https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/eng.traineddata
+fi
+
+# eng.traineddata needed to init tesseract
+tessdata_best_repo="https://github.com/tesseract-ocr/tessdata_best"
+if [[ ! -r /usr/local/share/tessdata/eng.traineddata ]]; then
+    wget -P /usr/local/share/tessdata "${tessdata_best_repo}/raw/refs/heads/main/eng.traineddata"
 fi
 
 # Get best Latin script traineddata model.
-if [[ ! -f $HOME/tessdata_best/lat.traineddata ]]; then
+if [[ ! -r $HOME/tessdata_best/lat.traineddata ]]; then
     # NOTE: Cloning the full repo requires downloading > 1 GB of data.
     # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
     mkdir -p $HOME/tessdata_best
-    wget -P $HOME/tessdata_best https://github.com/tesseract-ocr/tessdata_best/raw/refs/heads/main/lat.traineddata
+    wget -P $HOME/tessdata_best "${tessdata_best_repo}/raw/refs/heads/main/lat.traineddata"
 fi
 
-# Create venv.
-cd "${HOME}/ocr"
-python3 -m venv env
-source ./env/bin/activate
+# Create & activate venv.
+env_path=$HOME/ocr/env
+python3 -m venv "$env_path"
+source ${env_path}/bin/activate
+if [[ $VIRTUAL_ENV != $env_path ]]; then
+    echo "Error: Failed to activate virtual env."
+    exit 1
+fi
 python3 -m pip install -r ../tesstrain/requirements.txt
 python3 -m pip install -r requirements.txt
-cd "$HOME"
