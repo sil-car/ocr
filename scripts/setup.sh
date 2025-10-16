@@ -13,7 +13,6 @@ fi
 # Install apt packages.
 apt_pkgs=(
     git
-    make
     python3-venv
     screen
     unzip
