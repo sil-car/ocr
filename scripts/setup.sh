@@ -16,6 +16,7 @@ fi
 # Install apt packages.
 apt_pkgs=(
     git
+    libgomp1
     liblept5
     make
     python3-venv
