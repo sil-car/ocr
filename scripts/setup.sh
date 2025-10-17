@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 script_dir="$(realpath "$(dirname "$0")")"
 repo_dir="$(realpath "$(dirname "$script_dir")")"
 
@@ -13,8 +16,7 @@ fi
 # Install apt packages.
 apt_pkgs=(
     git
-    libgomp1
-    libleptonica6
+    liblept5
     make
     python3-venv
     screen
