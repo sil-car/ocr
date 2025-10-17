@@ -91,7 +91,7 @@ fi
 
 # Create & activate venv.
 env_path=$HOME/ocr/env
-if [[ ! -d $env_path ]]; then
+if [[ ! -r ${env_path}/bin/activate ]]; then
     echo "Setting up virtual env for Python..."
     python3 -m venv "$env_path"
     source ${env_path}/bin/activate
