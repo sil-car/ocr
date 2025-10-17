@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 script_dir="$(realpath "$(dirname "$0")")"
 repo_dir="$(realpath "$(dirname "$script_dir")")"
 
@@ -14,7 +17,7 @@ fi
 apt_pkgs=(
     git
     libgomp1
-    libleptonica6
+    liblept5
     make
     python3-venv
     screen
@@ -61,12 +64,11 @@ fi
 # Get & install tesseract build.
 install_prefix=/usr/local
 tesseract_ver="5.5.1"
-rel_ver="25.04"
 if [[ -z $(which lstmtraining) ]]; then
     echo "Installing tesseract binaries..."
     rm -rf "${tesseract_ver}"*  # just in case...
-    wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}+${rel_ver}.zip"
-    unzip "${tesseract_ver}+${rel_ver}.zip"
+    wget "https://github.com/sil-car/tesseract-builds/releases/download/${tesseract_ver}/${tesseract_ver}.zip"
+    unzip "${tesseract_ver}.zip"
     chmod +x "${tesseract_ver}/bin/"*
     sudo cp --preserve=mode -frv "$tesseract_ver"/* ${install_prefix}/
     rm -rf "${tesseract_ver}"*  # free up disk space
@@ -90,7 +92,7 @@ fi
 
 # Create & activate venv.
 env_path=$HOME/ocr/env
-if [[ ! -d $env_path ]]; then
+if [[ ! -r ${env_path}/bin/activate ]]; then
     echo "Setting up virtual env for Python..."
     python3 -m venv "$env_path"
     source ${env_path}/bin/activate
