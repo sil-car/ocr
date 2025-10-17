@@ -85,6 +85,7 @@ shift $(($OPTIND - 1))
 # Set TESSDATA_PREFIX in env.
 export TESSDATA_PREFIX=/usr/local/share/tessdata  # f/ git install
 # Create log file.
+mkdir -p "$(dirname "$log")"
 touch "$log"
 
 # Ensure no other virtual environment is active.
