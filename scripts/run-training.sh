@@ -130,7 +130,7 @@ make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}"
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
-    make $d -f "${tess_tr_dir}/Makefile" clean "${make_common_opts[@]}"
+    make $d -f "$our_makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
