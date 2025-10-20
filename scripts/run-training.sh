@@ -124,7 +124,7 @@ make_common_opts=(
 )
 
 # Ensure langdata folder.
-make $d -f "${tess_tr_dir}/Makefile" tesseract-langdata "${make_common_opts[@]}"
+make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}"
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
@@ -179,6 +179,7 @@ echo "Started: $(date)" | tee -a "$log"
 # Notifiy if tesstrain's Makefile has changes.
 newest_mf="${tess_tr_dir}/Makefile"
 mf_diff=$(diff "$newest_mf" "$our_makefile")
+echo "Checking for updates to $newest_mf ..." | tee -a "$log"
 if [[ -n "$mf_diff" ]]; then
     echo "WARNING: Newest tesstrain Makefile ($newest_mf) differs from our own ($our_makefile):" | tee -a "$log"
     echo "$mf_diff" | tee -a "$log"
