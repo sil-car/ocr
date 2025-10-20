@@ -24,6 +24,7 @@ debug_interval=0
 t2i=
 submodel=$(date +%Y%m%d%H)
 log="${data_dir}/${model_name}_${submodel}.log"
+our_makefile="${ocr_script_dir}/Makefile"
 
 d=
 v=
@@ -115,21 +116,21 @@ fi
 make_common_opts=(
     DATA_DIR="$data_dir"
     MODEL_NAME="$model_name"
-    CORES="$cores"
     TESSDATA="$tessdata"
     GROUND_TRUTH_DIR="${repo_dir}/data/training/${model_name}-ground-truth"
     MAX_ITERATIONS="$max_iter"
     DEBUG_INTERVAL="$debug_interval"
+    LOG_FILE="$log"
 )
 
 # Ensure langdata folder.
-make $d -f "${tess_tr_dir}/Makefile" tesseract-langdata "${make_common_opts[@]}"
+make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}"
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
-    make $d -f "${tess_tr_dir}/Makefile" clean "${make_common_opts[@]}"
+    make $d -f "$our_makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
@@ -173,6 +174,16 @@ fi
 
 # Start training.
 time_start=$(date +%s)
+echo "Started: $(date)" | tee -a "$log"
+
+# Notifiy if tesstrain's Makefile has changes.
+newest_mf="${tess_tr_dir}/Makefile"
+mf_diff=$(diff "$newest_mf" "$our_makefile")
+echo "Checking for updates to $newest_mf ..." | tee -a "$log"
+if [[ -n "$mf_diff" ]]; then
+    echo "WARNING: Newest tesstrain Makefile ($newest_mf) differs from our own ($our_makefile):" | tee -a "$log"
+    echo "$mf_diff" | tee -a "$log"
+fi
 
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
@@ -231,35 +242,36 @@ if [[ -n "$t2i" ]]; then
         --traineddata "${output_dir}/${model_name}.traineddata" \
         --model_output "${tess_tr_dir}/${model_name}.traineddata"
 elif [[ -n "$replace_layer" ]]; then
-    echo "Training by replacing top layer of start model \"$start_model\"."
+    makefile="${our_makefile}-replace-top-layer"
+    echo "Training by replacing top layer of start model \"$start_model\"." | tee -a "$log"
     # Need to follow same steps as "training" from Makefile, but also replace layers.
     # Use modified Makefile
-    # TODO: Edit Makefile-layer to replace & retrain layers.
-    echo "Using Makefile \"${ocr_script_dir}/Makefile-layer\""
+    echo "Using Makefile: $makefile" | tee -a "$log"
     # NOTE: The 1st term/layer in NET_SPEC includes the resized pixel height of the GT images.
     #   36px: [1,36,0,1...
     #   Ref:
     #   - https://github.com/tesseract-ocr/tesstrain/issues/241#issuecomment-880984403
     #   - https://github.com/tesseract-ocr/tessdoc/blob/f3201f2d32e69144047028869e0eda80b2b1cee2/tess4/VGSLSpecs.md
     net_spec="[$net_spec_top O1c###]"
-    echo "NET_SPEC = $net_spec"
-    make $d -f "${ocr_script_dir}/Makefile-layer" training \
+    echo "NET_SPEC = $net_spec" | tee -a "$log"
+    make $d -f "$makefile" training \
         "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
-        NET_SPEC="$net_spec" \
-        2>&1 | tee "$log"
+        NET_SPEC="$net_spec"
 else
     # Standard training with GT.TXT files.
-    echo "Using Makefile \"${ocr_script_dir}/Makefile-seq\""
-    make $d -f "${ocr_script_dir}/Makefile-seq" training \
+    echo "Fine-tuning from model: $start_model" | tee -a "$log"
+    makefile="$our_makefile"
+    echo "Using Makefile: $makefile" | tee -a "$log"
+    make $d -f "$makefile" training \
         "${make_common_opts[@]}" \
-        START_MODEL="$start_model" \
-        2>&1 | tee "$log"
+        START_MODEL="$start_model"
 fi
 time_end=$(date +%s)
+echo "Finished: $(date)" | tee -a "$log"
 duration=$(($time_end - $time_start))
 
-echo "Training lasted ${duration}s."
+echo "Training lasted ${duration}s." | tee -a "$log"
 echo "Log file: $log"
 # per_iter=$(($max_iter / $duration))
 cd "$repo_dir"
