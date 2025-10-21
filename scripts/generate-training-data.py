@@ -395,15 +395,19 @@ def get_box_extents_pil(pil_img):
     return x_min, y_min, x_max, y_max
 
 
-def get_random_c_type(index, length, options, last_c_type):
-    c_type = None
+def get_random_char_type(index, length, options):
+    char_type = None
+    # Loop through dict of char types and probabilities;
+    # select char type if "true" is "rolled" for the given char type.
+    # NOTE: This "tries" lowest-probability char type first. Does this lead to
+    # over-representation of lower-probability chars?
     for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
         if get_binary_choice(p):
-            c_type = t
+            char_type = t
             break
-    if not c_type:  # fall back to consonant
-        c_type = "consonants"
-    return c_type
+    if not char_type:  # fall back to consonant
+        char_type = "consonants"
+    return char_type
 
 
 def set_data_filename(fontname, fontstyle):
@@ -461,7 +465,7 @@ def generate_text_line_random_chars(vs, length=40):
 def generate_text_line_weighted_chars(
     vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2
 ):
-    """return a line (str) of given length with a weighted mixture of valid charachers"""
+    """return a line (str) of given length with a weighted mixture of valid characters"""
 
     default_options = {
         "consonants": vs.get("weights").get("p_conso"),
@@ -481,7 +485,7 @@ def generate_text_line_weighted_chars(
             # Shouldn't be a space at beginning or end of string, or after another space.
             options.pop("space")
         # Get base character type.
-        c_type = get_random_c_type(i, length, options, last_c_type)
+        c_type = get_random_char_type(i, length, options)
         last_c_type = c_type
         c_opts = vs.get(c_type)
         c = c_opts[get_random_index(len(c_opts))]
