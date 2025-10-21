@@ -108,3 +108,12 @@ Latin_afr_20221219 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx512 | 58,00
 Latin_afr_20221221 | 10 | 64,000 | 3,200,000 | extra 'y' | 48px | Lfx256 | 58,000 | 11.04%
 Latin_afr_20230129 | 31 | 115,000 | 5,750,000 | extra 'y' | 48px | Lfx512 | 102,000 | 11.77%
 Latin_afr_20230131 | 31 | 345,000 | 17,250,000 | extra 'y' | 48px | Lfx512 | 306,000 | 8.71%
+
+## Other Notes
+
+The tesstrain repo's included `Makefile` has been modified to use `--sequential_training`.
+The main benefit is reduced memory use. Otherwise `ltsmtraining` collects many
+files in memory and chooses one line at a time from each file for better randomization.
+However, our generated training data is already randomized, as well as being single-line
+files anyway. So there seems to be nothing lost by choosing sequential training.
+More info at: https://github.com/tesseract-ocr/tessdoc/blob/f5d77b62/tess5/TrainingTesseract-5.md#randomized-training-data-and-sequential_training
