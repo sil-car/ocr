@@ -27,7 +27,7 @@ from PIL import Image
 writing_system_name = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_ITERATIONS = 1
-chars_per_line = 50
+DEFAULT_LINE_LENGTH = 50
 
 
 # Function definitions.
@@ -219,7 +219,7 @@ def show_character_combinations(vs):
         * num_fonts
         * num_styles
         * 2
-        / chars_per_line
+        / LINE_LENGTH
         / 0.9
     )
 
@@ -550,7 +550,7 @@ def generate_text_line_png(chars, fontfile):
         #   Ref: https://pymupdf.readthedocs.io/en/latest/functions.html#get_text_length
         # text_length = fitz.get_text_length(chars, fontname='test')
         pt = fitz.Point(5, 16)
-        rc = page.insert_text(pt, chars, fontname="test")
+        page.insert_text(pt, chars, fontname="test")
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
         # CHARACTER_HEIGHT is a proxy; actual char ht is a few px less b/c spacing
@@ -654,6 +654,13 @@ def get_parsed_args():
         help=f'create "i" iterations of ground truth data [{DEFAULT_ITERATIONS}]',
     )
     parser.add_argument(
+        "-l",
+        "--line-length",
+        type=int,
+        default=DEFAULT_LINE_LENGTH,
+        help="number of characters per generated line of text",
+    )
+    parser.add_argument(
         "-n",
         "--simulate",
         action="store_true",
@@ -688,7 +695,7 @@ def run_iteration(iter_num):
     if VERBOSE:
         print(f"INFO: {font_fam}")
 
-    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=chars_per_line)
+    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=LINE_LENGTH)
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
     clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
     char_line = "".join(clean_unicode_list)
@@ -774,6 +781,9 @@ def main():
     # Set globals.
     global CHARACTER_HEIGHT
     CHARACTER_HEIGHT = args.character_height
+
+    global LINE_LENGTH
+    LINE_LENGTH = args.line_length
 
     global VERBOSE
     VERBOSE = args.verbose
