@@ -656,7 +656,7 @@ def get_parsed_args():
         help=f'create "i" iterations of ground truth data [{DEFAULT_ITERATIONS}]',
     )
     parser.add_argument(
-        "-l",
+        "-L",
         "--line-length",
         type=int,
         default=DEFAULT_LINE_LENGTH,
