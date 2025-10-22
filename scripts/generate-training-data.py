@@ -175,9 +175,10 @@ def show_character_weights(vs):
     print("Character weights:")
     for k, v in vs.get("weights").items():
         print(f"{k}: {v}")
-    print(
-        'NOTE: "p_y" is applied if a non-y consonant is chosen.\nThis is to increase the occurrences of "y" to correct for "y" being frequently\nrecognized as "v".'
-    )
+    if vs.get("weights").get("p_y"):
+        print(
+            'NOTE: "p_y" is applied if a non-y consonant is chosen.\nThis is to increase the occurrences of "y" to correct for "y" being frequently\nrecognized as "v".'
+        )
 
 
 def show_character_combinations(vs):
