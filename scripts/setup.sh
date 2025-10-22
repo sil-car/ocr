@@ -5,6 +5,7 @@ set -e
 
 script_dir="$(realpath "$(dirname "$0")")"
 repo_dir="$(realpath "$(dirname "$script_dir")")"
+base_model="Latin.traineddata"
 
 # Ensure running from $HOME.
 cd "$HOME"
@@ -82,12 +83,12 @@ if [[ ! -r ${install_prefix}/share/tessdata/eng.traineddata ]]; then
 fi
 
 # Get best Latin script traineddata model.
-if [[ ! -r $HOME/tessdata_best/lat.traineddata ]]; then
-    echo "Installing \"lat.traineddata\"..."
+if [[ ! -r $HOME/tessdata_best/$base_model ]]; then
+    echo "Installing \"$base_model\"..."
     # NOTE: Cloning the full repo requires downloading > 1 GB of data.
     # git clone --depth=1 "https://github.com/tesseract-ocr/tessdata_best.git"
     mkdir -p $HOME/tessdata_best
-    wget -P $HOME/tessdata_best "${tessdata_best_repo}/raw/refs/heads/main/lat.traineddata"
+    wget -P $HOME/tessdata_best "${tessdata_best_repo}/raw/refs/heads/main/script/${base_model}"
 fi
 
 # Create & activate venv.
