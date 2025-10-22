@@ -124,7 +124,7 @@ make_common_opts=(
 )
 
 # Ensure langdata folder.
-make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}"
+make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
@@ -168,7 +168,7 @@ if [[ -n "$convert_checkpoint" ]]; then
         --stop_training \
         --continue_from "$checkpoint_file" \
         --traineddata "${traineddata_file}" \
-        --model_output "${data_dir}/${checkpoint_name}.traineddata"
+        --model_output "${data_dir}/${checkpoint_name}.traineddata" | tee -a "$log"
     exit $?
 fi
 
