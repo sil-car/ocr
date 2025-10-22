@@ -543,6 +543,8 @@ def generate_text_line_weighted_chars(
 def generate_text_line_png(chars, fontfile):
     with fitz.open() as doc:
         # TODO: Set page width based on font's needs?
+        # NOTE: Page sizes seem to be in mm, so 350mm x 21mm provides enough
+        # width and height for most reasonable font sizes and line lengths.
         page = doc.new_page(width=350, height=21)
         page.insert_font(fontname="test", fontfile=fontfile)
         # Only built-in PDF fonts are supported by get_text_length();
