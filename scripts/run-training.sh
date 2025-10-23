@@ -185,6 +185,9 @@ if [[ -n "$mf_diff" ]]; then
     echo "$mf_diff" | tee -a "$log"
 fi
 
+# Log stats.
+${ocr_script_dir}/generate-training-data.py -c | tee -a "$log"
+
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
     # Explicit training with BOX files.
