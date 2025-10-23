@@ -141,11 +141,11 @@ def get_script_variables():
         "weights": {
             # Define probabilities.
             # Base characters; should equal 100%,
-            "p_space": 0.13,
+            "p_space": 0.15,
             "p_num": 0.02,
             "p_punct": 0.05,
-            "p_vowel": 0.40,
-            "p_conso": 0.40,
+            "p_vowel": 0.39,
+            "p_conso": 0.39,
             # Modifications to base characters.
             "p_upper": 0.10,  # of all consonants & vowels
             "p_vtpdi": 0.25,  # of vowels (vowel top diacritic)
@@ -224,12 +224,20 @@ def show_character_combinations(vs):
     )
 
     print("CHARACTER LIST:")
-    print(f"  Consonants: {''.join(vs.get('consonants'))}")
-    print(f"  Vowels: {''.join(vs.get('vowels'))}")
-    print(f"  Top diacritics: {b', '.join(vs.get('diac_top'))}")
-    print(f"  Bottom diacritics: {b', '.join(vs.get('diac_bot'))}")
-    print(f"  Numbers: {''.join(vs.get('numbers'))}")
-    print(f"  Punctuation: {''.join(vs.get('punctuation'))}")
+    print(
+        f"  Consonants [{len(vs.get('consonants'))}]: {''.join(vs.get('consonants'))}"
+    )
+    print(f"  Vowels [{len(vs.get('vowels'))}]: {''.join(vs.get('vowels'))}")
+    print(
+        f"  Top diacritics [{len(vs.get('diac_top'))}]: {b', '.join(vs.get('diac_top'))}"
+    )
+    print(
+        f"  Bottom diacritics [{len(vs.get('diac_bot'))}]: {b', '.join(vs.get('diac_bot'))}"
+    )
+    print(f"  Numbers [{len(vs.get('numbers'))}]: {''.join(vs.get('numbers'))}")
+    print(
+        f"  Punctuation [{len(vs.get('punctuation'))}]: {''.join(vs.get('punctuation'))}"
+    )
     print()
     print("Character weights:")
     for k, v in wts.items():
@@ -462,9 +470,7 @@ def generate_text_line_random_chars(vs, length=40):
     return s.decode("unicode-escape")
 
 
-def generate_text_line_weighted_chars(
-    vs, length=40, vowel_wt=1, top_dia_wt=0.5, bot_dia_wt=0.2
-):
+def generate_text_line_weighted_chars(vs, length=40):
     """return a line (str) of given length with a weighted mixture of valid characters"""
 
     default_options = {
@@ -603,9 +609,21 @@ def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle)
         subprocess.run(cmd)
 
 
-def verify_fonts(vs, installed_fonts):
+def choose_font_family(desired_fonts, system_fonts):
+    """Choose font family randomly from desired_fonts that are also installed."""
+    fonts = desired_fonts.copy()
+    while fonts:
+        idx = get_random_index(len(fonts))
+        font_family = fonts.pop(idx)
+        if font_family in system_fonts:
+            if VERBOSE:
+                print(f"INFO: {font_family=}")
+            return font_family
+
+
+def verify_fonts(needed_fonts, installed_fonts):
     missing_fonts = []
-    for f in vs.get("fonts").keys():
+    for f in needed_fonts.keys():
         if f not in installed_fonts.keys():
             missing_fonts.append(f)
     if len(missing_fonts) > 0:
@@ -690,21 +708,23 @@ def get_parsed_args():
 
 
 def run_iteration(iter_num):
-    # Choose font family.
-    n = get_random_index(len(CHAR_VARS.get("fonts")))
-    font_fam = list(CHAR_VARS.get("fonts").keys())[n]
-    bad_chars = list(CHAR_VARS.get("fonts").values())[n]
     if VERBOSE:
-        print(f"INFO: {font_fam}")
+        print(f"INFO: Iteration: {iter_num}")
+    # Choose font family.
+    font_fam = choose_font_family(list(CHAR_VARS.get("fonts").keys()), SYSTEM_FONTS)
+    if not font_fam:
+        print(f"ERROR: No valid font found; skipping iteration: {iter_num}")
+        return
 
-    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=LINE_LENGTH)
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
+    bad_chars = CHAR_VARS.get("fonts").get(font_fam)
+    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=LINE_LENGTH)
     clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
     char_line = "".join(clean_unicode_list)
     if VERBOSE:
-        print(f"INFO: dirty {len(dirty_char_str)}: {dirty_char_str}")
+        print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
         print(f"INFO: bad:   {bad_chars}")
-        print(f"INFO: clean {len(char_line)}: {char_line}")
+        print(f"INFO: clean ({len(char_line)}): {char_line}")
         print(f"INFO: {b''.join([c.encode('unicode-escape') for c in char_line])}")
 
     # Choose font style.
@@ -721,7 +741,9 @@ def run_iteration(iter_num):
         #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
         fontfile = SYSTEM_FONTS.get(font_fam).get(font_sty)
     if not fontfile:
-        print(f"WARNING: {font_fam} doesn't have any matching font styles. Skipping.")
+        print(
+            f'WARNING: "{font_fam}" doesn\'t have any matching font styles; skipping.'
+        )
         return
 
     # Generate files.
@@ -795,6 +817,9 @@ def main():
 
     global USE_TEXT2IMAGE
     USE_TEXT2IMAGE = args.use_text2image
+
+    # Ensure training fonts are installed.
+    # verify_fonts(CHAR_VARS.get("fonts"), SYSTEM_FONTS)
 
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
