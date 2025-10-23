@@ -6,8 +6,18 @@ import argparse
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 from pathlib import Path
+
+CHART_TYPES = {
+    "3d",
+    "best",
+    "comp",
+    "comparison",
+    "model",
+    "summary",
+}
 
 
 class GroupedData:
@@ -133,7 +143,7 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel):
     # Show plot.
     plt.savefig(out_file)
     plt.show()
-    exit()
+    sys.exit()
 
 
 def plot_bar3d(slices_dict):
@@ -357,6 +367,7 @@ def get_args():
         "--chart-type",
         nargs=1,
         type=str,
+        choices=CHART_TYPES,
         help="type of chart to display",
     )
     parser.add_argument(
@@ -364,6 +375,7 @@ def get_args():
         "--models",
         nargs="+",
         type=str,
+        default=list(),
         help="language models to display",
     )
 
@@ -371,15 +383,6 @@ def get_args():
 
 
 def main():
-    chart_types = {
-        "3d",
-        "best",
-        "comp",
-        "comparison",
-        "model",
-        "summary",
-    }
-
     args = get_args()
 
     # Prepare csv_data.
@@ -419,12 +422,13 @@ def main():
     # Set output variables.
     chart_type = "summary"
     if args.chart_type is not None:
-        if args.chart_type[0] in chart_types:
-            chart_type = args.chart_type[0]
-        else:
-            print(f"ERROR: Valid chart types: {', '.join(chart_types)}")
-            exit(1)
-    if chart_type == "summary" and args.models is not None:
+        chart_type = args.chart_type[0]
+        # if args.chart_type[0] in CHART_TYPES:
+        #     chart_type = args.chart_type[0]
+        # else:
+        #     print(f"ERROR: Valid chart types: {', '.join(chart_types)}")
+        #     sys.exit(1)
+    if chart_type == "summary" and args.models:
         print("INFO: Models not needed for summary chart")
     models = ["Latin", "best"]
     if len(args.models) == 1:
@@ -457,8 +461,11 @@ def main():
 
     elif chart_type == "model":
         # Show summary chart of CER by ISO_Language for the given model.
-        model = models[0]
-        if len(models) > 1:
+        if not args.models:
+            print("ERROR: Please pass a model name; e.g. '-l Latin_afr'")
+            sys.exit(1)
+        model = args.models[0]
+        if len(args.models) > 1:
             print(f"INFO: Ignoring extra models: {', '.join(models[1:])}")
         x, y, z, outf, t, xl, yl = prepare_chart_data(
             "model", model_data, out_dir, model_names=[model]
