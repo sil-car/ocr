@@ -111,12 +111,6 @@ def main():
         description=description,
         # formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # parser.add_argument(
-    #     '-d', '--dir',
-    #     nargs=1,
-    #     type=str,
-    #     help="directory containing the two text files to compare",
-    # )
     parser.add_argument(
         "-l",
         "--model",
