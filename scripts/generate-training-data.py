@@ -772,6 +772,21 @@ def main():
 
     # FIXME: Using globals is not ideal, but it makes setting up muliprocessing
     # a lot easier.
+    global CHARACTER_HEIGHT
+    CHARACTER_HEIGHT = args.character_height
+
+    global LINE_LENGTH
+    LINE_LENGTH = args.line_length
+
+    global VERBOSE
+    VERBOSE = args.verbose
+
+    global SIMULATE
+    SIMULATE = args.simulate
+
+    global USE_TEXT2IMAGE
+    USE_TEXT2IMAGE = args.use_text2image
+
     global GROUND_TRUTH_DIR
     GROUND_TRUTH_DIR = get_ground_truth_dir(writing_system_name)
 
@@ -801,22 +816,6 @@ def main():
     if args.reset:
         reset_ground_truth(GROUND_TRUTH_DIR)
         exit()
-
-    # Set globals.
-    global CHARACTER_HEIGHT
-    CHARACTER_HEIGHT = args.character_height
-
-    global LINE_LENGTH
-    LINE_LENGTH = args.line_length
-
-    global VERBOSE
-    VERBOSE = args.verbose
-
-    global SIMULATE
-    SIMULATE = args.simulate
-
-    global USE_TEXT2IMAGE
-    USE_TEXT2IMAGE = args.use_text2image
 
     # Ensure training fonts are installed.
     # verify_fonts(CHAR_VARS.get("fonts"), SYSTEM_FONTS)
