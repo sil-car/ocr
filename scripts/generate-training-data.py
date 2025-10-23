@@ -795,7 +795,6 @@ def main():
 
     global SYSTEM_FONTS
     SYSTEM_FONTS = get_available_fonts()
-    verify_fonts(CHAR_VARS, SYSTEM_FONTS)
 
     if args.combinations:
         show_character_combinations(CHAR_VARS)
