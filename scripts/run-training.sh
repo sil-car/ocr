@@ -124,13 +124,13 @@ make_common_opts=(
 )
 
 # Ensure langdata folder.
-make $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
+make -j $(nproc) $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
 
 # Handle reset option.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
-    make $d -f "$our_makefile" clean "${make_common_opts[@]}"
+    make -j $(nproc) $d -f "$our_makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
@@ -257,7 +257,7 @@ elif [[ -n "$replace_layer" ]]; then
     #   - https://github.com/tesseract-ocr/tessdoc/blob/f3201f2d32e69144047028869e0eda80b2b1cee2/tess4/VGSLSpecs.md
     net_spec="[$net_spec_top O1c###]"
     echo "NET_SPEC = $net_spec" | tee -a "$log"
-    make $d -f "$makefile" training \
+    make -j $(nproc) $d -f "$makefile" training \
         "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
         NET_SPEC="$net_spec"
@@ -266,7 +266,7 @@ else
     echo "Fine-tuning from model: $start_model" | tee -a "$log"
     makefile="$our_makefile"
     echo "Using Makefile: $makefile" | tee -a "$log"
-    make $d -f "$makefile" training \
+    make -j $(nproc) $d -f "$makefile" training \
         "${make_common_opts[@]}" \
         START_MODEL="$start_model"
 fi
