@@ -175,6 +175,7 @@ fi
 # Start training.
 time_start=$(date +%s)
 echo "Started: $(date)" | tee -a "$log"
+echo "commandline: $0 $@" | tee -a "$log"
 
 # Notifiy if tesstrain's Makefile has changes.
 newest_mf="${tess_tr_dir}/Makefile"
