@@ -28,6 +28,7 @@ writing_system_name = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 50
+MAX_LINE_LENGTH = 80
 
 
 # Function definitions.
@@ -549,15 +550,19 @@ def generate_text_line_weighted_chars(vs, length=40):
 def generate_text_line_png(chars, fontfile):
     with fitz.open() as doc:
         # TODO: Set page width based on font's needs?
-        # NOTE: Page sizes seem to be in mm, so 350mm x 21mm provides enough
-        # width and height for most reasonable font sizes and line lengths.
-        page = doc.new_page(width=350, height=21)
+        # NOTE: Page sizes seem to be in mm, so 50mm provides enough height for
+        # most reasonable font sizes. Undefined width is A4 portrait width, so
+        # line length has been capped at MAX_LINE_LENGTH to prevent the text
+        # from overrunning the edge of the page.
+        ht = 50
+        pad = 10
+        page = doc.new_page(height=ht)  # arbitrary height limitation
         page.insert_font(fontname="test", fontfile=fontfile)
         # Only built-in PDF fonts are supported by get_text_length();
         #   have to crop the box outside of fitz/muPDF.
         #   Ref: https://pymupdf.readthedocs.io/en/latest/functions.html#get_text_length
         # text_length = fitz.get_text_length(chars, fontname='test')
-        pt = fitz.Point(5, 16)
+        pt = fitz.Point(pad, ht - pad)
         page.insert_text(pt, chars, fontname="test")
         # Use dpi to give optimum character height (default seems to be 100):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
@@ -570,6 +575,7 @@ def generate_text_line_png(chars, fontfile):
     # Crop the pixmap to remove extra whitespace; convert to PIL Image.
     #   Ref: https://github.com/pymupdf/PyMuPDF/issues/322#issuecomment-512561756
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    img.show()
     # Get boundary extents.
     box_extents = list(get_box_extents_pil(img))
     # Add padding around text.
@@ -776,6 +782,9 @@ def main():
     CHARACTER_HEIGHT = args.character_height
 
     global LINE_LENGTH
+    if args.line_length > MAX_LINE_LENGTH:
+        print(f"ERROR: Line length must not exceed {MAX_LINE_LENGTH}")
+        sys.exit(1)
     LINE_LENGTH = args.line_length
 
     global VERBOSE
