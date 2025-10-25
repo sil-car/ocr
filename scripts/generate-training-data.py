@@ -21,14 +21,17 @@ from matplotlib import font_manager
 from os import environ
 from pathlib import Path
 from PIL import Image
+from PIL import ImageFilter
 
 
 # Global variables.
-writing_system_name = "Latin_afr"
+WRITING_SYSTEM_NAME = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 50
 MAX_LINE_LENGTH = 80
+IMAGE_BLEND_ALPHA = 0.4
+IMAGE_NOISE_SIGMA = 50
 
 
 # Function definitions.
@@ -93,7 +96,7 @@ def get_script_variables():
             b"\\u0327",  # combining cedilla
             b"\\u0330",  # combining tilde below
         ],
-        "fonts": get_model_fonts(),  # from f"data/{writing_system_name}/fonts.txt"
+        "fonts": get_model_fonts(),  # from f"data/{WRITING_SYSTEM_NAME}/fonts.txt"
         "numbers": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
         "space": [" "],
         "styles": ["Regular", "Bold", "Italic", "Bold Italic"],
@@ -175,9 +178,10 @@ def show_character_weights(vs):
     print("Character weights:")
     for k, v in vs.get("weights").items():
         print(f"{k}: {v}")
-    print(
-        'NOTE: "p_y" is applied if a non-y consonant is chosen.\nThis is to increase the occurrences of "y" to correct for "y" being frequently\nrecognized as "v".'
-    )
+    if vs.get("weights").get("p_y"):
+        print(
+            'NOTE: "p_y" is applied if a non-y consonant is chosen.\nThis is to increase the occurrences of "y" to correct for "y" being frequently\nrecognized as "v".'
+        )
 
 
 def show_character_combinations(vs):
@@ -269,7 +273,7 @@ def show_character_combinations(vs):
     print(f"{combinations}\t total possible combinations")
 
 
-def get_model_fonts(model_name=writing_system_name):
+def get_model_fonts(model_name=WRITING_SYSTEM_NAME):
     fonts = {}
     model_dir = get_model_dir(model_name)
     fonts_file = model_dir / "fonts.txt"
@@ -292,7 +296,7 @@ def get_model_fonts(model_name=writing_system_name):
     return fonts
 
 
-def show_model_fonts(model_name=writing_system_name):
+def show_model_fonts(model_name=WRITING_SYSTEM_NAME):
     fonts_dict = get_model_fonts(model_name)
     fonts = list(fonts_dict.keys())
     fonts.sort()
@@ -322,7 +326,7 @@ def get_ground_truth_dir(script):
 
 
 def reset_ground_truth(gt_dir_path):
-    """delete all files in the ground-truth folder except .placeholder file"""
+    """delete all files in the ground-truth folder except .placeholder file, then exit"""
     for c in gt_dir_path.iterdir():
         if c.name == ".placeholder":
             continue
@@ -548,6 +552,18 @@ def generate_text_line_weighted_chars(vs, length=40):
 
 
 def generate_text_line_png(chars, fontfile):
+    def add_noise(image):
+        noise = Image.effect_noise(size=image.size, sigma=IMAGE_NOISE_SIGMA)
+        noisy_image = Image.blend(image, noise.convert(image.mode), IMAGE_BLEND_ALPHA)
+        del image
+        return noisy_image
+
+    def add_blur(image):
+        px_radius = CHARACTER_HEIGHT / 30
+        blurry_image = image.filter(ImageFilter.GaussianBlur(px_radius))
+        del image
+        return blurry_image
+
     with fitz.open() as doc:
         # TODO: Set page width based on font's needs?
         # NOTE: Page sizes seem to be in mm, so 50mm provides enough height for
@@ -575,7 +591,6 @@ def generate_text_line_png(chars, fontfile):
     # Crop the pixmap to remove extra whitespace; convert to PIL Image.
     #   Ref: https://github.com/pymupdf/PyMuPDF/issues/322#issuecomment-512561756
     img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-    img.show()
     # Get boundary extents.
     box_extents = list(get_box_extents_pil(img))
     # Add padding around text.
@@ -585,8 +600,20 @@ def generate_text_line_png(chars, fontfile):
             box_extents[i] -= pad
         else:  # right & bottom
             box_extents[i] += pad
-    # Crop and return the image.
-    return img.crop(box_extents)
+
+    # Crop the image.
+    img = img.crop(box_extents)
+
+    # Apply indicated degradations.
+    if get_binary_choice(DEGRADED_IMAGE_PROBABILITY * 2):
+        # Ensure at least one degradation is applied, with equal probability
+        # for all possibilities.
+        if get_binary_choice():
+            img = add_blur(img)
+        if get_binary_choice():
+            img = add_noise(img)
+
+    return img
 
 
 def generate_training_data_pair(chars, fontfile):
@@ -657,7 +684,29 @@ def get_parsed_args():
         help="output character list and counts, then exit",
     )
     parser.add_argument(
-        "-f", "--installed-fonts", action="store_true", help="list installed fonts"
+        "-f",
+        "--installed-fonts",
+        action="store_true",
+        help="list installed fonts, then exit",
+    )
+    parser.add_argument(
+        "-r",
+        "--reset",
+        action="store_true",
+        help=reset_ground_truth.__doc__,
+    )
+    parser.add_argument(
+        "-w",
+        "--weights",
+        action="store_true",
+        help="show weights used for each type of character",
+    )
+    parser.add_argument(
+        "-D",
+        "--degraded-image-probability",
+        type=float,
+        default=0,
+        help="probability of degradations getting applied to generated images [0.0]",
     )
     parser.add_argument(
         "-F",
@@ -694,9 +743,6 @@ def get_parsed_args():
         help="generate training data without saving it to disk",
     )
     parser.add_argument(
-        "-r", "--reset", action="store_true", help=reset_ground_truth.__doc__
-    )
-    parser.add_argument(
         "-t",
         "--use-text2image",
         action="store_true",
@@ -704,12 +750,6 @@ def get_parsed_args():
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="show verbose output"
-    )
-    parser.add_argument(
-        "-w",
-        "--weights",
-        action="store_true",
-        help="show weights used for each type of character",
     )
     return parser.parse_args()
 
@@ -809,7 +849,7 @@ def main():
     USE_TEXT2IMAGE = args.use_text2image
 
     global GROUND_TRUTH_DIR
-    GROUND_TRUTH_DIR = get_ground_truth_dir(writing_system_name)
+    GROUND_TRUTH_DIR = get_ground_truth_dir(WRITING_SYSTEM_NAME)
 
     global CHAR_VARS
     CHAR_VARS = get_script_variables()
@@ -819,6 +859,9 @@ def main():
 
     global FORCED_FONT
     FORCED_FONT = args.font
+
+    global DEGRADED_IMAGE_PROBABILITY
+    DEGRADED_IMAGE_PROBABILITY = args.degraded_image_probability
 
     if args.combinations:
         show_character_combinations(CHAR_VARS)
