@@ -564,28 +564,25 @@ def generate_text_line_png(chars, fontfile):
         del image
         return blurry_image
 
+    fontname = Path(fontfile).stem
     with fitz.open() as doc:
-        # TODO: Set page width based on font's needs?
-        # NOTE: Page sizes seem to be in mm, so 50mm provides enough height for
-        # most reasonable font sizes. Undefined width is A4 portrait width, so
-        # line length has been capped at MAX_LINE_LENGTH to prevent the text
-        # from overrunning the edge of the page.
-        ht = 50
-        pad = 10
-        page = doc.new_page(height=ht)  # arbitrary height limitation
-        page.insert_font(fontname="test", fontfile=fontfile)
+        # NOTE: For fontsize, 1 pt = 1/72 in
+        fontsize = 12  # pts
+        pad = 9  # pts
+        # Calculate page width; assume on average that char width <= char height.
+        pg_w = len(chars) * fontsize + 2 * pad
+        pg_h = fontsize + 2 * pad
+        page = doc.new_page(width=pg_w, height=pg_h)
+        page.insert_font(fontname=fontname, fontfile=fontfile)
         # Only built-in PDF fonts are supported by get_text_length();
         #   have to crop the box outside of fitz/muPDF.
         #   Ref: https://pymupdf.readthedocs.io/en/latest/functions.html#get_text_length
         # text_length = fitz.get_text_length(chars, fontname='test')
-        pt = fitz.Point(pad, ht - pad)
-        page.insert_text(pt, chars, fontname="test")
-        # Use dpi to give optimum character height (default seems to be 100):
+        page.insert_text((pad, pg_h - pad), chars, fontname=fontname, fontsize=fontsize)
+        # Use dpi to give optimum character height (default is 96x96):
         #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        # CHARACTER_HEIGHT is a proxy; actual char ht is a few px less b/c spacing
-        dpi = int(
-            (88 / 13) * CHARACTER_HEIGHT - 636 / 13
-        )  # linear relationship calculated using (22, 100), (35, 188)
+        # 12 pt / 72 pt/in x D dpi = CHARACTER_HEIGHT px
+        dpi = int(CHARACTER_HEIGHT / (fontsize / 72))
         pix = page.get_pixmap(dpi=dpi)
 
     # Crop the pixmap to remove extra whitespace; convert to PIL Image.
@@ -594,7 +591,7 @@ def generate_text_line_png(chars, fontfile):
     # Get boundary extents.
     box_extents = list(get_box_extents_pil(img))
     # Add padding around text.
-    pad = 3
+    pad = 3  # px
     for i in range(len(box_extents)):
         if i < 2:  # left & top
             box_extents[i] -= pad
@@ -834,9 +831,6 @@ def main():
     CHARACTER_HEIGHT = args.character_height
 
     global LINE_LENGTH
-    if args.line_length > MAX_LINE_LENGTH:
-        print(f"ERROR: Line length must not exceed {MAX_LINE_LENGTH}")
-        sys.exit(1)
     LINE_LENGTH = args.line_length
 
     global VERBOSE
