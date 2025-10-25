@@ -657,13 +657,14 @@ def get_parsed_args():
         help="output character list and counts, then exit",
     )
     parser.add_argument(
-        "-f",
-        "--model-fonts",
-        type=str,
-        help="list the fonts used for the given model",
+        "-f", "--installed-fonts", action="store_true", help="list installed fonts"
     )
     parser.add_argument(
-        "-F", "--installed-fonts", action="store_true", help="list installed fonts"
+        "-F",
+        "--font",
+        type=str,
+        default="",
+        help="generate images using only the given font family",
     )
     parser.add_argument(
         "-H",
@@ -716,8 +717,19 @@ def get_parsed_args():
 def run_iteration(iter_num):
     if VERBOSE:
         print(f"INFO: Iteration: {iter_num}")
+
     # Choose font family.
-    font_fam = choose_font_family(list(CHAR_VARS.get("fonts").keys()), SYSTEM_FONTS)
+    font_families = list(CHAR_VARS.get("fonts").keys())
+    if FORCED_FONT:
+        if FORCED_FONT in font_families:
+            font_fam = FORCED_FONT
+        else:
+            print(
+                f"ERROR: Font not installed: {FORCED_FONT}; skipping iteration: {iter_num}"
+            )
+            return
+    else:
+        font_fam = choose_font_family(font_families, SYSTEM_FONTS)
     if not font_fam:
         print(f"ERROR: No valid font found; skipping iteration: {iter_num}")
         return
@@ -805,16 +817,15 @@ def main():
     global SYSTEM_FONTS
     SYSTEM_FONTS = get_available_fonts()
 
+    global FORCED_FONT
+    FORCED_FONT = args.font
+
     if args.combinations:
         show_character_combinations(CHAR_VARS)
         exit()
 
     if args.installed_fonts:
         show_installed_fonts(SYSTEM_FONTS)
-        exit()
-
-    if args.model_fonts:
-        show_model_fonts(args.model_fonts)
         exit()
 
     if args.weights:
