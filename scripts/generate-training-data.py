@@ -29,9 +29,7 @@ WRITING_SYSTEM_NAME = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 50
-MAX_LINE_LENGTH = 80
 IMAGE_BLEND_ALPHA = 0.4
-IMAGE_NOISE_SIGMA = 50
 
 
 # Function definitions.
@@ -553,13 +551,14 @@ def generate_text_line_weighted_chars(vs, length=40):
 
 def generate_text_line_png(chars, fontfile):
     def add_noise(image):
-        noise = Image.effect_noise(size=image.size, sigma=IMAGE_NOISE_SIGMA)
+        image_noise_sigma = 25
+        noise = Image.effect_noise(size=image.size, sigma=image_noise_sigma)
         noisy_image = Image.blend(image, noise.convert(image.mode), IMAGE_BLEND_ALPHA)
         del image
         return noisy_image
 
     def add_blur(image):
-        px_radius = CHARACTER_HEIGHT / 30
+        px_radius = 1.5
         blurry_image = image.filter(ImageFilter.GaussianBlur(px_radius))
         del image
         return blurry_image
