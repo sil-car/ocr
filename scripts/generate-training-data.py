@@ -18,7 +18,6 @@ import tempfile
 import time
 
 from matplotlib import font_manager
-from os import environ
 from pathlib import Path
 from PIL import Image
 from PIL import ImageFilter
@@ -346,10 +345,10 @@ def get_binary_choice(prob=0.5):
 def get_available_fonts():
     # https://stackoverflow.com/a/68810954
     fonts = {}
-    search_paths = [
-        "/usr/share/fonts",
-        f"{environ['HOME']}/.local/share/fonts",
-    ]
+    # search_paths = [
+    #     "/usr/share/fonts",
+    #     f"{environ['HOME']}/.local/share/fonts",
+    # ]
     fpaths = font_manager.findSystemFonts()
     fpaths.sort()
     # print(fpaths)
@@ -486,7 +485,7 @@ def generate_text_line_weighted_chars(vs, length=40):
 
     s = b""
     last_c_type = None
-    last_u = None
+    # last_u = None
     for i in range(length):
         options = default_options.copy()
         # Special treatment for 'space'.
@@ -543,7 +542,7 @@ def generate_text_line_weighted_chars(vs, length=40):
             u += td
 
         # Add characters to string.
-        last_u = u
+        # last_u = u
         s += u
 
     return s.decode("unicode-escape")
