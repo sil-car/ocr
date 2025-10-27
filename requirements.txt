@@ -1,4 +1,4 @@
 jiwer
 matplotlib
-PyMuPDF
+pillow
 pytesseract

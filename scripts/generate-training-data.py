@@ -9,7 +9,6 @@
 #   - text files of individual lines of text: "img.gt.txt"
 
 import argparse
-import fitz  # PyMuPDF: https://pymupdf.readthedocs.io/en/latest/
 import multiprocessing
 import random
 import subprocess
@@ -20,7 +19,9 @@ import time
 from matplotlib import font_manager
 from pathlib import Path
 from PIL import Image
+from PIL import ImageDraw
 from PIL import ImageFilter
+from PIL import ImageFont
 
 
 # Global variables.
@@ -552,52 +553,26 @@ def generate_text_line_png(chars, fontfile):
     def add_noise(image):
         image_noise_sigma = 25
         noise = Image.effect_noise(size=image.size, sigma=image_noise_sigma)
-        noisy_image = Image.blend(image, noise.convert(image.mode), IMAGE_BLEND_ALPHA)
-        del image
-        return noisy_image
+        image = Image.blend(image, noise.convert(image.mode), IMAGE_BLEND_ALPHA)
+        return image
 
     def add_blur(image):
         px_radius = 1.5
-        blurry_image = image.filter(ImageFilter.GaussianBlur(px_radius))
-        del image
-        return blurry_image
+        image = image.filter(ImageFilter.GaussianBlur(px_radius))
+        return image
 
-    fontname = Path(fontfile).stem
-    with fitz.open() as doc:
-        # NOTE: For fontsize, 1 pt = 1/72 in
-        fontsize = 12  # pts
-        pad = 9  # pts
-        # Calculate page width; assume on average that char width <= char height.
-        pg_w = len(chars) * fontsize + 2 * pad
-        pg_h = fontsize + 2 * pad
-        page = doc.new_page(width=pg_w, height=pg_h)
-        page.insert_font(fontname=fontname, fontfile=fontfile)
-        # Only built-in PDF fonts are supported by get_text_length();
-        #   have to crop the box outside of fitz/muPDF.
-        #   Ref: https://pymupdf.readthedocs.io/en/latest/functions.html#get_text_length
-        # text_length = fitz.get_text_length(chars, fontname='test')
-        page.insert_text((pad, pg_h - pad), chars, fontname=fontname, fontsize=fontsize)
-        # Use dpi to give optimum character height (default is 96x96):
-        #   Ref: https://groups.google.com/g/tesseract-ocr/c/Wdh_JJwnw94/m/24JHDYQbBQAJ
-        # 12 pt / 72 pt/in x D dpi = CHARACTER_HEIGHT px
-        dpi = int(CHARACTER_HEIGHT / (fontsize / 72))
-        pix = page.get_pixmap(dpi=dpi)
-
-    # Crop the pixmap to remove extra whitespace; convert to PIL Image.
-    #   Ref: https://github.com/pymupdf/PyMuPDF/issues/322#issuecomment-512561756
-    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-    # Get boundary extents.
-    box_extents = list(get_box_extents_pil(img))
-    # Add padding around text.
-    pad = 3  # px
-    for i in range(len(box_extents)):
-        if i < 2:  # left & top
-            box_extents[i] -= pad
-        else:  # right & bottom
-            box_extents[i] += pad
-
-    # Crop the image.
-    img = img.crop(box_extents)
+    # Create image using pillow.
+    font = ImageFont.truetype(fontfile, size=CHARACTER_HEIGHT)
+    # Define enough padding to avoid character overruns.
+    pad = int(CHARACTER_HEIGHT * 0.5)  # px
+    # Get size of generated text chars.
+    (text_w, text_h) = font.getmask(chars).size
+    # Add padding; create blank image.
+    size = (text_w + 2 * pad, text_h + 2 * pad)
+    img = Image.new("RGB", size, "white")
+    # Add text chars to image.
+    draw = ImageDraw.Draw(img)
+    draw.text((pad, pad + text_h), chars, anchor="ld", font=font, fill="black")
 
     # Apply indicated degradations.
     if get_binary_choice(DEGRADED_IMAGE_PROBABILITY * 2):
@@ -744,6 +719,12 @@ def get_parsed_args():
         help="use text2image script to generate training data instead of built-in function",
     )
     parser.add_argument(
+        "-T",
+        "--text",
+        type=str,
+        help="generate training data with given line of text",
+    )
+    parser.add_argument(
         "-v", "--verbose", action="store_true", help="show verbose output"
     )
     return parser.parse_args()
@@ -771,7 +752,12 @@ def run_iteration(iter_num):
 
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
     bad_chars = CHAR_VARS.get("fonts").get(font_fam)
-    dirty_char_str = generate_text_line_weighted_chars(CHAR_VARS, length=LINE_LENGTH)
+    if FORCED_TEXT:
+        dirty_char_str = FORCED_TEXT
+    else:
+        dirty_char_str = generate_text_line_weighted_chars(
+            CHAR_VARS, length=LINE_LENGTH
+        )
     clean_unicode_list = [c for c in dirty_char_str if c not in bad_chars]
     char_line = "".join(clean_unicode_list)
     if VERBOSE:
@@ -851,6 +837,9 @@ def main():
 
     global FORCED_FONT
     FORCED_FONT = args.font
+
+    global FORCED_TEXT
+    FORCED_TEXT = args.text
 
     global DEGRADED_IMAGE_PROBABILITY
     DEGRADED_IMAGE_PROBABILITY = args.degraded_image_probability

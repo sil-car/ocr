@@ -4,6 +4,11 @@
 ### String tested in font-manager: ɓɗɔɛæɑɨʉƴœəẅøìíŝF̃īöěa̍ụɔ̧ɛ̧o̰o᷄a᷅i᷆e᷇
 ### ---------------------------------------------------------------------------
 ###  Character Reference Table
+###  \u018a  latin captial d with hook
+###  \u0251  latin lowercase alpha
+###  \u0257  latin lowercase d with hook
+###  \u0268  latin lowercase barred i
+###  \u02bc  modifier apostrophe
 ###  \u0300  combining grave accent
 ###  \u0301  combining acute accent
 ###  \u0302  combining circumflex
@@ -19,6 +24,9 @@
 ###  \u1dc5  combining grave-macron
 ###  \u1dc6  combining macron-grave
 ###  \u1dc7  combining acute-macron
+###  \u2c6d  latin capital alpha
+###  \ua78b  capital saltillo
+###  \ua78c  lowercase saltillo
 ### ---------------------------------------------------------------------------
 ### SIL
 # Abyssinica SIL       # mainly for Ethiopic script
@@ -42,16 +50,16 @@ DejaVu Serif
 Liberation Sans | \u0327
 Liberation Serif | \u030d \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
 ### Microsoft
-Arial | \u0327 # ttf-mscorefonts-installer (not Win11)
+# Arial | \u0327 # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
 Calibri # Win11
-Cambria # Win11
+Cambria | \u030d \ua78b \ua78c # Win11
 # Comic Sans MS        # Win11; some unrecognized characters
 Consolas | \u0327 # Win11
 Microsoft Sans Serif | \u0327 # Win11
 Segoe UI | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Segoe UI Variable | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Tahoma | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-Times New Roman | \u0327 # Win11
+# Times New Roman | \u018a \u0251 \u0257 \u0268 \u02bc \u0327 \u0330 \u030d \u1dc4 \u1dc7 \ua78c # ttf-mscorefints-installer (not Win11); too many unrecognized characters
 ### Android
 Noto Sans # fonts-noto-core
 Noto Sans Display
@@ -59,7 +67,7 @@ Noto Sans Mono
 Noto Serif
 Noto Serif Display
 ### Other
-Lato | \u030d # fonts-lato
+Lato | \u030d \ua78b \ua78c \u2c6d # fonts-lato
 Lucida Sans Unicode | \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Bigelow & Holmes; Win11?
 Symbola # fonts-symbola
 # Unifont # ttf-unifont # doesn't have style "Regular"
