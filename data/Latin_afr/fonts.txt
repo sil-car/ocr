@@ -51,7 +51,7 @@ Liberation Sans | \u0327
 Liberation Serif | \u030d \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
 ### Microsoft
 # Arial | \u0327 # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
-Calibri # Win11
+Calibri | \ua78b \ua78c # Win11
 Cambria | \u030d \ua78b \ua78c # Win11
 # Comic Sans MS        # Win11; some unrecognized characters
 Consolas | \u0327 # Win11
