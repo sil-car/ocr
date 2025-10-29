@@ -80,7 +80,10 @@ def run_ocr(infile_path, model, outfile_path):
     # print(f"Recognizing text from {infile_path.name} using model {model}...")
     with Image.open(infile_path) as img:
         htext = pytesseract.image_to_string(
-            img, lang=model, config="-c page_separator=''"
+            # img, lang=model, config="-c page_separator=''"
+            img,
+            lang=model,
+            config="--psm 4",
         )
     outfile_path.write_text(htext)
 
@@ -105,18 +108,19 @@ def main():
         "hits",
     ]
 
-    # Ensure data.csv exists.
-    if not data_csv.is_file():
-        data_csv.touch()
-        with open(data_csv, "w", newline="") as c:
-            dwriter = csv.DictWriter(c, fieldnames=csv_fieldnames)
-            dwriter.writeheader()
+    # Ensure data.csv starts empty.
+    if data_csv.is_file():
+        data_csv.unlink()
+    data_csv.touch()
+    with open(data_csv, "w", newline="") as c:
+        dwriter = csv.DictWriter(c, fieldnames=csv_fieldnames)
+        dwriter.writeheader()
 
     # Run evaluations.
     for model_name in MODELS:
         print(f"Using model: {model_name}")
         for gt_file in GT_FILES:
-            basename = Path(str(gt_file).replace(".gt.txt", ""))
+            basename = Path(str(gt_file).rstrip(".gt.txt"))
             image_file = Path(f"{basename}.png")
             out_file = Path(f"{basename}.{model_name}.txt")
             print(f" - Evaluating file: {image_file.name}")
