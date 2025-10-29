@@ -557,7 +557,7 @@ def generate_text_line_png(chars, fontfile):
         return image
 
     def add_blur(image):
-        px_radius = 1.5
+        px_radius = 1
         image = image.filter(ImageFilter.GaussianBlur(px_radius))
         return image
 
@@ -579,9 +579,9 @@ def generate_text_line_png(chars, fontfile):
         # Ensure at least one degradation is applied, with equal probability
         # for all possibilities.
         if get_binary_choice():
-            img = add_blur(img)
-        if get_binary_choice():
             img = add_noise(img)
+        if get_binary_choice():
+            img = add_blur(img)
 
     return img
 
