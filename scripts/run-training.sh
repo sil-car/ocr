@@ -8,6 +8,7 @@ repo_dir="$(dirname "$ocr_script_dir")"
 cd "$repo_dir" || exit 1
 
 # Set initial variables.
+commandline="$0 $@"
 cores=$(nproc)
 convert_checkpoint=
 debug=
@@ -124,6 +125,7 @@ make_common_opts=(
 )
 
 # Ensure langdata folder.
+echo | tee -a "$log"
 make -j $(nproc) $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
 
 # Handle reset option.
@@ -175,7 +177,7 @@ fi
 # Start training.
 time_start=$(date +%s)
 echo "Started: $(date)" | tee -a "$log"
-echo "commandline: $0 $@" | tee -a "$log"
+echo "commandline: $commandline" | tee -a "$log"
 
 # Notifiy if tesstrain's Makefile has changes.
 newest_mf="${tess_tr_dir}/Makefile"
