@@ -903,7 +903,7 @@ def main():
     DEGRADED_IMAGE_PROBABILITY = args.degraded_image_probability
 
     if args.combinations:
-        show_character_combinations(PROPERTIES)
+        show_character_combinations()
         exit()
 
     if args.installed_fonts:
@@ -911,7 +911,7 @@ def main():
         exit()
 
     if args.weights:
-        show_character_weights(PROPERTIES)
+        show_character_weights()
         exit()
 
     if args.reset:
