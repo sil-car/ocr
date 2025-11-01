@@ -29,7 +29,6 @@ WRITING_SYSTEM_NAME = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 50
-IMAGE_BLEND_ALPHA = 0.4
 PROPERTIES = {
     # More info to be considered here:
     # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
@@ -605,10 +604,36 @@ def generate_text_line_pseudo_words(length=50):
 
 
 def generate_text_line_png(chars, fontfile):
+    image_blend_alpha = 0.4
+
+    def add_fade(image):
+        """set pixel color to white for certain random pixels"""
+        fade_ratio = 0.15
+
+        # Create list of pixel indexes to change to white.
+        px_ct = image.size[0] * image.size[1]
+        fade_idxs = [random.randrange(px_ct) for _ in range(int(fade_ratio * px_ct))]
+        fade_idxs.sort()
+        fade_idxs = list(set(fade_idxs))  # remove dupes
+
+        # Loop through all pixels, changing specified pixels.
+        faded_image = Image.new(image.mode, image.size)
+        faded_img_data = []
+        for i, color in enumerate(image.getdata()):
+            if fade_idxs and i == fade_idxs[0]:
+                fade_idxs.pop(0)
+                new_color = (255, 255, 255)
+            else:
+                new_color = color
+            faded_img_data.append(new_color)
+
+        faded_image.putdata(faded_img_data)
+        return faded_image
+
     def add_noise(image):
-        image_noise_sigma = 25
-        noise = Image.effect_noise(size=image.size, sigma=image_noise_sigma)
-        image = Image.blend(image, noise.convert(image.mode), IMAGE_BLEND_ALPHA)
+        noise_sigma = 25
+        noise = Image.effect_noise(size=image.size, sigma=noise_sigma)
+        image = Image.blend(image, noise.convert(image.mode), image_blend_alpha)
         return image
 
     def add_blur(image):
@@ -633,6 +658,8 @@ def generate_text_line_png(chars, fontfile):
     if get_binary_choice(DEGRADED_IMAGE_PROBABILITY * 2):
         # Ensure at least one degradation is applied, with equal probability
         # for all possibilities.
+        if get_binary_choice():
+            img = add_fade(img)
         if get_binary_choice():
             img = add_noise(img)
         if get_binary_choice():
