@@ -654,13 +654,14 @@ def generate_text_line_png(chars, fontfile):
     if get_binary_choice(DEGRADED_IMAGE_PROBABILITY * 2):
         # Ensure at least one degradation is applied, with equal probability
         # for all possibilities.
-        if get_binary_choice():
+        if get_binary_choice():  # could be introduced during printing
             img = add_fade(img)
-        if get_binary_choice():
-            img = add_noise(img)
-        if get_binary_choice():
+        if get_binary_choice():  # could be introduced during printing or scanning
             img = add_blur(img)
+        if get_binary_choice():  # could be introduced during scanning
+            img = add_noise(img)
 
+    # img.show()  # for debugging
     return img
 
 
