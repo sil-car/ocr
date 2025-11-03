@@ -629,20 +629,15 @@ def generate_text_line_png(chars, fontfile):
         # Create list of pixel indexes to change to white.
         px_ct = image.size[0] * image.size[1]
         fade_idxs = [random.randrange(px_ct) for _ in range(int(fade_ratio * px_ct))]
-        fade_idxs.sort()  # sort to speed up deduping?
+        # fade_idxs.sort()  # sort to speed up deduping?
         fade_idxs = list(set(fade_idxs))  # remove dupes
         fade_idxs.sort()  # re-sort
 
         # Loop through all pixels, changing specified pixels.
         faded_image = Image.new(image.mode, image.size)
-        faded_img_data = []
-        for i, color in enumerate(image.getdata()):
-            if fade_idxs and i == fade_idxs[0]:
-                fade_idxs.pop(0)
-                new_color = (255, 255, 255)
-            else:
-                new_color = color
-            faded_img_data.append(new_color)
+        faded_img_data = list(image.getdata())
+        for i in fade_idxs:
+            faded_img_data[i] = (255, 255, 255)
 
         faded_image.putdata(faded_img_data)
         return faded_image
