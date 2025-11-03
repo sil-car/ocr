@@ -13,6 +13,7 @@ cores=$(nproc)
 convert_checkpoint=
 debug=
 reset=
+hard_reset=
 replace_layer=
 net_spec_top='Lfx512'
 start_model="Latin"
@@ -45,7 +46,7 @@ help_text="$usage
   -t\ttrain based on text2image
   -v\tverbose output
 "
-while getopts ":c:dhi:l:rtv" opt; do
+while getopts ":c:dhi:l:rRtv" opt; do
     case $opt in
         c) # convert checkpoint
             convert_checkpoint=YES
@@ -69,6 +70,9 @@ while getopts ":c:dhi:l:rtv" opt; do
             ;;
         r) # reset
             reset=YES
+            ;;
+        R) # hard reset (all training-generated files, e.g. BOX and LSTMF)
+            hard_reset=YES
             ;;
         t) # train based on text2image
             t2i=YES
@@ -128,8 +132,16 @@ make_common_opts=(
 echo | tee -a "$log"
 make -j $(nproc) $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
 
-# Handle reset option.
+# Handle reset options.
 if [[ -n "$reset" ]]; then
+    # Clean/reset generated files & exit.
+    echo "Resetting generated files (not GT data). No other option will be handled."
+    make -j $(nproc) $d -f "$our_makefile" clean-output "${make_common_opts[@]}"
+    rm -fv "${data_dir}/"*.traineddata
+    cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
+    exit 0
+fi
+if [[ -n "$hard_reset" ]]; then
     # Clean/reset generated files & exit.
     echo "Resetting generated files (not GT data). No other option will be handled."
     make -j $(nproc) $d -f "$our_makefile" clean "${make_common_opts[@]}"
