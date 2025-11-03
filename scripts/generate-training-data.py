@@ -27,8 +27,9 @@ from PIL import ImageFont
 # Global variables.
 WRITING_SYSTEM_NAME = "Latin_afr"
 DEFAULT_CHARACTER_HEIGHT = 48
+DEFAULT_DEGRADED_IMAGE_PROBABILITY = 1.0
 DEFAULT_ITERATIONS = 1
-DEFAULT_LINE_LENGTH = 50
+DEFAULT_LINE_LENGTH = 75
 PROPERTIES = {
     # More info to be considered here:
     # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
@@ -148,11 +149,6 @@ PROPERTIES = {
         "p_vtpdi": 0.25,  # of vowels (vowel top diacritic)
         "p_vbtdi": 0.10,  # of vowels (vowel bottom diacritic)
         "p_ctpdi": 0.05,  # of consonants (consonant top diacritic)
-        # Special probability adjustments.
-        # 'p_a'    : 0.01, # to overcome over-recognized alphas # didn't help much
-        # 'p_schwa': 0.01, # to overcome open-o being paired with schwa # didn't help much
-        # 'p_y'    : 0.002, # to overcome over-recognized 'v' in place of 'y'
-        # p_tilda: 0.01, # to overcome under-recognized '~' top diacritic # didn't help
     },
 }
 
@@ -757,8 +753,8 @@ def get_parsed_args():
         "-D",
         "--degraded-image-probability",
         type=float,
-        default=0,
-        help="probability of degradations getting applied to generated images [0.0]",
+        default=DEFAULT_DEGRADED_IMAGE_PROBABILITY,
+        help=f"probability of degradations getting applied to generated images [{DEFAULT_DEGRADED_IMAGE_PROBABILITY}]",
     )
     parser.add_argument(
         "-F",
@@ -786,7 +782,7 @@ def get_parsed_args():
         "--line-length",
         type=int,
         default=DEFAULT_LINE_LENGTH,
-        help="number of characters per generated line of text",
+        help=f"number of characters per generated line of text [{DEFAULT_LINE_LENGTH}]",
     )
     parser.add_argument(
         "-n",
