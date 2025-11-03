@@ -68,6 +68,6 @@ Noto Serif
 Noto Serif Display
 ### Other
 Lato | \u030d \ua78b \ua78c \u2c6d # fonts-lato
-Lucida Sans Unicode | \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Bigelow & Holmes; Win11?
+Lucida Sans Unicode | \u1dc4 \u1dc5 \u1dc6 \u1dc7 \ua78b \ua78c # Bigelow & Holmes; Win11?
 Symbola # fonts-symbola
 # Unifont # ttf-unifont # doesn't have style "Regular"
