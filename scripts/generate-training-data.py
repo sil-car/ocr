@@ -527,6 +527,27 @@ def get_next_char_type(last_c_type, current_word_length):
     return get_random_char_type(options)
 
 
+def get_character(char_type):
+    """select random character of given 'char_type', but adjust for given weights"""
+    char_opts = PROPERTIES.get(char_type)
+    char = char_opts[get_random_index(len(char_opts))]
+    # Special treatment to improve recognition of some base characters.
+    # NOTE: Using prob="1/len(char_opts)" sort of doubles the chance that the
+    # given character will be selected, since it is the probability that that
+    # character will be initially selected using get_random_index.
+    if char_type == "consonants":
+        # "y" is frequently misinterpreted as "v".
+        if char != "y" and get_binary_choice(1 / len(char_opts)):
+            char = "y"
+    elif char_type == "vowels":
+        # Andika "a" is frequently misinterpreted as "ɑ".
+        if char != "a" and get_binary_choice(1 / len(char_opts)):
+            char = "a"
+        # elif char != "ə" and get_binary_choice(weights.get("p_schwa")):
+        #     char = "ə"
+    return char
+
+
 def set_case(char, char_type):
     if char_type in ["consonants", "vowels"] and get_binary_choice(
         PROPERTIES.get("weights").get("p_upper")
@@ -571,9 +592,8 @@ def generate_pseudo_word():
         if c_type is None:  # last char is word-ending (punct)
             break
 
-        # Get random character of given type.
-        c_opts = PROPERTIES.get(c_type)
-        c = c_opts[get_random_index(len(c_opts))]
+        # Get [weighted] character of given type.
+        c = get_character(c_type)
 
         # Set character case for first letter.
         if len(word) == 0:
@@ -609,8 +629,9 @@ def generate_text_line_png(chars, fontfile):
         # Create list of pixel indexes to change to white.
         px_ct = image.size[0] * image.size[1]
         fade_idxs = [random.randrange(px_ct) for _ in range(int(fade_ratio * px_ct))]
-        fade_idxs.sort()
+        fade_idxs.sort()  # sort to speed up deduping?
         fade_idxs = list(set(fade_idxs))  # remove dupes
+        fade_idxs.sort()  # re-sort
 
         # Loop through all pixels, changing specified pixels.
         faded_image = Image.new(image.mode, image.size)
