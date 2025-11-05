@@ -536,12 +536,12 @@ def get_character(char_type):
     # given character will be selected, since it is the probability that that
     # character will be initially selected using get_random_index.
     if char_type == "consonants":
-        # "y" is frequently misinterpreted as "v".
+        # "y" is frequently misinterpreted as "v"; generate more "y" to compensate.
         if char != "y" and get_binary_choice(1 / len(char_opts)):
             char = "y"
     elif char_type == "vowels":
-        # Andika "a" is frequently misinterpreted as "ɑ".
-        if char != "a" and get_binary_choice(1 / len(char_opts)):
+        # Andika "a" is frequently misinterpreted as "ɑ"; generate fewer "ɑ" to compensate.
+        if char == "ɑ" and get_binary_choice(1 / len(char_opts)):
             char = "a"
         # elif char != "ə" and get_binary_choice(weights.get("p_schwa")):
         #     char = "ə"
