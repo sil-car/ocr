@@ -536,6 +536,9 @@ def get_character(char_type):
     # given character will be selected, since it is the probability that that
     # character will be initially selected using get_random_index.
     if char_type == "consonants":
+        # "d" is frequently misrecognized as "ɗ"; generate fewer "ɗ" to compensate.
+        if char == "ɗ" and get_binary_choice(1 / len(char_opts)):
+            char = "d"
         # "y" is frequently misinterpreted as "v"; generate more "y" to compensate.
         if char != "y" and get_binary_choice(1 / len(char_opts)):
             char = "y"
