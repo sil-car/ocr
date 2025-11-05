@@ -15,7 +15,9 @@ debug=
 reset=
 hard_reset=
 replace_layer=
-net_spec_top='Lfx512'
+replace_2_layers=
+net_spec_top="Lfx512"
+net_spec_top_2="Lrx96 $net_spec_top"
 start_model="Latin"
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
@@ -31,7 +33,7 @@ our_makefile="${ocr_script_dir}/Makefile"
 d=
 v=
 
-usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-l NET_SPEC] [-i NUM]"
+usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-lL] [-i NUM]"
 help_text="$usage
 
   -c CHECKPOINT
@@ -40,13 +42,13 @@ help_text="$usage
   -h\tshow help
   -i NUM
     \tset number of iterations
-  -l LAYER
-    \tdefine new top layer
+  -l\treplace top layer
+  -l\treplace top 2 layers
   -r\treset training files
   -t\ttrain based on text2image
   -v\tverbose output
 "
-while getopts ":c:dhi:l:rRtv" opt; do
+while getopts ":c:dhi:lLrRtv" opt; do
     case $opt in
         c) # convert checkpoint
             convert_checkpoint=YES
@@ -66,7 +68,9 @@ while getopts ":c:dhi:l:rRtv" opt; do
             ;;
         l) # replace layer
             replace_layer=YES
-            net_spec_top="$OPTARG"
+            ;;
+        L) # replace 2 layers
+            replace_2_layers=YES
             ;;
         r) # reset
             reset=YES
@@ -81,7 +85,7 @@ while getopts ":c:dhi:l:rRtv" opt; do
             debug_interval=-1
             ;;
         *) # invalid option
-            echo "$help_text"
+            echo -e "$help_text"
             exit 1
             ;;
     esac
@@ -259,6 +263,18 @@ if [[ -n "$t2i" ]]; then
         --continue_from "${output_dir}/${model_name}_checkpoint" \
         --traineddata "${output_dir}/${model_name}.traineddata" \
         --model_output "${tess_tr_dir}/${model_name}.traineddata"
+elif [[ -n "$replace_2_layers" ]]; then
+    makefile="${our_makefile}-replace-top-2-layers"
+    echo "Training by replacing top 2 layers of start model \"$start_model\"." | tee -a "$log"
+    # Need to follow same steps as "training" from Makefile, but also replace layers.
+    # Use modified Makefile
+    echo "Using Makefile: $makefile" | tee -a "$log"
+    net_spec="[$net_spec_top_2 O1c###]"
+    echo "NET_SPEC = $net_spec" | tee -a "$log"
+    make -j $(nproc) $d -f "$makefile" training \
+        "${make_common_opts[@]}" \
+        START_MODEL="$start_model" \
+        NET_SPEC="$net_spec"
 elif [[ -n "$replace_layer" ]]; then
     makefile="${our_makefile}-replace-top-layer"
     echo "Training by replacing top layer of start model \"$start_model\"." | tee -a "$log"
@@ -270,6 +286,7 @@ elif [[ -n "$replace_layer" ]]; then
     #   Ref:
     #   - https://github.com/tesseract-ocr/tesstrain/issues/241#issuecomment-880984403
     #   - https://github.com/tesseract-ocr/tessdoc/blob/f3201f2d32e69144047028869e0eda80b2b1cee2/tess4/VGSLSpecs.md
+    # net_spec for Latin.traineddata: Version:4.00.00alpha:Latin:synth20170629:[1,48,0,1Ct3,3,16Mp3,3Lfys64Lfx96Lrx96Lfx512O1c1]
     net_spec="[$net_spec_top O1c###]"
     echo "NET_SPEC = $net_spec" | tee -a "$log"
     make -j $(nproc) $d -f "$makefile" training \
