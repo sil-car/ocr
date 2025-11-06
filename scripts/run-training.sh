@@ -127,6 +127,7 @@ make_common_opts=(
     MODEL_NAME="$model_name"
     TESSDATA="$tessdata"
     GROUND_TRUTH_DIR="${repo_dir}/data/training/${model_name}-ground-truth"
+    RATIO_TRAIN="1.0"
     MAX_ITERATIONS="$max_iter"
     DEBUG_INTERVAL="$debug_interval"
     LOG_FILE="$log"
