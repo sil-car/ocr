@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 
+from fontTools.ttLib import TTFont
 from matplotlib import font_manager
 from pathlib import Path
 from PIL import Image
@@ -280,12 +281,11 @@ def get_model_fonts(model_name=WRITING_SYSTEM_NAME):
     for line in lines_no_comments:
         l_split = line.split(b"|")
         font = l_split[0].strip().decode()
-        bad_chars = []
-        if len(l_split) > 1:
-            bad_chars = l_split[1].split()
-
-        bad_chars = [c.decode("unicode-escape") for c in bad_chars]
-        fonts[font] = bad_chars
+        # NOTE: Bad chars are now handled by inspecting the fontfile itself.
+        # if len(l_split) > 1:
+        #     bad_chars = l_split[1].split()
+        # bad_chars = [c.decode("unicode-escape") for c in bad_chars]
+        fonts[font] = []
 
     return fonts
 
@@ -622,6 +622,24 @@ def generate_text_line_pseudo_words(length=50):
     return text_line.rstrip()
 
 
+def remove_unknown_characters(chars, fontfile):
+    try:
+        font = TTFont(fontfile, fontNumber=0)
+    except Exception as e:
+        # Ignore exception by returning original characters.
+        print(f"ERROR: file: {fontfile}; {e}")
+        return chars
+
+    def char_in_font(unicode_char, font):
+        for cmap in font["cmap"].tables:
+            if cmap.isUnicode():
+                if ord(unicode_char) in cmap.cmap:
+                    return True
+        return False
+
+    return "".join(c for c in chars if char_in_font(c, font))
+
+
 def generate_text_line_png(chars, fontfile):
     image_blend_alpha = 0.4
 
@@ -656,6 +674,8 @@ def generate_text_line_png(chars, fontfile):
         image = image.filter(ImageFilter.GaussianBlur(px_radius))
         return image
 
+    # Remove chars not found in font.
+    chars = remove_unknown_characters(chars, fontfile)
     # Create image using pillow.
     font = ImageFont.truetype(fontfile, size=CHARACTER_HEIGHT)
     # Define enough padding to avoid character overruns.

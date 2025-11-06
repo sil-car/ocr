@@ -1,5 +1,5 @@
 ### Line format:
-### "Font Family" | "characters" "to" "ignore" # "comment"
+### "Font Family" | "characters" "to" "ignore" [deprecated] # "comment"
 ### All lines beginning with "#" are ignored.
 ### String tested in font-manager: ɓɗɔɛæɑɨʉƴœəẅøìíŝF̃īöěa̍ụɔ̧ɛ̧o̰o᷄a᷅i᷆e᷇
 ### ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@
 # Abyssinica SIL       # mainly for Ethiopic script
 Andika
 Andika Compact
-# Andika New Basic     # doesn't handle all characters
+Andika New Basic     # doesn't handle all characters
 Charis SIL
 Charis SIL Compact
 Doulos SIL
@@ -43,23 +43,23 @@ Gentium Book Plus
 Gentium Plus
 Gentium Plus Compact
 ### LibreOffice
-# Carlito              # doesn't handle all characters
+# Carlito              # doesn't handle diacritics
 DejaVu Sans | \u1dc4 \u1dc5 \u1dc6 \u1dc7
-# DejaVu Sans Mono
+DejaVu Sans Mono
 DejaVu Serif
 Liberation Sans | \u0327
 Liberation Serif | \u030d \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
 ### Microsoft
-# Arial | \u0327 # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
+Arial | \u0327 # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
 Calibri | \ua78b \ua78c # Win11
 Cambria | \u030d \ua78b \ua78c # Win11
-# Comic Sans MS        # Win11; some unrecognized characters
+# Comic Sans MS        # Win11; doesn't handle diacritics
 Consolas | \u0327 # Win11
 Microsoft Sans Serif | \u0327 # Win11
 Segoe UI | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Segoe UI Variable | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
 Tahoma | \u0327 \u1dc4 \u1dc5 \u1dc6 \u1dc7 # Win11
-# Times New Roman | \u018a \u0251 \u0257 \u0268 \u02bc \u0327 \u0330 \u030d \u1dc4 \u1dc7 \ua78c # ttf-mscorefints-installer (not Win11); too many unrecognized characters
+Times New Roman | \u018a \u0251 \u0257 \u0268 \u02bc \u0327 \u0330 \u030d \u1dc4 \u1dc7 \ua78c # ttf-mscorefints-installer (not Win11); too many unrecognized characters
 ### Android
 Noto Sans # fonts-noto-core
 Noto Sans Display
