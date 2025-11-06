@@ -29,6 +29,7 @@ sudo apt-get install -y "${apt_pkgs[@]}"
 # Install packaged fonts.
 font_pkgs=(
     fonts-dejavu-core
+    fonts-freefont-ttf
     fonts-lato
     fonts-noto-core
     fonts-noto-mono

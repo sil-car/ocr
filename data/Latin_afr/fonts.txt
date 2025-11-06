@@ -47,8 +47,13 @@ Gentium Plus Compact
 DejaVu Sans | \u1dc4 \u1dc5 \u1dc6 \u1dc7
 DejaVu Sans Mono
 DejaVu Serif
+Liberation Mono
 Liberation Sans | \u0327
 Liberation Serif | \u030d \u0327 \u0330 \u1dc4 \u1dc5 \u1dc6 \u1dc7
+### Ubuntu
+FreeMono # fonts-freefont-ttf
+FreeSans
+FreeSerif
 ### Microsoft
 Arial | \u0327 # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
 Calibri | \ua78b \ua78c # Win11
