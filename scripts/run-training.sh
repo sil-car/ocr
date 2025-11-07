@@ -151,6 +151,7 @@ if [[ -n "$hard_reset" ]]; then
     echo "Resetting generated files (not GT data). No other option will be handled."
     make -j $(nproc) $d -f "$our_makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
+    rm -fv "${data_dir}/"*.log
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
     exit 0
 fi
