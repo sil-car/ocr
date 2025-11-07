@@ -88,7 +88,8 @@ Fine tuning works reasonably well and is fairly straightforward to run. But test
 
 ### Format of replaced top layer
 
-It seems other models with large numbers of output characters use a top layer size of 512 nodes, while some use 256 or something in between. Both 512 and 256 were tested, and 512 (option `-l Lfx512`) seems to perform better.
+It seems other models with large numbers of output characters use a top layer size of 512 nodes, while some use 256 or something in between. Both 512 and 256 were tested, and 512 (option `-l Lfx512`) seems to perform better, and it's the same value used by the base Latin model.
+> [Ref: detailed info about Latin.traineddata model](https://tesseract-ocr.github.io/tessdoc/Data-Files-in-tessdata_best.html)
 
 ## Notes on specific models
 
