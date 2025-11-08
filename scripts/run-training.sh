@@ -18,7 +18,7 @@ replace_layer=
 replace_2_layers=
 # Makefile default NET_SPEC: [1,36,0,1 Ct3,3,16 Mp3,3 Lfys48 Lfx96 Lrx96 Lfx192 O1c\#\#\#]
 # Latin.traineddata NET_SPEC: [1,48,0,1 Ct3,3,16 Mp3,3 Lfys64 Lfx96 Lrx96 Lfx512 O1c1]
-net_spec_top="Lfx512"
+net_spec_top="Lfx640"
 net_spec_top_2="Lrx96 $net_spec_top"
 start_model="Latin"
 model_name="Latin_afr"
