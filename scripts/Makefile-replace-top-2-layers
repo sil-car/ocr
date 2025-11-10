@@ -320,7 +320,7 @@ $(LAST_CHECKPOINT): unicharset lists $(PROTO_MODEL)
 	  --max_iterations $(MAX_ITERATIONS) \
 	  --target_error_rate $(TARGET_ERROR_RATE) \
 	  --append_index 4 \
-	  --max_image_MB 1200 \
+	  --max_image_MB 1500 \
 	  --sequential_training \
 	  --net_spec "$(subst c###,c$(firstword $(file <$(OUTPUT_DIR)/unicharset)),$(NET_SPEC))" \
 	2>&1 | tee -a $(LOG_FILE)
