@@ -31,6 +31,22 @@ DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_DEGRADED_IMAGE_PROBABILITY = 1.0
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 75
+CORE_FONTS = [
+    "Andika",
+    "Andika Compact",
+    "Charis SIL",
+    "Charis SIL Compact",
+    "DejaVu Sans",
+    "DejaVu Serif",
+    "Doulos SIL",
+    "Doulos SIL Compact",
+    "FreeSans",
+    "FreeSerif",
+    "Liberation Sans",
+    "Liberation Serif",
+    "Noto Sans",
+    "Noto Serif",
+]
 PROPERTIES = {
     # More info to be considered here:
     # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
@@ -348,6 +364,8 @@ def get_available_fonts():
         try:
             f = font_manager.get_font(p)
         except RuntimeError:
+            continue
+        if ONLY_CORE_FONTS and f.family_name not in CORE_FONTS:
             continue
         if not fonts.get(f.family_name):
             fonts[f.family_name] = {}
@@ -790,6 +808,12 @@ def get_parsed_args():
         help="show weights used for each type of character",
     )
     parser.add_argument(
+        "-C",
+        "--only-core-fonts",
+        action="store_true",
+        help="only use core SIL and open fonts",
+    )
+    parser.add_argument(
         "-D",
         "--degraded-image-probability",
         type=float,
@@ -941,6 +965,9 @@ def main():
 
     global SIMULATE
     SIMULATE = args.simulate
+
+    global ONLY_CORE_FONTS
+    ONLY_CORE_FONTS = args.only_core_fonts
 
     global USE_TEXT2IMAGE
     USE_TEXT2IMAGE = args.use_text2image
