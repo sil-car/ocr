@@ -547,25 +547,30 @@ def get_next_char_type(last_c_type, current_word_length):
 
 def get_character(char_type):
     """select random character of given 'char_type', but adjust for given weights"""
+    uncommon_chars = [
+        "ɓ",
+        "ɗ",
+        "ŋ",
+        "ẅ",
+        "ꞌ",
+        "ʼ",
+        "ɛ",
+        "æ",
+        "ɑ",
+        "ə",
+        "ı",
+        "ɨ",
+        "ɔ",
+        "ø",
+        "œ",
+        "ʉ",
+    ]
     char_opts = PROPERTIES.get(char_type)
     char = char_opts[get_random_index(len(char_opts))]
-    # Special treatment to improve recognition of some base characters.
-    # NOTE: Using prob="1/len(char_opts)" sort of doubles the chance that the
-    # given character will be selected, since it is the probability that that
-    # character will be initially selected using get_random_index.
-    if char_type == "consonants":
-        # "d" is frequently misrecognized as "ɗ"; generate fewer "ɗ" to compensate.
-        if char == "ɗ" and get_binary_choice(1 / len(char_opts)):
-            char = "d"
-        # "y" is frequently misinterpreted as "v"; generate more "y" to compensate.
-        if char != "y" and get_binary_choice(1 / len(char_opts)):
-            char = "y"
-    elif char_type == "vowels":
-        # Andika "a" is frequently misinterpreted as "ɑ"; generate fewer "ɑ" to compensate.
-        if char == "ɑ" and get_binary_choice(1 / len(char_opts)):
-            char = "a"
-        # elif char != "ə" and get_binary_choice(weights.get("p_schwa")):
-        #     char = "ə"
+    # Special treatment to improve recognition of some base characters;
+    # reduce the chance of generating an uncommon character by trying again.
+    if char in uncommon_chars:
+        char = char_opts[get_random_index(len(char_opts))]
     return char
 
 
