@@ -10,7 +10,7 @@ cd "$repo_dir" || exit 1
 # Set initial variables.
 commandline="$0 $@"
 cores=$(nproc)
-convert_checkpoint=
+checkpoint_file=
 debug=
 reset=
 hard_reset=
@@ -53,8 +53,7 @@ help_text="$usage
 while getopts ":c:dhi:lLrRtv" opt; do
     case $opt in
         c) # convert checkpoint
-            convert_checkpoint=YES
-            checkpoint_file="$(basename "$OPTARG")"
+            checkpoint_file="$OPTARG"
             ;;
         d) # debug
             debug=YES
@@ -159,14 +158,14 @@ if [[ -n "$hard_reset" ]]; then
 fi
 
 # Handle convert checkpoint option.
-if [[ -n "$convert_checkpoint" ]]; then
+if [[ -n "$checkpoint_file" ]]; then
     # Verify that files exist.
     traineddata_file="${data_dir}/${model_name}/${model_name}.traineddata"
     checkpoints_dir="${data_dir}/${model_name}/checkpoints"
 
     echo "Checking if file exists: $checkpoint_file"
     if [[ ! -f "$checkpoint_file" ]]; then
-        checkpoint_file="${checkpoints_dir}/${checkpoint_file}"
+        checkpoint_file="${checkpoints_dir}/$(basename "${checkpoint_file}")"
         echo "Checking if file exists: $checkpoint_file"
         if [[ ! -f "$checkpoint_file" ]]; then
             echo "Error: File not found: $checkpoint_file"
@@ -182,15 +181,17 @@ if [[ -n "$convert_checkpoint" ]]; then
 
     # Convert checkpoint file to traineddata file.
     checkpoint_filename="$(basename "$checkpoint_file")"
+    model_dir="$(dirname "$(dirname "$checkpoint_file")")"
     checkpoint_name="${checkpoint_filename%.checkpoint}"
+    outfile="${model_dir}/${checkpoint_name}.traineddata"
     echo "Converting checkpoint to traineddata:"
     echo "  Checkpoint: $checkpoint_file"
-    echo "  Outfile: ${data_dir}/${checkpoint_name}.traineddata"
+    echo "  Outfile: $outfile"
     lstmtraining \
         --stop_training \
         --continue_from "$checkpoint_file" \
         --traineddata "${traineddata_file}" \
-        --model_output "${data_dir}/${checkpoint_name}.traineddata" | tee -a "$log"
+        --model_output "$outfile" | tee -a "$log"
     exit $?
 fi
 
