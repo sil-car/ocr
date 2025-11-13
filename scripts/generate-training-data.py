@@ -346,7 +346,7 @@ def get_random_index(num_opt):
 
 def get_weighted_index(weights):
     """return weighted index from list of weights"""
-    return random.choices((i for i, w in enumerate(weights)), weights=weights)[0]
+    return random.choices([i for i, w in enumerate(weights)], weights=weights)[0]
 
 
 def get_binary_choice(prob=0.5):
@@ -552,31 +552,36 @@ def get_next_char_type(last_c_type, current_word_length):
 
 def get_character(char_type):
     """select random character of given 'char_type', but adjust for given weights"""
-    uncommon_chars = [
-        "ɓ",
-        "ɗ",
-        "ŋ",
-        "ẅ",
-        "ꞌ",
-        "ʼ",
-        "ɛ",
-        "æ",
-        "ɑ",
-        "ə",
-        "ı",
-        "ɨ",
-        "ɔ",
-        "ø",
-        "œ",
-        "ʉ",
-    ]
+    char_weights = {
+        # NOTE: Unlisted characters' weights default to 1.0.
+        "consonants": {
+            "ɓ": 0.25,
+            "ɗ": 0.25,
+            "ŋ": 0.25,
+            "ẅ": 0.25,
+            "ꞌ": 0.15,
+            "ʼ": 0.15,
+        },
+        "vowels": {
+            "ɛ": 0.25,
+            "æ": 0.15,
+            "ɑ": 0.15,
+            "ə": 0.15,
+            "ı": 0.15,
+            "ɨ": 0.15,
+            "ɔ": 0.25,
+            "ø": 0.15,
+            "œ": 0.15,
+            "ʉ": 0.15,
+        },
+    }
     char_opts = PROPERTIES.get(char_type)
-    char = char_opts[get_random_index(len(char_opts))]
-    # Special treatment to improve recognition of some base characters;
-    # reduce the chance of generating an uncommon character by trying again.
-    if char in uncommon_chars:
-        char = char_opts[get_random_index(len(char_opts))]
-    return char
+    # Define character weights (default to 1).
+    weights = {c: 1 for c in char_opts}
+    # Update with adjusted character weights.
+    for c, w in char_weights.get(char_type, dict()).items():
+        weights[c] = w
+    return char_opts[get_weighted_index(weights.values())]
 
 
 def set_case(char, char_type):
