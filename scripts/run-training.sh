@@ -18,7 +18,7 @@ replace_layer=
 replace_2_layers=
 # Makefile default NET_SPEC: [1,36,0,1 Ct3,3,16 Mp3,3 Lfys48 Lfx96 Lrx96 Lfx192 O1c\#\#\#]
 # Latin.traineddata NET_SPEC: [1,48,0,1 Ct3,3,16 Mp3,3 Lfys64 Lfx96 Lrx96 Lfx512 O1c1]
-net_spec_top="Lfx640"
+net_spec_top="Lfx1024"
 net_spec_top_2="Lrx96 $net_spec_top"
 start_model="Latin"
 model_name="Latin_afr"
@@ -184,13 +184,14 @@ if [[ -n "$checkpoint_file" ]]; then
     model_dir="$(dirname "$(dirname "$checkpoint_file")")"
     checkpoint_name="${checkpoint_filename%.checkpoint}"
     outfile="${model_dir}/${checkpoint_name}.traineddata"
+    old_traineddata="$(dirname "$(dirname "$checkpoint_file")")/${model_name}.traineddata"
     echo "Converting checkpoint to traineddata:"
     echo "  Checkpoint: $checkpoint_file"
     echo "  Outfile: $outfile"
     lstmtraining \
         --stop_training \
         --continue_from "$checkpoint_file" \
-        --traineddata "${traineddata_file}" \
+        --traineddata "${old_traineddata}" \
         --model_output "$outfile" | tee -a "$log"
     exit $?
 fi
