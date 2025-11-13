@@ -922,17 +922,28 @@ def run_iteration(iter_num):
     clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
     text_line = "".join(clean_unicode_chars)
     if VERBOSE:
-        print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
-        print(f"INFO: bad:   {bad_chars}")
-        print(f"INFO: clean ({len(text_line)}): {text_line}")
+        # print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
+        # print(f"INFO: bad:   {bad_chars}")
+        print(f"INFO: text: ({len(text_line)}): {text_line}")
         print(f"INFO: {b''.join([c.encode('unicode-escape') for c in text_line])}")
 
     # Choose font style.
     fontfile = None
     styles = PROPERTIES.get("styles")
+    style_weights = {
+        "Bold": 0.2,
+        "Italic": 0.2,
+        "Bold Italic": 0.1,
+    }
+    # Default weight is 1.0.
+    weights = {s: 1 for s in styles}
+    # Update with adjusted style weights.
+    for s, w in style_weights.items():
+        weights[s] = w
     tried = set()
     while not fontfile and len(tried) != len(styles):
-        n = get_random_index(len(styles))
+        # n = get_random_index(len(styles))
+        n = get_weighted_index(weights.values())
         tried.add(n)
         font_sty = styles[n]
         if VERBOSE:
