@@ -344,6 +344,11 @@ def get_random_index(num_opt):
     return random.randrange(num_opt)
 
 
+def get_weighted_index(weights):
+    """return weighted index from list of weights"""
+    return random.choices((i for i, w in enumerate(weights)), weights=weights)[0]
+
+
 def get_binary_choice(prob=0.5):
     # 1 == yes/true; 0 = no/false
     # prob of 1.0 = always yes/true; prob of 0.0 = never yes/true
