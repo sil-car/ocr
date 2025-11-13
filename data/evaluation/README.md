@@ -2,8 +2,7 @@
 
 1. Download `TRAINEDDATA` file to `tessdata` dir, giving it a unique `MODEL_NAME.traineddata`.
 1. [optionally] Convert checkpoints to `traineddata` files:
-  - `ln -s ~/ocr-data/MODEL_NAME_AND_DATE ~/tesstrain/data`
-  - `scripts/run-training -c CHECKPOINT_MODEL_NAME.checkpoint`
+  - `scripts/run-training -c /path/to/CHECKPOINT_MODEL_NAME.checkpoint`
   - `mv ~/tesstrain/data/CHECKPOINT_MODEL_NAME.traineddata tessdata/Latin_afr_MODEL_NAME.traineddata`
 1. Run `scripts/evaluate-models.py` to evaluate test documents with all models
   (incl. the new one)
