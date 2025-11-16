@@ -105,3 +105,19 @@ if [[ ! -r ${env_path}/bin/activate ]]; then
     python3 -m pip install -r $HOME/tesstrain/requirements.txt
     python3 -m pip install -r $HOME/ocr/requirements.txt
 fi
+
+# Make folders available through rsync.
+echo "
+max connections = 2
+dont compress = *.tessdata *.gz *.zip
+read only = true
+
+[OCR]
+comment = ocr repo root
+path = /root/ocr
+
+[Tesstrain]
+comment = tesstrain repo root
+path = /root/tesstrain
+" > /etc/rsyncd.conf
+systemctl enable --now rsync
