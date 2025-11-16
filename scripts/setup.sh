@@ -112,11 +112,11 @@ max connections = 2
 dont compress = *.tessdata *.gz *.zip
 read only = true
 
-[OCR]
+[ocr]
 comment = ocr repo root
 path = /root/ocr
 
-[Tesstrain]
+[tesstrain]
 comment = tesstrain repo root
 path = /root/tesstrain
 " > /etc/rsyncd.conf
