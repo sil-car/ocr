@@ -109,7 +109,7 @@ fi
 # Make folders available through rsync.
 echo "
 max connections = 2
-dont compress = *.tessdata *.gz *.zip
+dont compress = *.tessdata *.gz *.xz *.zip
 read only = true
 
 [ocr]
