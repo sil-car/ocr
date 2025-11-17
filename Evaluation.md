@@ -2,7 +2,7 @@
 
 ## Evaluation Using *jiwer* Module
 
-![Models below 10% CER](data/evaluation/models-below-0.10-CER.png)
+![Models below 8% CER](data/evaluation/models-below-0.08-CER.png)
 
 ![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_20230129.png)
 
