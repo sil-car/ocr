@@ -8,6 +8,7 @@ repo_dir="$(dirname "$ocr_script_dir")"
 cd "$repo_dir" || exit 1
 
 # Set initial variables.
+box_lstmf=
 commandline="$0 $@"
 cores=$(nproc)
 checkpoint_file=
@@ -35,9 +36,10 @@ our_makefile="${ocr_script_dir}/Makefile"
 d=
 v=
 
-usage="usage: $0 [-dhrtv] [-c CHECKPOINT] | [-lL] [-i NUM]"
+usage="usage: $0 [-bhrR] | [-c CHECKPOINT] | [-dlLtv] [-i NUM]"
 help_text="$usage
 
+  -b\tprepare .list, .box, and .lstmf files
   -c CHECKPOINT
     \tconvert checkpoint
   -d\tdebug
@@ -45,13 +47,17 @@ help_text="$usage
   -i NUM
     \tset number of iterations
   -l\treplace top layer
-  -l\treplace top 2 layers
-  -r\treset training files
+  -L\treplace top 2 layers
+  -r\treset some training files (.box, .lstmf)
+  -R\treset all training files
   -t\ttrain based on text2image
   -v\tverbose output
 "
-while getopts ":c:dhi:lLrRtv" opt; do
+while getopts ":bc:dhi:lLrRtv" opt; do
     case $opt in
+        b) # create .box and .lstmf files
+            box_lstmf=YES
+            ;;
         c) # convert checkpoint
             checkpoint_file="$OPTARG"
             ;;
@@ -299,6 +305,13 @@ elif [[ -n "$replace_layer" ]]; then
         "${make_common_opts[@]}" \
         START_MODEL="$start_model" \
         NET_SPEC="$net_spec"
+# Handle option to only create .box and .lstmf files.
+elif [[ -n $box_lstmf ]]; then
+    makefile="$our_makefile"
+    echo "Creating .box, .lstmf, and .list files." | tee -a "$log"
+    echo "Using Makefile: $makefile" | tee -a "$log"
+    make -j $(nproc) $d -f "$makefile" lists \
+        "${make_common_opts[@]}"
 else
     # Standard training with GT.TXT files.
     echo "Fine-tuning from model: $start_model" | tee -a "$log"
