@@ -371,7 +371,7 @@ else
 	time -p lstmeval  \
 		--verbosity=0 \
 		--model $< \
-		--max_image_MB 2000 \
+		--max_image_MB 500 \
 		--eval_listfile $(OUTPUT_DIR)/list.eval 2>&1 | grep "^BCER eval" > $@
 endif
 # Make TSV with lstmeval CER and checkpoint filename parts
