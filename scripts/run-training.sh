@@ -99,6 +99,44 @@ while getopts ":bc:dhi:lLrRtv" opt; do
 done
 shift $(($OPTIND - 1))
 
+# Handle convert checkpoint option.
+if [[ -n "$checkpoint_file" ]]; then
+    # Verify that files exist.
+    old_traineddata="$(dirname "$(dirname "$checkpoint_file")")/${model_name}.traineddata"
+    checkpoints_dir="${data_dir}/${model_name}/checkpoints"
+
+    echo "Checking if file exists: $checkpoint_file"
+    if [[ ! -f "$checkpoint_file" ]]; then
+        checkpoint_file="${checkpoints_dir}/$(basename "${checkpoint_file}")"
+        echo "Checking if file exists: $checkpoint_file"
+        if [[ ! -f "$checkpoint_file" ]]; then
+            echo "Error: File not found: $checkpoint_file"
+            exit 1
+        fi
+    fi
+
+    echo "Checking if file exists: $old_traineddata"
+    if [[ ! -f "$old_traineddata" ]]; then
+        echo "Error: File not found: $old_traineddata"
+        exit 1
+    fi
+
+    # Convert checkpoint file to traineddata file.
+    checkpoint_filename="$(basename "$checkpoint_file")"
+    model_dir="$(dirname "$(dirname "$checkpoint_file")")"
+    checkpoint_name="${checkpoint_filename%.checkpoint}"
+    outfile="${model_dir}/${checkpoint_name}.traineddata"
+    echo "Converting checkpoint to traineddata:"
+    echo "  Checkpoint: $checkpoint_file"
+    echo "  Outfile: $outfile"
+    lstmtraining \
+        --stop_training \
+        --continue_from "$checkpoint_file" \
+        --traineddata "${old_traineddata}" \
+        --model_output "$outfile"
+    exit $?
+fi
+
 # Set TESSDATA_PREFIX in env.
 export TESSDATA_PREFIX=/usr/local/share/tessdata  # f/ git install
 # Create log file.
@@ -140,10 +178,6 @@ make_common_opts=(
     LOG_FILE="$log"
 )
 
-# Ensure langdata folder.
-echo | tee -a "$log"
-make -j $(nproc) $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
-
 # Handle reset options.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
@@ -163,45 +197,6 @@ if [[ -n "$hard_reset" ]]; then
     exit 0
 fi
 
-# Handle convert checkpoint option.
-if [[ -n "$checkpoint_file" ]]; then
-    # Verify that files exist.
-    traineddata_file="${data_dir}/${model_name}/${model_name}.traineddata"
-    checkpoints_dir="${data_dir}/${model_name}/checkpoints"
-
-    echo "Checking if file exists: $checkpoint_file"
-    if [[ ! -f "$checkpoint_file" ]]; then
-        checkpoint_file="${checkpoints_dir}/$(basename "${checkpoint_file}")"
-        echo "Checking if file exists: $checkpoint_file"
-        if [[ ! -f "$checkpoint_file" ]]; then
-            echo "Error: File not found: $checkpoint_file"
-            exit 1
-        fi
-    fi
-
-    echo "Checking if file exists: $traineddata_file"
-    if [[ ! -f "$traineddata_file" ]]; then
-        echo "Error: File not found: $traineddata_file"
-        exit 1
-    fi
-
-    # Convert checkpoint file to traineddata file.
-    checkpoint_filename="$(basename "$checkpoint_file")"
-    model_dir="$(dirname "$(dirname "$checkpoint_file")")"
-    checkpoint_name="${checkpoint_filename%.checkpoint}"
-    outfile="${model_dir}/${checkpoint_name}.traineddata"
-    old_traineddata="$(dirname "$(dirname "$checkpoint_file")")/${model_name}.traineddata"
-    echo "Converting checkpoint to traineddata:"
-    echo "  Checkpoint: $checkpoint_file"
-    echo "  Outfile: $outfile"
-    lstmtraining \
-        --stop_training \
-        --continue_from "$checkpoint_file" \
-        --traineddata "${old_traineddata}" \
-        --model_output "$outfile" | tee -a "$log"
-    exit $?
-fi
-
 # Start training.
 time_start=$(date +%s)
 echo "Started: $(date)" | tee -a "$log"
@@ -218,6 +213,10 @@ fi
 
 # Log stats.
 ${ocr_script_dir}/generate-training-data.py -c | tee -a "$log"
+
+# Ensure langdata folder.
+echo | tee -a "$log"
+make -j $(nproc) $d -f "$our_makefile" tesseract-langdata "${make_common_opts[@]}" | tee -a "$log"
 
 # If using text2image use explicit training steps.
 if [[ -n "$t2i" ]]; then
