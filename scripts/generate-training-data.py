@@ -555,17 +555,18 @@ def get_character(char_type):
     char_weights = {
         # NOTE: Unlisted characters' weights default to 1.0.
         "consonants": {
+            "y": 1.05,
             "ɓ": 0.25,
             "ɗ": 0.25,
             "ŋ": 0.25,
             "ẅ": 0.25,
-            "ꞌ": 0.15,
-            "ʼ": 0.15,
+            "ꞌ": 0.10,
+            "ʼ": 0.10,
         },
         "vowels": {
             "ɛ": 0.25,
             "æ": 0.15,
-            "ɑ": 0.15,
+            "ɑ": 0.10,
             "ə": 0.15,
             "ı": 0.15,
             "ɨ": 0.15,
