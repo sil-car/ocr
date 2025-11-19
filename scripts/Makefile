@@ -319,7 +319,7 @@ $(LAST_CHECKPOINT): unicharset lists $(PROTO_MODEL)
 	  --eval_listfile $(OUTPUT_DIR)/list.eval \
 	  --max_iterations $(MAX_ITERATIONS) \
 	  --target_error_rate $(TARGET_ERROR_RATE) \
-	  --max_image_MB 500 \
+	  --max_image_MB 100 \
 	  --sequential_training \
 	2>&1 | tee -a $(LOG_FILE)
 $(OUTPUT_DIR).traineddata: $(LAST_CHECKPOINT)
@@ -371,7 +371,7 @@ else
 	time -p lstmeval  \
 		--verbosity=0 \
 		--model $< \
-		--max_image_MB 500 \
+		--max_image_MB 100 \
 		--eval_listfile $(OUTPUT_DIR)/list.eval 2>&1 | grep "^BCER eval" > $@
 endif
 # Make TSV with lstmeval CER and checkpoint filename parts
