@@ -18,6 +18,7 @@ CHART_TYPES = {
     "model",
     "summary",
 }
+SUMMARY_THRESHOLD = 0.08
 
 
 class GroupedData:
@@ -263,7 +264,7 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
         cer_values = [m.cer_group for m in model_data]
 
         # Remove models whose CERs are greater than cer_limit.
-        cer_limit = 0.08
+        cer_limit = SUMMARY_THRESHOLD
         model_names_limited = []
         cer_values_limited = []
         for i, m in enumerate(model_names):
