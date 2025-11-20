@@ -78,6 +78,7 @@ PROPERTIES = {
         "v",
         "w",
         "x",
+        "y",
         "z",
         "ɓ",
         "ɗ",
@@ -555,7 +556,6 @@ def get_character(char_type):
     char_weights = {
         # NOTE: Unlisted characters' weights default to 1.0.
         "consonants": {
-            "y": 1.05,
             "ɓ": 0.25,
             "ɗ": 0.25,
             "ŋ": 0.25,
