@@ -1,10 +1,10 @@
-# Testing
+# Evaluation
 
-## Evaluation Using *jiwer* Module
+## Using *jiwer* Module
 
-![Models below 8% CER](data/evaluation/models-below-0.08-CER.png)
+![Models scoring above 875](data/evaluation/models-above-score-875.png)
 
-![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_20230129.png)
+![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_202511200870.png)
 
 > - Chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
 > - data.csv populated from evalutation of files in [data/evaluation/\<iso_langname\>](data/evaluation).
@@ -19,9 +19,10 @@
 
 ```bash
 (env) $ # Verify that all models have been used and evaluated with all image/GT pairs.
-(env) $ ./scripts/scan-data.py
-Base dir: /home/nate/g/ocr/data/evaluation
-  Running OCR evaluations for Latin...
+(env) $ ./scripts/evaluate-models.py
+Using model: Latin
+ - Evaluating file: ...
+ - Creating file: ...
   [...]
 (env) $ # Create charts to summarize data.
 (env) $ ./scripts/show-chart.py         # all models summary chart
