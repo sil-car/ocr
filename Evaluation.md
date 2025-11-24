@@ -4,17 +4,22 @@ Models are rated based on a score computed from the average CER over the test do
 ```
 score = 1000 / (0.5 * (1 + avg_cer) + 0.5 * (1 + std_dev)) ** 2
 ```
+Thus, a model with zero recognition errors would have a perfect score of 1000.
+
+For comparison, the training base `Latin` model scores 856:
+```
+1000 / (0.5 * (1 + 0.1023) + 0.5 * (1 + 0.0597)) ** 2 = 856
+```
 
 The standard deviation is included as a way to prefer models that produce more consistent CERs across all test documents, which would maybe indicate better performance on other, unknown documents. Only using the best average CER might bias the rating towards models that happen to be especially well-trained for the test set.
-
-## Using *jiwer* Module
 
 ![Models scoring above 875](data/evaluation/models-above-score-875.png)
 
 ![Best & Latin Model Performance by ISO_Language](data/evaluation/comp-Latin-Latin_afr_202511200870.png)
 
-> - Chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
-> - data.csv populated from evalutation of files in [data/evaluation/\<iso_langname\>](data/evaluation).
+> - chart data gathered from [data/evaluation/data.csv](data/evaluation/data.csv)
+> - data.csv populated from evaluation of files in [data/evaluation/\<iso_langname\>](data/evaluation)
+> - evaluations performed by `jiwer` module in [scripts/evaluate-models.py](scripts/evaluate-models.py)
 
 ### Shortcomings
 
