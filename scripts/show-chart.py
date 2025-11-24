@@ -18,7 +18,8 @@ CHART_TYPES = {
     "model",
     "summary",
 }
-SUMMARY_THRESHOLD = 0.08
+SUMMARY_THRESHOLD_CER = 0.08
+SUMMARY_THRESHOLD_SCORE = 875
 
 
 class GroupedData:
@@ -26,19 +27,28 @@ class GroupedData:
         self.name = name
         self.data = csv_data
         self.data_ct = len(csv_data)
+        self.cers = None
         self.cer_sum = None
         self.cer_avg = None
         self.cer_group = None
+        self.cer_stdev = None
+        self.score = None
 
         self.c_sum = sum([float(d.get("hits")) for d in self.data])
         self.d_sum = sum([float(d.get("deletions")) for d in self.data])
         self.i_sum = sum([float(d.get("insertions")) for d in self.data])
         self.s_sum = sum([float(d.get("substitutions")) for d in self.data])
+        self.set_cers()
         self.set_cer_avg()
         self.set_group_cer()
+        self.set_cer_stdev()
+        self.set_score()
+
+    def set_cers(self):
+        self.cers = [float(d.get("cer")) for d in self.data]
 
     def set_cer_avg(self):
-        self.cer_sum = sum([float(d.get("cer")) for d in self.data])
+        self.cer_sum = sum(self.cers)
         self.cer_avg = round(self.cer_sum / self.data_ct, 4)
 
     def set_group_cer(self):
@@ -48,6 +58,19 @@ class GroupedData:
             / float(self.c_sum + self.s_sum + self.d_sum),
             4,
         )
+
+    def set_cer_stdev(self):
+        if len(self.cers) and len(self.cers) > 1:
+            self.cer_stdev = np.std(self.cers, ddof=1)
+
+    def set_score(self):
+        """Score is an empirical value based on model's overall CER and it's standard deviation."""
+        if self.cer_stdev:
+            self.score = int(
+                round(
+                    1000 / (0.5 * (1 + self.cer_avg) + 0.5 * (1 + self.cer_stdev)) ** 2,
+                )
+            )
 
 
 def get_csv_data(csv_file):
@@ -96,7 +119,7 @@ def build_3d_slices(data):
     return slices
 
 
-def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel):
+def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
     # Generate and format plot.
     bw = 0.3  # bar width
     lw = 0.5  # line width
@@ -133,13 +156,24 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel):
     # Add axis labels.
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    # Add shaded thresholds.
-    ax.axhspan(
-        0, 0.05, alpha=0.1, color="yellow", zorder=0.0
-    )  # 5% CER threshold shading
-    ax.axhspan(
-        0, 0.02, alpha=0.2, color="green", zorder=0.1
-    )  # 2% CER threshold shading
+    if plottype.lower() == "cer":
+        # Add shaded thresholds.
+        ax.axhspan(
+            0, 0.05, alpha=0.1, color="yellow", zorder=0.0
+        )  # 5% CER threshold shading
+        ax.axhspan(
+            0, 0.02, alpha=0.2, color="green", zorder=0.1
+        )  # 2% CER threshold shading
+    elif plottype.lower() == "score":
+        # Set y-axis limits.
+        ax.set_ylim([800, 1000])
+        # Add shaded thresholds.
+        ax.axhspan(
+            900, 1000, alpha=0.1, color="yellow", zorder=0.0
+        )  # 900 threshold shading
+        ax.axhspan(
+            980, 1000, alpha=0.2, color="green", zorder=0.1
+        )  # 980 threshold shading
 
     # Show plot.
     plt.savefig(out_file)
@@ -232,14 +266,19 @@ def plot_bar3d(slices_dict):
     plt.show()
 
 
-def get_best_model(model_data):
+def get_best_model(model_data, basis="CER"):
     # Determine best_model and its CER.
     best_model = [None, None]
     for m in model_data:
-        # a = m.cer_avg
-        a = m.cer_group
-        if best_model[0] is None or a < best_model[1]:
-            best_model = [m.name, a]
+        if basis.lower() == "cer":
+            # a = m.cer_avg
+            a = m.cer_group
+            if best_model[0] is None or a < best_model[1]:
+                best_model = [m.name, a]
+        elif basis.lower() == "score":
+            a = m.score
+            if best_model[0] is None or a > best_model[1]:
+                best_model = [m.name, a]
     return best_model
 
 
@@ -254,34 +293,33 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
 
     if chart_type == "summary" and model_names is not None:
         # Print data table to stdout.
-        print("Model Name\tCER")
+        print("Model Name\tScore")
         for m in model_data:
-            # print(f"{m.name}\t{m.cer_avg}\t{round(m.cer_sum, 4)}/{m.data_ct}")
-            print(f"{m.name}\t{m.cer_group}")
+            print(f"{m.name}\t{m.score}")
 
-        # Get CER averages by model.
-        # cer_values = [m.cer_avg for m in model_data]
-        cer_values = [m.cer_group for m in model_data]
+        # Get scores by model.
+        values = [m.score for m in model_data]
 
         # Remove models whose CERs are greater than cer_limit.
-        cer_limit = SUMMARY_THRESHOLD
+        threshold = SUMMARY_THRESHOLD_SCORE
         model_names_limited = []
-        cer_values_limited = []
+        values_limited = []
         for i, m in enumerate(model_names):
-            if cer_values[i] <= cer_limit or m == "Latin":
+            if values[i] >= threshold or m == "Latin":
                 model_names_limited.append(m)
-                cer_values_limited.append(cer_values[i])
+                values_limited.append(values[i])
 
         # Prepare plot data.
         x = model_names_limited
-        y = cer_values_limited
-        out_file = out_dir / f"models-below-{cer_limit}-CER.png"
-        title = f"Models Below {round(cer_limit * 100)}% CER"
+        y = values_limited
+        out_file = out_dir / f"models-above-score-{threshold}.png"
+        title = f"Models Scoring Above {threshold}"
         xlabel = "Model Name"
-        ylabel = "Character Error Rate"
+        ylabel = "Score (function of CER & STDEV; perfect: 1000)"
     elif chart_type == "best":
         # Determine best_model and its CER.
-        best_model = get_best_model(model_data)
+        basis = "Score"
+        best_model = get_best_model(model_data, basis=basis)
 
         # List CER values and filtered ISO_Langs.
         cer_values = []
@@ -474,11 +512,11 @@ def main():
         plot_bar2d(x, y, z, outf, t, xl, yl)
 
     elif chart_type == "summary":
-        # Show summary chart of CER by Model Name.
+        # Show summary chart of scores by Model Name.
         x, y, z, outf, t, xl, yl = prepare_chart_data(
             "summary", model_data, out_dir, model_names=all_model_names
         )
-        plot_bar2d(x, y, z, outf, t, xl, yl)
+        plot_bar2d(x, y, z, outf, t, xl, yl, plottype="score")
 
 
 if __name__ == "__main__":
