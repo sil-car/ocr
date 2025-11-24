@@ -20,7 +20,7 @@ replace_2_layers=
 # Makefile default NET_SPEC: [1,36,0,1 Ct3,3,16 Mp3,3 Lfys48 Lfx96 Lrx96 Lfx192 O1c\#\#\#]
 # Latin.traineddata NET_SPEC: [1,48,0,1 Ct3,3,16 Mp3,3 Lfys64 Lfx96 Lrx96 Lfx512 O1c1]
 net_spec_top="Lfx1536"
-net_spec_top_2="Lrx96 $net_spec_top"
+# net_spec_top_2="Lrx96 $net_spec_top"
 start_model="Latin"
 model_name="Latin_afr"
 tess_tr_dir="${HOME}/tesstrain"
@@ -46,10 +46,11 @@ help_text="$usage
   -h\tshow help
   -i NUM
     \tset number of iterations
-  -l\treplace top layer
-  -L\treplace top 2 layers
-  -r\treset some training files (.box, .lstmf)
-  -R\treset all training files
+  -l\treplace top layer using default size
+  -L LAYER
+    \treplace top layer, specifying size
+  -r\treset training output files (not .box or .lstmf)
+  -R\treset all training-generated files
   -t\ttrain based on text2image
   -v\tverbose output
 "
@@ -76,8 +77,8 @@ while getopts ":bc:dhi:lLrRtv" opt; do
         l) # replace layer
             replace_layer=YES
             ;;
-        L) # replace 2 layers
-            replace_2_layers=YES
+        L) # replace layer w/ given size
+            net_spec_top="$OPTARG"
             ;;
         r) # reset
             reset=YES
@@ -181,7 +182,7 @@ make_common_opts=(
 # Handle reset options.
 if [[ -n "$reset" ]]; then
     # Clean/reset generated files & exit.
-    echo "Resetting generated files (not GT data). No other option will be handled."
+    echo "Resetting output files (not GT data, box or lstmf). No other option will be handled."
     make -j $(nproc) $d -f "$our_makefile" clean-output "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
     cp -rv "${repo_dir}/data/${model_name}" "${data_dir}/"
@@ -189,7 +190,7 @@ if [[ -n "$reset" ]]; then
 fi
 if [[ -n "$hard_reset" ]]; then
     # Clean/reset generated files & exit.
-    echo "Resetting generated files (not GT data). No other option will be handled."
+    echo "Resetting all generated files (not GT data). No other option will be handled."
     make -j $(nproc) $d -f "$our_makefile" clean "${make_common_opts[@]}"
     rm -fv "${data_dir}/"*.traineddata
     rm -fv "${data_dir}/"*.log
