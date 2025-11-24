@@ -54,7 +54,7 @@ help_text="$usage
   -t\ttrain based on text2image
   -v\tverbose output
 "
-while getopts ":bc:dhi:lLrRtv" opt; do
+while getopts ":bc:dhi:lL:rRtv" opt; do
     case $opt in
         b) # create .box and .lstmf files
             box_lstmf=YES
