@@ -1,5 +1,12 @@
 # Evaluation
 
+Models are rated based on a score computed from the average CER over the test documents and the standard deviation of the CERs:
+```
+score = 1000 / (0.5 * (1 + avg_cer) + 0.5 * (1 + std_dev)) ** 2
+```
+
+The standard deviation is included as a way to prefer models that produce more consistent CERs across all test documents, which would maybe indicate better performance on other, unknown documents. Only using the best average CER might bias the rating towards models that happen to be especially well-trained for the test set.
+
 ## Using *jiwer* Module
 
 ![Models scoring above 875](data/evaluation/models-above-score-875.png)
