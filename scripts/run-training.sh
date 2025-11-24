@@ -78,6 +78,7 @@ while getopts ":bc:dhi:lLrRtv" opt; do
             replace_layer=YES
             ;;
         L) # replace layer w/ given size
+            replace_layer=YES
             net_spec_top="$OPTARG"
             ;;
         r) # reset
