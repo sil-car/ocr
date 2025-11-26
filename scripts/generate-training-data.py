@@ -164,9 +164,9 @@ PROPERTIES = {
         "p_conso": 0.39,
         # Modifications to base characters.
         "p_upper": 0.10,  # of all consonants & vowels
-        "p_vtpdi": 0.25,  # of vowels (vowel top diacritic)
-        "p_vbtdi": 0.10,  # of vowels (vowel bottom diacritic)
-        "p_ctpdi": 0.05,  # of consonants (consonant top diacritic)
+        "p_vtpdi": 0.20,  # of vowels (vowel top diacritic)
+        "p_vbtdi": 0.08,  # of vowels (vowel bottom diacritic)
+        "p_ctpdi": 0.04,  # of consonants (consonant top diacritic)
     },
 }
 
@@ -556,24 +556,24 @@ def get_character(char_type):
     char_weights = {
         # NOTE: Unlisted characters' weights default to 1.0.
         "consonants": {
-            "ɓ": 0.25,
-            "ɗ": 0.25,
-            "ŋ": 0.25,
-            "ẅ": 0.25,
-            "ꞌ": 0.10,
-            "ʼ": 0.10,
+            "ɓ": 0.15,
+            "ɗ": 0.15,
+            "ŋ": 0.15,
+            "ẅ": 0.15,
+            "ꞌ": 0.05,
+            "ʼ": 0.05,
         },
         "vowels": {
-            "ɛ": 0.20,
-            "æ": 0.15,
-            "ɑ": 0.08,
-            "ə": 0.15,
-            "ı": 0.15,
-            "ɨ": 0.15,
-            "ɔ": 0.20,
-            "ø": 0.15,
-            "œ": 0.15,
-            "ʉ": 0.15,
+            "ɛ": 0.12,
+            "æ": 0.10,
+            "ɑ": 0.05,
+            "ə": 0.10,
+            "ı": 0.10,
+            "ɨ": 0.10,
+            "ɔ": 0.12,
+            "ø": 0.10,
+            "œ": 0.10,
+            "ʉ": 0.10,
         },
     }
     char_opts = PROPERTIES.get(char_type)
