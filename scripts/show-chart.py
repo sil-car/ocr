@@ -68,7 +68,8 @@ class GroupedData:
         if self.cer_stdev:
             self.score = int(
                 round(
-                    1000 / (0.5 * (1 + self.cer_avg) + 0.5 * (1 + self.cer_stdev)) ** 2,
+                    1000
+                    / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cer_stdev)) ** 2,
                 )
             )
 

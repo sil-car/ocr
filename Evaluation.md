@@ -2,16 +2,16 @@
 
 Models are rated based on a score computed from the average CER over the test documents and the standard deviation of the CERs:
 ```
-score = 1000 / (0.5 * (1 + avg_cer) + 0.5 * (1 + std_dev)) ** 2
+score = 1000 / (0.75 * (1 + avg_cer) + 0.25 * (1 + std_dev)) ** 2
 ```
 Thus, a model with zero recognition errors would have a perfect score of 1000.
 
-For comparison, the training base `Latin` model scores 856:
+For comparison, the training base `Latin` model scores 839:
 ```
-1000 / (0.5 * (1 + 0.1023) + 0.5 * (1 + 0.0597)) ** 2 = 856
+1000 / (0.75 * (1 + 0.1023) + 0.25 * (1 + 0.0597)) ** 2 = 839
 ```
 
-The standard deviation is included as a way to prefer models that produce more consistent CERs across all test documents, which would maybe indicate better performance on other, unknown documents. Only using the best average CER might bias the rating towards models that happen to be especially well-trained for the test set.
+The standard deviation is included as a way to prefer models that produce more consistent CERs across all test documents, which would maybe indicate better performance on other, unknown documents. Only using the best average CER might bias the rating towards models that happen to be especially well-trained for the test set. Conversely, giving too much weight to the standard deviation might overvalue models with higher CER, because certain test images are "dirty" and invariably have poorer CERs than the "clean" images, so this necessarily means there will naturally be a higher standard deviation just because of this factor.
 
 ![Models scoring above 875](data/evaluation/models-above-score-875.png)
 
