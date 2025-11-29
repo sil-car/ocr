@@ -158,15 +158,15 @@ PROPERTIES = {
         # Define probabilities.
         # Base characters; should equal 100%,
         "p_space": 0.15,
-        "p_num": 0.02,
-        "p_punct": 0.05,
-        "p_vowel": 0.39,
-        "p_conso": 0.39,
+        "p_num": 0.03,
+        "p_punct": 0.06,
+        "p_vowel": 0.38,
+        "p_conso": 0.38,
         # Modifications to base characters.
         "p_upper": 0.10,  # of all consonants & vowels
         "p_vtpdi": 0.20,  # of vowels (vowel top diacritic)
-        "p_vbtdi": 0.08,  # of vowels (vowel bottom diacritic)
-        "p_ctpdi": 0.04,  # of consonants (consonant top diacritic)
+        "p_vbtdi": 0.05,  # of vowels (vowel bottom diacritic)
+        "p_ctpdi": 0.03,  # of consonants (consonant top diacritic)
     },
 }
 
@@ -564,16 +564,16 @@ def get_character(char_type):
             "ʼ": 0.05,
         },
         "vowels": {
-            "ɛ": 0.12,
-            "æ": 0.10,
+            "ɛ": 0.15,
+            "æ": 0.08,
             "ɑ": 0.05,
             "ə": 0.10,
             "ı": 0.10,
-            "ɨ": 0.10,
-            "ɔ": 0.12,
+            "ɨ": 0.08,
+            "ɔ": 0.15,
             "ø": 0.10,
-            "œ": 0.10,
-            "ʉ": 0.10,
+            "œ": 0.08,
+            "ʉ": 0.08,
         },
     }
     char_opts = PROPERTIES.get(char_type)
