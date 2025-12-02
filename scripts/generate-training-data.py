@@ -160,8 +160,8 @@ PROPERTIES = {
         "p_conso": 0.38,
         # Modifications to base characters.
         "p_upper": 0.10,  # of all consonants & vowels
-        "p_vtpdi": 0.20,  # of vowels (vowel top diacritic)
-        "p_vbtdi": 0.05,  # of vowels (vowel bottom diacritic)
+        "p_vtpdi": 0.15,  # of vowels (vowel top diacritic)
+        "p_vbtdi": 0.03,  # of vowels (vowel bottom diacritic)
         "p_ctpdi": 0.03,  # of consonants (consonant top diacritic)
     },
 }
@@ -561,15 +561,15 @@ def get_character(char_type):
         },
         "vowels": {
             "ɛ": 0.15,
-            "æ": 0.08,
+            "æ": 0.06,
             "ɑ": 0.05,
             "ə": 0.10,
             "ı": 0.10,
-            "ɨ": 0.08,
+            "ɨ": 0.06,
             "ɔ": 0.15,
             "ø": 0.10,
-            "œ": 0.08,
-            "ʉ": 0.08,
+            "œ": 0.06,
+            "ʉ": 0.06,
         },
     }
     char_opts = PROPERTIES.get(char_type)
