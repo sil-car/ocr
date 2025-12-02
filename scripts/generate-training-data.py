@@ -15,15 +15,11 @@ import subprocess
 import sys
 import tempfile
 import time
+from pathlib import Path
 
 from fontTools.ttLib import TTFont
 from matplotlib import font_manager
-from pathlib import Path
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFilter
-from PIL import ImageFont
-
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 # Global variables.
 WRITING_SYSTEM_NAME = "Latin_afr"
