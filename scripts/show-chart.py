@@ -4,11 +4,11 @@
 
 import argparse
 import csv
+import sys
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
-
-from pathlib import Path
 
 CHART_TYPES = {
     "3d",
@@ -306,6 +306,7 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
         model_names_limited = []
         values_limited = []
         for i, m in enumerate(model_names):
+            print(i, m, values[i])
             if values[i] >= threshold or m == "Latin":
                 model_names_limited.append(m)
                 values_limited.append(values[i])

@@ -2,12 +2,12 @@
 """Evaluate all provided language models with all provided test documents."""
 
 import csv
-import jiwer
 import os
-import pytesseract
 import unicodedata
-
 from pathlib import Path
+
+import jiwer
+import pytesseract
 from PIL import Image
 
 repo_dir_path = Path(__file__).parents[1]
@@ -94,7 +94,6 @@ def main():
 
     data_csv = EVALUATION_DIR_PATH / "data.csv"
     csv_fieldnames = [
-        "timestamp",
         "iso_lang",
         "image-file",
         "truth-text-file",
@@ -133,14 +132,11 @@ def main():
             # Get current data from CSV file.
             with open(data_csv) as c:
                 reader = csv.reader(c)
-                timestamps = [r[0] for r in reader]
+                outfile_paths = [r[2] for r in reader]
 
-            timestamp = get_timestamp(out_file)
-
-            if timestamp not in timestamps:
+            if str(out_file) not in outfile_paths:
                 # Initialize the CSV data.
                 results = {}
-                results["timestamp"] = get_timestamp(out_file)  # UID for CSV entries
 
                 # Complete the rest of the CSV data.
                 results["iso_lang"] = gt_file.parent.name.split("_")[0]
