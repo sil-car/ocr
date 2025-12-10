@@ -153,16 +153,16 @@ PROPERTIES = {
     "weights": {
         # Define probabilities.
         # Base characters; should equal 100%,
-        "p_space": 0.15,
+        "p_space": 0.14,
         "p_num": 0.03,
-        "p_punct": 0.06,
-        "p_vowel": 0.38,
-        "p_conso": 0.38,
+        "p_punct": 0.05,
+        "p_vowel": 0.39,
+        "p_conso": 0.39,
         # Modifications to base characters.
         "p_upper": 0.10,  # of all consonants & vowels
-        "p_vtpdi": 0.15,  # of vowels (vowel top diacritic)
-        "p_vbtdi": 0.03,  # of vowels (vowel bottom diacritic)
-        "p_ctpdi": 0.03,  # of consonants (consonant top diacritic)
+        "p_vtpdi": 0.16,  # of vowels (vowel top diacritic)
+        "p_vbtdi": 0.02,  # of vowels (vowel bottom diacritic)
+        "p_ctpdi": 0.02,  # of consonants (consonant top diacritic)
     },
 }
 
@@ -552,7 +552,7 @@ def get_character(char_type):
     char_weights = {
         # NOTE: Unlisted characters' weights default to 1.0.
         "consonants": {
-            "ɓ": 0.15,
+            "ɓ": 0.16,
             "ɗ": 0.15,
             "ŋ": 0.15,
             "ẅ": 0.15,
@@ -560,12 +560,12 @@ def get_character(char_type):
             "ʼ": 0.05,
         },
         "vowels": {
-            "ɛ": 0.12,
+            "ɛ": 0.11,
             "æ": 0.06,
-            "ɑ": 0.04,
+            "ɑ": 0.03,
             "ə": 0.10,
             "ı": 0.10,
-            "ɨ": 0.08,
+            "ɨ": 0.09,
             "ɔ": 0.12,
             "ø": 0.08,
             "œ": 0.06,
