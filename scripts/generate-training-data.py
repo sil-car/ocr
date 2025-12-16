@@ -562,11 +562,11 @@ def get_character(char_type):
         "vowels": {
             "ɛ": 0.11,
             "æ": 0.06,
-            "ɑ": 0.03,
+            "ɑ": 0.02,
             "ə": 0.10,
-            "ı": 0.10,
-            "ɨ": 0.09,
-            "ɔ": 0.12,
+            "ı": 0.09,
+            "ɨ": 0.10,
+            "ɔ": 0.11,
             "ø": 0.08,
             "œ": 0.06,
             "ʉ": 0.08,
@@ -590,6 +590,7 @@ def set_case(char, char_type):
 
 
 def set_diacritics(char, char_type):
+    # TODO: Allow for relative weighting of diacritics.
     use_bot_diac = False
     use_top_diac = False
     if char_type == "consonants":
