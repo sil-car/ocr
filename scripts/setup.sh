@@ -58,8 +58,9 @@ echo "Copying user fonts..."
 cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 
 # Get tesstrain repo.
-if [[ ! -d $HOME/tesstrain ]]; then
+if [[ ! -d $HOME/tesstrain/.git ]]; then
     echo "Getting \"tesstrain\" repository..."
+    rm -rf $HOME/tesstrain/
     git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
 fi
 
