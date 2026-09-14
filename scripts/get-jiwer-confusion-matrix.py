@@ -7,15 +7,16 @@ import jiwer
 # references and hypotheses must be line-aligned: same order, same count
 references = []  # ground-truth text, one string per line
 hypotheses = []  # Tesseract output, one string per line
-for d in Path("./data/example-documents").iterdir():
+best_model = "Latin_afr_202512160504"
+for d in Path("./data/evaluation").iterdir():
     ref = []
     hyp = []
     if not d.is_dir():
         continue
     for f in d.iterdir():
-        if f.name == "orig-text.txt":
+        if f.name.endswith(".gt.txt"):
             ref = f.read_text().splitlines()
-        elif f.name == "ocr-text.txt":
+        elif f.name.endswith(f".{best_model}.txt"):
             hyp = f.read_text().splitlines()
         if ref and hyp:
             break
@@ -24,6 +25,7 @@ for d in Path("./data/example-documents").iterdir():
         references.extend(ref)
         hypotheses.extend(hyp)
 
+print(f"Compared {len(references)} lines:")
 out = jiwer.process_characters(references, hypotheses)
 
 # substitutions: {(ref_char, hyp_char): count}
