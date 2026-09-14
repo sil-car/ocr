@@ -119,7 +119,7 @@ def main():
     for model_name in MODELS:
         print(f"Using model: {model_name}")
         for gt_file in GT_FILES:
-            basename = Path(str(gt_file).rstrip(".gt.txt"))
+            basename = Path(str(gt_file).removesuffix(".gt.txt"))
             image_file = Path(f"{basename}.png")
             out_file = Path(f"{basename}.{model_name}.txt")
             print(f" - Evaluating file: {image_file.name}")
