@@ -15,7 +15,7 @@ def main():
         "basedir",
         metavar="PATH/TO/IMAGES_DIR",
         type=Path,
-        help="text image file to recognize",
+        help="parent folder with images to OCR",
     )
     args = parser.parse_args()
 
