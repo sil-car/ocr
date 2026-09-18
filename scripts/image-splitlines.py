@@ -17,7 +17,7 @@ def segment_lines_by_components(inv, min_height_frac=0.5, max_height_frac=2.5):
     inv: binary image, text=nonzero, background=0 (e.g. your `inv` from absdiff)
     Returns: list of (top, bottom) y-ranges, one per detected text line, sorted top-to-bottom.
     """
-    n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(inv, connectivity=8)
+    n_labels, _, stats, _ = cv2.connectedComponentsWithStats(inv, connectivity=8)
 
     boxes = []
     for i in range(1, n_labels):  # skip label 0 (background)
@@ -101,7 +101,7 @@ def segment_lines_by_whitespace(inv, min_gap_for_split=None):
                 sorted top-to-bottom.
     """
     # row is "text" if it has any foreground pixel at all
-    cv2.imwrite("inv.png", inv)
+    # cv2.imwrite("inv.png", inv)
     row_has_text = np.any(inv > 0, axis=1)
     # print(f"{row_has_text=}")
     text_rows = np.where(row_has_text)[0]
@@ -234,6 +234,7 @@ def main():
         M = cv2.getRotationMatrix2D((cx,cy), ang, 1.0)
         rotated_inv = cv2.warpAffine(inv, M, (img.shape[1], img.shape[0]), borderValue=0)
         rotated = cv2.bitwise_not(rotated_inv)
+        # cv2.imwrite("test.png", rotated)
 
     lines, min_gap = segment_lines(rotated_inv, min_gap_for_split=args.min_gap)
     # print(f"{lines=}")
