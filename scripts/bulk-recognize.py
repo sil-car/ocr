@@ -29,6 +29,7 @@ def main():
         outfile = dir / f"{img.stem}.gt.txt"
         # don't overwrite already-created GT.TXT files
         if outfile.is_file():
+            print(f"Skipping {img} because {outfile} exists.")
             continue
 
         outfile.write_text(pytesseract.image_to_string(str(img), lang="Latin_afr"))
