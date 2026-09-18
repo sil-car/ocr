@@ -30,7 +30,7 @@ Full comparison results can be found in [data/evaluation/](data/evaluation/)
    This will install the current best model using the name "Latin_afr". Windows users will need to adapt the instructions to their particular setup.
 1. Use the model with **Tesseract**; e.g.
    ```
-   $ tesseract -l Latin_afr ./data/example-documents/bdt_bhogoto/Guide_transition_bhogoto__bdt__2021-01.png stdout
+   $ tesseract -l Latin_afr ./data/evaluation/bdt_bhogoto/Guide_transition_bhogoto__bdt__2021_pg30p2.png stdout
    ```
 You can also make use of other front-end apps that use **Tesseract** as a back end. Just select "Latin_afr" as the language/script to be recognized after having copied the model to the appropriate tessdata folder.
 
