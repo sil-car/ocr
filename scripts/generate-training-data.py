@@ -172,7 +172,7 @@ def get_model_dir(model_name):
     model_dir = proj_dir / "data" / model_name
     if not model_dir.is_dir():
         print(f"Error: Couldn't find {model_dir}.")
-        exit(1)
+        sys.exit(1)
     return model_dir
 
 
@@ -321,11 +321,11 @@ def show_installed_fonts(fonts_dict):
 def get_git_root(path):
     """find repository root from the path's parents"""
     # https://stackoverflow.com/a/67516092
-    for path in Path(path).resolve().parents:
+    for p in Path(path).resolve().parents:
         # Check whether "path/.git" exists and is a directory
-        git_dir = path / ".git"
+        git_dir = p / ".git"
         if git_dir.is_dir():
-            return path
+            return p
 
 
 def reset_ground_truth(gt_dir_path):
@@ -381,7 +381,7 @@ def get_available_fonts():
 def get_random_char_type(options):
     # If only one option allowed, return it.
     if len(options) == 1:
-        char_type = [k for k in options.keys()][0]
+        char_type = next(iter(options))
     else:
         char_type = None
 
@@ -390,7 +390,7 @@ def get_random_char_type(options):
         # select char type if "true" is "rolled" for the given char type.
         # NOTE: This "tries" lowest-probability char type first. Does this lead to
         # over-representation of lower-probability chars?
-        highest_prob_item = tuple()
+        highest_prob_item = ()
         for t, p in sorted(options.items(), key=lambda kv: (kv[1], kv[0])):
             if not highest_prob_item or p > highest_prob_item[1]:
                 highest_prob_item = (t, p)
@@ -576,7 +576,7 @@ def get_character(char_type):
     # Define character weights (default to 1).
     weights = {c: 1 for c in char_opts}
     # Update with adjusted character weights.
-    for c, w in char_weights.get(char_type, dict()).items():
+    for c, w in char_weights.get(char_type, {}).items():
         weights[c] = w
     return char_opts[get_weighted_index(weights.values())]
 
@@ -656,16 +656,15 @@ def generate_text_line_pseudo_words(length=50):
 def remove_unknown_characters(chars, fontfile):
     try:
         font = TTFont(fontfile, fontNumber=0)
-    except Exception as e:
+    except Exception as e:  # noqa
         # Ignore exception by returning original characters.
         print(f"ERROR: file: {fontfile}; {e}")
         return chars
 
     def char_in_font(unicode_char, font):
         for cmap in font["cmap"].tables:
-            if cmap.isUnicode():
-                if ord(unicode_char) in cmap.cmap:
-                    return True
+            if cmap.isUnicode() and ord(unicode_char) in cmap.cmap:
+                return True
         return False
 
     return "".join(c for c in chars if char_in_font(c, font))
@@ -681,7 +680,7 @@ def generate_text_line_png(chars, fontfile):
         # Create list of pixel indexes to change to white.
         px_ct = image.size[0] * image.size[1]
         fade_idxs = list(
-            set(random.randrange(px_ct) for _ in range(int(fade_ratio * px_ct)))
+            set(random.randrange(px_ct) for _ in range(int(fade_ratio * px_ct)))  # noqa
         )
         fade_idxs.sort()  # re-sort
 
@@ -758,7 +757,7 @@ def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle)
             "--fonts_dir=/usr/share/fonts",
             f"--font={font}",
         ]
-        subprocess.run(cmd)
+        subprocess.run(cmd, check=False)
 
 
 def choose_font_family(desired_fonts, system_fonts):
@@ -775,14 +774,14 @@ def choose_font_family(desired_fonts, system_fonts):
 
 def verify_fonts(needed_fonts, installed_fonts):
     missing_fonts = []
-    for f in needed_fonts.keys():
-        if f not in installed_fonts.keys():
+    for f in needed_fonts:
+        if f not in installed_fonts:
             missing_fonts.append(f)
     if len(missing_fonts) > 0:
         print("ERROR: Not all required fonts are installed:")
         for m in missing_fonts:
             print(f"  - {m}")
-        exit(1)
+        sys.exit(1)
 
 
 def save_training_data_pair(gt_dir, name, txtdata, pngdata):
@@ -975,7 +974,7 @@ def main():
 
     # FIXME: Using globals is not ideal, but it makes setting up muliprocessing
     # a lot easier.
-    global PROPERTIES
+    global PROPERTIES  # noqa
     PROPERTIES["fonts"] = get_model_fonts()
 
     global CHARACTER_HEIGHT
@@ -1018,19 +1017,19 @@ def main():
 
     if args.combinations:
         show_character_combinations()
-        exit()
+        sys.exit()
 
     if args.installed_fonts:
         show_installed_fonts(SYSTEM_FONTS)
-        exit()
+        sys.exit()
 
     if args.weights:
         show_character_weights()
-        exit()
+        sys.exit()
 
     if args.reset:
         reset_ground_truth(GROUND_TRUTH_DIR)
-        exit()
+        sys.exit()
 
     # Ensure training fonts are installed.
     # verify_fonts(CHAR_VARS.get("fonts"), SYSTEM_FONTS)
