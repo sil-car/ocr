@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from unicodedata import normalize
 
 from fontTools.ttLib import TTFont
 from matplotlib import font_manager
@@ -918,6 +919,7 @@ def run_iteration(iter_num):
 
     clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
     text_line = "".join(clean_unicode_chars)
+    text_line = normalize("NFC", text_line)
     if VERBOSE:
         # print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
         # print(f"INFO: bad:   {bad_chars}")
