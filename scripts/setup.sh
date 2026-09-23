@@ -109,6 +109,7 @@ fi
 
 # Make folders available through rsync.
 echo "
+port = 8873
 max connections = 2
 dont compress = *.tessdata *.gz *.xz *.zip
 read only = true
