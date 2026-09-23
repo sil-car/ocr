@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 from pathlib import Path
 from unicodedata import normalize
 
@@ -44,128 +45,16 @@ CORE_FONTS = [
     "Noto Sans",
     "Noto Serif",
 ]
-PROPERTIES = {
-    # More info to be considered here:
-    # https://docs.google.com/spreadsheets/d/1sltGTvYpa1OvK3XqQy1UivA6nYyZCCdWfLrnAXHmTm4
-    "cases": [
-        "lower",
-        "upper",
-    ],
-    "consonants": [
-        # Includes:
-        #   - nasalized consonants
-        #   - possibility that consonants take top diacritics b/c grammatical tone
-        #   - all consonants present on the CMB Multilingual keyboard
-        "b",
-        "c",
-        "d",
-        "f",
-        "g",
-        "h",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
-        "ɓ",
-        "ɗ",
-        "ŋ",
-        "ẅ",
-        "ꞌ",
-        "ʼ",
-    ],
-    "diac_top": [
-        # Includes all combining diacritics present on the CMB Multilingual keyboard.
-        b"\\u0300",  # combining grave accent
-        b"\\u0301",  # combining acute accent
-        b"\\u0302",  # combining circumflex
-        b"\\u0303",  # combining tilde above
-        b"\\u0304",  # combining macron
-        b"\\u0308",  # combining diaeresis
-        b"\\u030c",  # combining caron
-        b"\\u030d",  # combining vert. line above
-        b"\\u1dc4",  # combining macron-acute
-        b"\\u1dc5",  # combining grave-macron
-        b"\\u1dc6",  # combining macron-grave
-        b"\\u1dc7",  # combining acute-macron
-    ],
-    "diac_bot": [
-        # Includes all combining diacritics present on the CMB Multilingual keyboard.
-        b"\\u0323",  # combining dot below
-        b"\\u0327",  # combining cedilla
-        b"\\u0330",  # combining tilde below
-    ],
-    "fonts": None,  # from f"data/{WRITING_SYSTEM_NAME}/fonts.txt"
-    "numbers": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
-    "space": [" "],
-    "styles": ["Regular", "Bold", "Italic", "Bold Italic"],
-    "punctuation": [
-        # TODO: This compiled without much effort. Some chars could be missing.
-        "!",
-        '"',
-        "'",
-        "(",
-        ")",
-        ",",
-        "-",
-        ".",
-        ":",
-        ";",
-        "?",
-        "[",
-        "]",
-        "¡",
-        "«",
-        "»",
-        "“",
-        "”",
-        "‹",
-        "›",
-        "~",
-    ],
-    "vowels": [
-        # Includes all vowels present on the CMB Multilingual keyboard.
-        "a",
-        "e",
-        "i",
-        "o",
-        "u",
-        "ɛ",
-        "æ",
-        "ɑ",
-        "ə",
-        "ı",
-        "ɨ",
-        "ɔ",
-        "ø",
-        "œ",
-        "ʉ",
-    ],
-    "weights": {
-        # Define probabilities.
-        # Base characters; should equal 100%,
-        "p_space": 0.14,
-        "p_num": 0.03,
-        "p_punct": 0.05,
-        "p_vowel": 0.39,
-        "p_conso": 0.39,
-        # Modifications to base characters.
-        "p_upper": 0.10,  # of all consonants & vowels
-        "p_vtpdi": 0.16,  # of vowels (vowel top diacritic)
-        "p_vbtdi": 0.02,  # of vowels (vowel bottom diacritic)
-        "p_ctpdi": 0.02,  # of consonants (consonant top diacritic)
-    },
-}
+
+
+def get_git_root(path):
+    """find repository root from the path's parents"""
+    # https://stackoverflow.com/a/67516092
+    for p in Path(path).resolve().parents:
+        # Check whether "path/.git" exists and is a directory
+        git_dir = p / ".git"
+        if git_dir.is_dir():
+            return p
 
 
 def get_model_dir(model_name):
@@ -175,6 +64,10 @@ def get_model_dir(model_name):
         print(f"Error: Couldn't find {model_dir}.")
         sys.exit(1)
     return model_dir
+
+
+with (get_model_dir(WRITING_SYSTEM_NAME) / "config.toml").open('rb') as f:
+    PROPERTIES = tomllib.load(f).get("properties")
 
 
 def show_character_weights():
@@ -189,21 +82,27 @@ def show_character_weights():
 
 def show_character_combinations():
     # Calculate total number of unique vowel+diacritic characters.
-    num_vowels = len(PROPERTIES.get("vowels"))
-    num_top_diac = len(PROPERTIES.get("diac_top"))
-    num_bot_diac = len(PROPERTIES.get("diac_bot"))
+    vowels = PROPERTIES.get("vowels")
+    num_vowels = len(vowels)
+    top_diac = PROPERTIES.get("diacritics").get("top")
+    num_top_diac = len(top_diac)
+    bot_diac = PROPERTIES.get("diacritics").get("bottom")
+    num_bot_diac = len(bot_diac)
     # Vowels can receive both top and bottom diacritics.
     num_vowel_combos = (num_top_diac + 1) * (num_bot_diac + 1) * num_vowels
 
     # Get total number of consonants.
-    num_consonants = len(PROPERTIES.get("consonants"))
+    consonants = PROPERTIES.get("consonants")
+    num_consonants = len(consonants)
     # Consonants can receive top diacritics b/c of grammatical tone markings.
     num_consonant_combos = (num_top_diac + 1) * num_consonants
 
     # Get number of numbers & punctuation characters.
-    num_numbers = len(PROPERTIES.get("numbers"))
+    numbers = PROPERTIES.get("numbers")
+    num_numbers = len(numbers)
+    punctuation_chars = PROPERTIES.get("punctuation")
     num_punctuation_chars = len(PROPERTIES.get("space")) + len(
-        PROPERTIES.get("punctuation")
+        punctuation_chars
     )
 
     # Calculate total number of all characters.
@@ -212,7 +111,8 @@ def show_character_combinations():
     num_chars = num_cased_chars + num_uncased_chars
 
     # Calculate total number of unique displayed characters.
-    num_fonts = len(PROPERTIES.get("fonts"))
+    fonts = PROPERTIES.get("fonts")
+    num_fonts = len(fonts)
     num_styles = len(PROPERTIES.get("styles"))
     num_cases = len(PROPERTIES.get("cases"))
     # combinations = num_chars * num_fonts * num_styles * num_cases
@@ -234,24 +134,12 @@ def show_character_combinations():
     )
 
     print("CHARACTER LIST:")
-    print(
-        f"  Consonants [{len(PROPERTIES.get('consonants'))}]: {''.join(PROPERTIES.get('consonants'))}"
-    )
-    print(
-        f"  Vowels [{len(PROPERTIES.get('vowels'))}]: {''.join(PROPERTIES.get('vowels'))}"
-    )
-    print(
-        f"  Top diacritics [{len(PROPERTIES.get('diac_top'))}]: {b', '.join(PROPERTIES.get('diac_top'))}"
-    )
-    print(
-        f"  Bottom diacritics [{len(PROPERTIES.get('diac_bot'))}]: {b', '.join(PROPERTIES.get('diac_bot'))}"
-    )
-    print(
-        f"  Numbers [{len(PROPERTIES.get('numbers'))}]: {''.join(PROPERTIES.get('numbers'))}"
-    )
-    print(
-        f"  Punctuation [{len(PROPERTIES.get('punctuation'))}]: {''.join(PROPERTIES.get('punctuation'))}"
-    )
+    print(f"  Consonants [{num_consonants}]: {''.join(consonants)}")
+    print(f"  Vowels [{num_vowels}]: {''.join(vowels)}")
+    print(f"  Top diacritics [{num_top_diac}]: {', '.join(top_diac)}")
+    print(f"  Bottom diacritics [{num_bot_diac}]: {', '.join(bot_diac)}")
+    print(f"  Numbers [{num_numbers}]: {''.join(numbers)}")
+    print(f"  Punctuation [{len(punctuation_chars)}]: {''.join(punctuation_chars)}")
     print()
     print("Character weights:")
     for k, v in wts.items():
@@ -270,7 +158,7 @@ def show_character_combinations():
     print(f"{num_chars}\ttotal unique characters")
     print()
     print("FONT LIST:")
-    fonts = list(PROPERTIES.get("fonts").keys())
+    fonts = PROPERTIES.get("fonts")
     fonts.sort()
     print(f"  Fonts: {', '.join(fonts)}")
     print(f"  Styles: {', '.join(PROPERTIES.get('styles'))}")
