@@ -66,10 +66,6 @@ def get_model_dir(model_name):
     return model_dir
 
 
-with (get_model_dir(WRITING_SYSTEM_NAME) / "config.toml").open('rb') as f:
-    PROPERTIES = tomllib.load(f).get("properties")
-
-
 def show_character_weights():
     print("Character weights:")
     for k, v in PROPERTIES.get("weights").items():
@@ -170,51 +166,11 @@ def show_character_combinations():
     print(f"{combinations}\t total possible combinations")
 
 
-def get_model_fonts(model_name=WRITING_SYSTEM_NAME):
-    fonts = {}
-    model_dir = get_model_dir(model_name)
-    fonts_file = model_dir / "fonts.txt"
-    if not fonts_file.is_file():
-        print(f"Error: Couldn't find {fonts_file}")
-    with fonts_file.open(mode="rb") as f:
-        fonts_lines = [line for line in f.readlines() if chr(line[0]) != "#"]
-    # Remove comments.
-    lines_no_comments = [line.split(b"#")[0].strip() for line in fonts_lines]
-    for line in lines_no_comments:
-        l_split = line.split(b"|")
-        font = l_split[0].strip().decode()
-        # NOTE: Bad chars are now handled by inspecting the fontfile itself.
-        # if len(l_split) > 1:
-        #     bad_chars = l_split[1].split()
-        # bad_chars = [c.decode("unicode-escape") for c in bad_chars]
-        fonts[font] = []
-
-    return fonts
-
-
-def show_model_fonts(model_name=WRITING_SYSTEM_NAME):
-    fonts_dict = get_model_fonts(model_name)
-    fonts = list(fonts_dict.keys())
-    fonts.sort()
-    join_char = "\n"
-    print(f"{join_char.join(fonts)}")
-
-
 def show_installed_fonts(fonts_dict):
     for n, d1 in fonts_dict.items():
         print(f"\n{n}:")
         for s, p in d1.items():
             print(f"  {s}: {p}")
-
-
-def get_git_root(path):
-    """find repository root from the path's parents"""
-    # https://stackoverflow.com/a/67516092
-    for p in Path(path).resolve().parents:
-        # Check whether "path/.git" exists and is a directory
-        git_dir = p / ".git"
-        if git_dir.is_dir():
-            return p
 
 
 def reset_ground_truth(gt_dir_path):
@@ -340,11 +296,11 @@ def generate_text_line_random_chars(length=40):
         db = None
         if c_base == "vowels":
             accept_dt = get_binary_choice(0.5)
-            n = get_random_index(len(PROPERTIES.get("diac_top")))
-            dt = PROPERTIES.get("diac_top")[n] if accept_dt == 1 else None
+            n = get_random_index(len(PROPERTIES.get("diacritics").get("top")))
+            dt = PROPERTIES.get("diacritics").get("top")[n] if accept_dt == 1 else None
             accept_db = get_binary_choice(0.5)
-            n = get_random_index(len(PROPERTIES.get("diac_bot")))
-            db = PROPERTIES.get("diac_bot")[n] if accept_db else None
+            n = get_random_index(len(PROPERTIES.get("diacritics").get("bottom")))
+            db = PROPERTIES.get("diacritics").get("bottom")[n] if accept_db else None
         if dt:
             u += dt
         if db:
@@ -439,6 +395,7 @@ def get_next_char_type(last_c_type, current_word_length):
 def get_character(char_type):
     """select random character of given 'char_type', but adjust for given weights"""
     char_weights = {
+        # FIXME: This should be moved to `config.toml`.
         # NOTE: Unlisted characters' weights default to 1.0.
         "consonants": {
             "ɓ": 0.16,
@@ -488,18 +445,17 @@ def set_diacritics(char, char_type):
         use_top_diac = get_binary_choice(PROPERTIES.get("weights").get("p_vtpdi"))
         use_bot_diac = get_binary_choice(PROPERTIES.get("weights").get("p_vbtdi"))
     # Add lower diacritics first: https://www.unicode.org/reports/tr15/#Examples
-    uchar = char.encode("unicode-escape")
     if use_bot_diac:
-        diac_bot_list = PROPERTIES.get("diac_bot")
-        uchar += diac_bot_list[get_random_index(len(diac_bot_list))]
+        diac_bot_list = PROPERTIES.get("diacritics").get("bottom")
+        char += diac_bot_list[get_random_index(len(diac_bot_list))]
     if use_top_diac:
-        diac_top_list = PROPERTIES.get("diac_top")
+        diac_top_list = PROPERTIES.get("diacritics").get("top")
         td = diac_top_list[get_random_index(len(diac_top_list))]
         # Special treatment to improve recognition of some base top diacritics.
         # if td != b'\\u0303' and get_binary_choice(PROPERTIES.get('weights').get('p_tilda')): doesn't help
         #     td = b'\\u0303'
-        uchar += td
-    return uchar.decode("unicode-escape")
+        char += td
+    return char
 
 
 def generate_pseudo_word():
@@ -778,7 +734,7 @@ def run_iteration(iter_num):
         print(f"INFO: Iteration: {iter_num}")
 
     # Choose font family.
-    font_families = list(PROPERTIES.get("fonts").keys())
+    font_families = PROPERTIES.get("fonts")
     if FORCED_FONT:
         if FORCED_FONT in font_families:
             font_fam = FORCED_FONT
@@ -794,19 +750,17 @@ def run_iteration(iter_num):
         return
 
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
-    bad_chars = PROPERTIES.get("fonts").get(font_fam)
     if FORCED_TEXT:
-        dirty_char_str = FORCED_TEXT
+        text_line = FORCED_TEXT
     else:
-        dirty_char_str = generate_text_line(
+        text_line = generate_text_line(
             length=LINE_LENGTH,
             # method="random-chars",
             # method="weighted-chars",
             method="pseudo-words",
         )
 
-    clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
-    text_line = "".join(clean_unicode_chars)
+    # clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
     text_line = normalize("NFC", text_line)
     if VERBOSE:
         # print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
@@ -864,8 +818,9 @@ def main():
 
     # FIXME: Using globals is not ideal, but it makes setting up muliprocessing
     # a lot easier.
-    global PROPERTIES  # noqa
-    PROPERTIES["fonts"] = get_model_fonts()
+    global PROPERTIES
+    with (get_model_dir(WRITING_SYSTEM_NAME) / "config.toml").open('rb') as f:
+        PROPERTIES = tomllib.load(f).get("properties")
 
     global CHARACTER_HEIGHT
     CHARACTER_HEIGHT = args.character_height

@@ -39,7 +39,7 @@ See help for primary scripts:
 
 ### Fonts and font styles
 
-All the fonts used for image generation for training can be found in [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt) or by passing the '-c' option to the command:
+All the fonts used for image generation for training can be found at `properties.fonts` in [data/Latin_afr/config.toml](data/Latin_afr/config.toml) or by passing the '-c' option to the command:
 ```
 (env) $ ./scripts/generate-training-data.py -c
 ```

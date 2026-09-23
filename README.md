@@ -85,4 +85,4 @@ Ideally, this solution will prove to be **98%-99%** accurate; i.e. CER <= 2%.
 
 ## Character set & font list
 
-See [Training.md](Training.md) and [data/Latin_afr/fonts.txt](data/Latin_afr/fonts.txt).
+See [Training.md](Training.md) and `properties.fonts` in [data/Latin_afr/config.toml](data/Latin_afr/config.toml).
