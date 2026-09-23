@@ -531,7 +531,7 @@ def generate_text_line_png(chars, fontfile):
 
         # Loop through all pixels, changing specified pixels.
         faded_image = Image.new(image.mode, image.size)
-        faded_img_data = list(image.getdata())
+        faded_img_data = list(image.get_flattened_data())
         for i in fade_idxs:
             faded_img_data[i] = (255, 255, 255)
 
