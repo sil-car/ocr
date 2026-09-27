@@ -8,3 +8,8 @@
   (incl. the new one)
 1. Run `scripts/show-chart.py -t model -l MODEL_NAME` to display model results.
 1. Update `training/training model notes.ods` with CERs.
+
+## Evaluation Strategy
+
+- Select documents such that all characters covered by the model occur at least once.
+- The CER rate will likely be higher in this case than in real-world use, assuming that rarer characters will be over-represented in the evaluation data.
