@@ -92,7 +92,7 @@ fonts = [
     "FreeSans",
     "FreeSerif",
     ### Microsoft
-    "Arial",  # ttf-mscorefonts-installer (not Win11); too many unrecognized characters
+    "Arial",  # ttf-mscorefonts-installer (not Win11); many missing characters
     "Calibri",  # Win11
     "Cambria",  # Win11
     # Comic Sans MS        # Win11; doesn't handle diacritics
