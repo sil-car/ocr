@@ -4,6 +4,7 @@
 
 There are several factors considered when preparing and running the training:
 - precise list of unicode characters used
+- whether to normalize to NFC or NFD
 - character generation type (random, weighted by frequency, pseudo-word, etc.)
 - adjusting character frequency to match "real world" data
 - text line length (in characters)
@@ -19,7 +20,9 @@ Each factor has been seen to influence the performance of the finished model, so
 *However*, not all factors have been tested in complete isolation, so there is no quantification of the importance of each factor. If changing a factor improved the resulting model, then that change was kept without first testing if a different change would have improved the model even more.
 
 Other factors to consider:
-- explicitly define the unicharset to remove composed characters?
+- Explicitly define the unicharset to remove composed characters?
+  - Not possible: **tesseract** normalizes GT to NFC, so the unicharset is also always normalized to NFC.
+- Explicitly define the unicharset to include all possible NFC characters plus additional NFD characters?
 
 ### Unicode character list
 
@@ -50,9 +53,7 @@ At first it was assumed that simply generating random combinations of valid char
 
 Then character selection was made based on a weighting system that attempted to mimic real-world rates of the various types of characters.
 
-Currently, a "pseudo-word" generation method is used. This assumes a CVCV word structure with varied
-word lengths, diacritics occasionally added over or below vowels, and diacritics rarely added over
-consonants.
+Currently, a "pseudo-word" generation method is used. This assumes a CVCV word structure with varied word lengths, diacritics occasionally added over or below vowels, and diacritics rarely added over consonants.
 
 ### Generating the training data
 Corresponding text line images and ground truth text files will be created.
