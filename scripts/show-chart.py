@@ -15,6 +15,7 @@ CHART_TYPES = {
     "best",
     "comp",
     "comparison",
+    "language",
     "model",
     "summary",
 }
@@ -66,11 +67,9 @@ class GroupedData:
     def set_score(self):
         """Score is an empirical value based on model's overall CER and it's standard deviation."""
         if self.cer_stdev:
-            self.score = int(
-                round(
-                    1000
-                    / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cer_stdev)) ** 2,
-                )
+            self.score = round(
+                1000
+                / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cer_stdev)) ** 2,
             )
 
 
@@ -113,7 +112,7 @@ def build_3d_slices(data):
                 if row.get("iso_lang") == lg:
                     c = row.get("cer")
                     break
-            if lg not in slices.keys():
+            if lg not in slices:
                 slices[lg] = {m: c}
             else:
                 slices[lg][m] = c
@@ -125,7 +124,7 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
     bw = 0.3  # bar width
     lw = 0.5  # line width
 
-    fig, ax = plt.subplots(figsize=(8, 7))
+    _, ax = plt.subplots(figsize=(8, 7))
 
     plt.subplots_adjust(
         left=0.1, bottom=0.30, right=0.9, top=0.8, wspace=0.1, hspace=0.1
@@ -190,8 +189,7 @@ def plot_bar3d(slices_dict):
     iso_langs = []
     for lg, d1 in slices_dict.items():
         iso_langs.append(lg)
-        for m, d2 in d1.items():
-            model_names.append(m)
+        model_names.extend([k for k in d1])
     iso_langs = list(set(iso_langs))
     iso_langs.sort()
     model_names = list(set(model_names))
@@ -367,6 +365,24 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
         title = f"CER Comparison for {m1} & {m2}"
         xlabel = xl1
         ylabel = yl1
+    elif chart_type == "language":
+        lg_iso = model_data[0].data[0].get("iso_lang")
+        # List CER values.
+        cer_values = []
+        for m in model_data:
+            cer_values.append(m.cer_group)
+
+        print("Model\tCER")
+        for m, c in zip(model_names, cer_values):
+            print(f"{m}\t{c}")
+
+        x = model_names
+        y = cer_values
+        out_file = out_dir / f"{lg_iso}-perf-by-model.png"
+        title = f"CERs by model for ISO_Language: {lg_iso}"
+        xlabel = "Model"
+        ylabel = "Character Error Rate"
+
     elif chart_type == "model" and model_names is not None:
         model_name = model_names[0]
         # List CER values and filtered ISO_Langs.
@@ -413,10 +429,17 @@ def get_args():
     )
     parser.add_argument(
         "-l",
+        "--language-iso",
+        type=str,
+        default=[],
+        help="language to display",
+    )
+    parser.add_argument(
+        "-m",
         "--models",
         nargs="+",
         type=str,
-        default=list(),
+        default=[],
         help="language models to display",
     )
 
@@ -434,13 +457,13 @@ def main():
         / "data.csv"
     )
     if not csv_file.is_file():
-        print(f"ERROR: File does not exist: {str(csv_file)}")
+        print(f"ERROR: File does not exist: {csv_file}")
     csv_data = get_csv_data(csv_file)
 
     # Prepare sorted lists of model_names and iso_langs.
-    all_model_names = list(set([r.get("model") for r in csv_data]))
+    all_model_names = list({r.get("model") for r in csv_data})
     all_model_names.sort()
-    iso_langs = list(set([r.get("iso_lang") for r in csv_data]))
+    iso_langs = list({r.get("iso_lang") for r in csv_data})
     iso_langs.sort()
 
     # model_data is a list of GroupedData objects of models.
@@ -497,6 +520,23 @@ def main():
         # Produce summary chart with both 'best' and 'Latin' models together.
         x, y, z, outf, t, xl, yl = prepare_chart_data(
             "comp", model_data, out_dir, model_names=models
+        )
+        plot_bar2d(x, y, z, outf, t, xl, yl)
+
+    elif chart_type == "language":
+        # Show CER bar for each model in the given language (ISO).
+        if not args.models:
+            models = all_model_names
+        else:
+            models = args.models
+
+        # model_data is a list of GroupedData objects for the given language.
+        model_data = [
+            GroupedData(m, [r for r in csv_data if r.get("iso_lang") == args.language_iso and r.get("model") == m])
+            for m in models
+        ]
+        x, y, z, outf, t, xl, yl = prepare_chart_data(
+            "language", model_data, out_dir, model_names=models
         )
         plot_bar2d(x, y, z, outf, t, xl, yl)
 
