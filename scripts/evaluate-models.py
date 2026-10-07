@@ -11,12 +11,14 @@ import pytesseract
 from PIL import Image
 
 repo_dir_path = Path(__file__).parents[1]
+data_dir_path = repo_dir_path / "data"
 MODELS_DIR_PATH = repo_dir_path / "tessdata"
 MODELS = [m.stem for m in MODELS_DIR_PATH.glob("*.traineddata")]
 MODELS.sort()
 
-EVALUATION_DIR_PATH = repo_dir_path / "data" / "evaluation"
-GT_FILES = [f for f in EVALUATION_DIR_PATH.rglob("**/*.gt.txt")]
+EVALUATION_DIR_PATH = data_dir_path / "evaluation"
+SRC_DIR_PATH = data_dir_path / "representative-languages"
+GT_FILES = [f for f in SRC_DIR_PATH.rglob("**/evaluation/*.gt.txt")]
 GT_FILES.sort()
 
 
@@ -121,10 +123,11 @@ def main():
         for gt_file in GT_FILES:
             basename = Path(str(gt_file).removesuffix(".gt.txt"))
             image_file = Path(f"{basename}.png")
-            out_file = Path(f"{basename}.{model_name}.txt")
+            out_file = EVALUATION_DIR_PATH / basename.parents[1].name / f"{basename.stem}.{model_name}.txt"
             print(f" - Evaluating file: {image_file.name}")
 
             # Ensure image_file has been OCR'd.
+            out_file.parent.mkdir(exist_ok=True, parents=True)
             if not out_file.is_file():
                 print(f" - Creating file: {out_file.name}")
                 run_ocr(image_file, model_name, out_file)
@@ -139,7 +142,7 @@ def main():
                 results = {}
 
                 # Complete the rest of the CSV data.
-                results["iso_lang"] = gt_file.parent.name.split("_")[0]
+                results["iso_lang"] = gt_file.parents[1].name.split("_")[0]
                 results["image-file"] = str(image_file)
                 results["truth-text-file"] = str(gt_file)
                 results["model"] = model_name
