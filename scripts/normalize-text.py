@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Normalize all the text in the given list of files according to the desired format."""
 
 

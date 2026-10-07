@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Takes an input image (PNG) and creates a separate image for each line of text."""
 
 # Ref:

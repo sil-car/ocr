@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Given a base folder, perform OCR on all contained images.
 
 Output is given in an accompanying TXT file with the same name

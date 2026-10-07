@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Output misidentified characters in order of frequency."""
 
 from pathlib import Path
