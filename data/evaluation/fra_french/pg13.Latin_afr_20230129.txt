@@ -1,0 +1,11 @@
+En ce qui concerne  la conjugaison  ils lʼabɑrdent dʼune  fagon
+assez différente de ce que nɑus nous so̰mmes̄ pr̄oposé́s de réaliser.
+En réponɛe à une demande  de 1ʼutḭIísateur  1e FRENCH  ʉASSISTANT
+əaffiche tɑut simplement des  tableaux ɗe fɑrmes cœnjugu̍ées  s̄elon
+1e mode et le temps  chōisı́ɛ.ꞌ̃ Il en est  ɑe mēmæ pour HṴɄ0  qui
+affiche une "page de Beschere᷆1e“,  mais qui peut aussi  ɛugqérer
+lʼḭnfinitif du verbe a̍ partir dʼ̄une forme cɑnḭuguée pré̍sente dans
+1e texteø. 8i 1ʼutḭIisateur surlḭgne, par  exemple, sʉɨ̍s dans  un
+texte, le programme lui affichera une liste dʼanalyseɛ posɛib1es,
+
+comme s̄uitƗ

@@ -1,0 +1,11 @@
+En ce qui concærn la conjugaison ils lʼ᷄abɑrdœnt dʼuneœ faɑon
+as5œz différetœ dœ c queœ nou nous sGmmœs proposé́s deœ réalisœr.
+En ré́̍pmsɛœ à̀ une dœmandœ dœ lʼ̄utilisatur lɛ FRENCH SSISTANT
+affich tut simplmœnt de tablœaux dœ formeœs cnjuguɛ́es sœlonı
+le mod et le temps choisıs. Il en est œ mƐm pour HUɄO qui
+affiche une "pagœ dœ Beschrœllœ"“, mais qui pœut̍ ussi s̄uggérœr
+lʼɨfinitif du verbœ à̍ partir dʼ̄uneœ formœ comjuɑué́e p̰ré́sœmntœ dans
+le text. i lʼ̄utiliatœur surligne, par xœmpleœ, s̄ʉis̄ dans un
+texte, le programmœ lui affichœra une liste dʼanalses pssibles,
+
+commœ suitı

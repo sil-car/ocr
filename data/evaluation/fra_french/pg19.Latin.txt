@@ -1,0 +1,26 @@
+Le verbe est un constituant syntagmatique très complexe ~- on
+pourrait dire le noyau de l'énoncé., Pour l'apprenant il serait
+donc très utile si le programme pourrait fournir des indications
+pertinentes sur l’emploi du verbe - le nombre d'arguments, s’il
+exige une préposition et si oui laquelle, s’il est utilisé d’une
+manière transitive ou intransitive etc. On aimerait aussi savoir
+dans quels contextes on peut utiliser un tel verbe et dans quels
+
+contextes son emploi n’est pas acceptable.
+
+Il m'est pas difficile d'imaginer que les renseignements
+syntaxiques et sémantiques de ce genre exigeraient un travai
+
+beaucoup plus étendu que celui-ci. Le programme fonctionne d’une
+façon purement formelle, c'est-à-dire qu’il ne s'occupe pas des
+conditions d'emploi du verbe qu'il traite. Bien qu'il présente à
+Vutilisateur des menus qui listent les temps comme sous-
+ensembles des modes, il traite ces deux points de la mēme
+manière. Le passé simple et le subjonctif imparfait, par exemple,
+ayant 1e mēme radical et la mēme voyelle entre radical et
+terminaison, sont considérés tous les deux par le programme comme
+appartenant au mēme ensemble, bien que le TEMPS passé simple soit
+une sous-catégorie du MODE indicatif, et que le TEMPS imparfait
+du subjonctif appartienne bien sûr au MODE subjonctif. Le
+
+programme ne s'intéresse donc pas au fonctionnement du verbe mais

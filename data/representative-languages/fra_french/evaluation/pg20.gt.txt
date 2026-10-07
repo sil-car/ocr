@@ -1,0 +1,8 @@
+Pour cette raison il est inutile d'attendre du programme qu'il
+sache, par exemple, que (normalement)5 les êtres humains
+n'aboient pas et que les chiens (on suppose) ne s'addressent pas
+à la première personne - bref, il ne faut pas être surpris de le
+voir conjuguer: j'aboye, tu aboyes ... nous aboyons etc6. Par
+cɑntre en ce qui concerne les verbes dits défectifs et dont
+certaines formes sont inusitées, parce que disparues ou tombées
+en desuétude, le programme en avertira l'utilisateur7.

@@ -1,0 +1,14 @@
+Quand on apprend une langue il y a beaucoup de choses à faire en
+mme temps. Il faut étudier simultanément la grammaire, la
+prononciation, le lexique etc. Tous les outils qui peuvent
+alléger le fardeau pesant sur les épaules du débutant sont certes
+bienvenus, et l'ordinateur en est un et pas des moins efficaces.
+Néanmoins, il est évident que mēme l'ordinateur, malgré sa
+rapidité et ses performances dans presque tous les domaines de
+Pintellect, ne peut pas tout résoudre. Il offre quand même des
+possibilités beaucoup plus modulées et beaucoup plus étendues que
+n'importe quel manuel. L'ardinateur peut jouer à la fois les
+rēles de professeur et de document. C’est dans cet esprit là que
+nous nous sommes engagés dans l°élaboration d’un logiciel de
+
+conjugaison.

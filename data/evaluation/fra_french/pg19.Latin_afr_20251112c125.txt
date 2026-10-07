@@ -1,0 +1,26 @@
+Le verɓbe ɛest un constiɨtuant sntagmatique treè̀s complexe - ɑn
+pɑurrait dire le nɑau de lʼénoncé. PFɑur lʼapprenant il serait
+ɑdonc treès utile si le ŋrogramme pɑourrait fournir des inŋɗicati̍ ons
+pertinentes sur 1ʼemplɔi du verbe - le nombre dʼ arguments, sʼil
+exige une preéposition et si oui laquelle, sʼil est utilisé dʼunœ
+manieê̍re transitive ɑu intransitive etc. On aimerait aussi savɑir
+dans quels contextes on pɛeut utiliser un tel verɓe et dans quɛls
+
+contextes son emplɑoi nʼest pas acceptablœ.
+
+Il nʼest pas difficile dʼimaginer quɛœ les renɛɛeignements
+ntaxi ques et sémanti quœs de ce genre œexigeraiœent un travai
+
+beaucɑup plus étenɑdu que celui-ci. Le progɑramme fonctiìonne dʼ unœe
+fagon purement rfɔræøl!læ, cꞌʼ est--di̍re quʼil ne sʼoccupe pas dœs
+coɑnɑditions dʼemplɑi du verbɛ quʼil traite. Bien quʼil présente ̍
+lʼutilisateur des menus qui lɨìstent les temps comme sɑus-
+ensemblœs des modes, il traite ces deux poɑints dœe la mɛ᷇me
+manière. Le passe̍ simple et le subjonctif imparfait, par exemplœ,
+avant lɛ mɛ᷇me radical œet la mɛ᷆mœ vovelle entre radical œt
+terɑi̍naison, sont conside̍rés tɔus les deux par le proɑramme cɑmmœ
+appar tenant au me᷆me ensemble, bien que le TEMFS pasś siʉple sɔit
+une sɑus-catégɑrie du MODɛ indicatif, et que le TEMFS iʉpar
+du subjonctif appartienne bien suûr au MODɛ subjɑnɑtif.
+
+programme nœ sʼ inŋté́resse dɑnc pas au fonct̍ ̍onnement du verbe mai

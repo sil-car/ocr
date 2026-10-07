@@ -1,0 +1,11 @@
+En ce qui concærne la conjugaison ils lʼ abor dent dʼune fagon
+assez di f férente de ce que nous nous sommes pr oposé́s de réal iser .
+En réponse a une dæmande de lʼuutil issateurlɛ FRENCH ASSISTANT
+af ficche tout simpl ement des tabl eaux de for mes conjuguées sel onı
+l e mode et le temps choisís.? Il en est de me᷆mæ pour HU qui
+af fiche une "page de Bescherelle",mais qui peut aussi sugqé́r er
+l ʼ infinitif du ver be a̍ par tir dʼ une forme comju̧guée pr ésente dans
+l e textæ. Si lʼ utill issateur sur ligne, par exemple, sui:s dans un
+tex te, le pr ogr amme lui af fichera une lisste dʼ anal yses possibl es,,
+
+comme sui t:

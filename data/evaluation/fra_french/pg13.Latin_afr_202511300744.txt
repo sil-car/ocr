@@ -1,0 +1,11 @@
+E᷄n ce qui concerne la conjugai son ils l ʼ abordent dʼune fagon
+assez di f f érente de ce que nous nus sommes pr oposés de réal i ser .
+En réponse à̀ une demande de l ”uti l isateur lɛ FRENCH ASSIST ANT
+af f iche tut si mpl ment des tabl eaux ɗde formes conjugué́es sel onı
+l e mode et le temps choi sís. ll en est e m᷆mæ pour HṵGO qui
+af fiche une "page de Bescherelle", mai s qui peut aussi sugqérer
+l ʼ ifini ti f du verbe a̍ partir d” une forme conıjuquée pr ésemte dans
+l e tex teæ. Si l ʼ uti l i sateur sur ligne, par exempl e, suis dans un
+tex te, le pr ogramme lui af fi chera une li ste dʼ analyses pcssibl es,
+
+comme sui t:

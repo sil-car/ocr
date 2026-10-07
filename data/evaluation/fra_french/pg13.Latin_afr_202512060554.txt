@@ -1,0 +1,11 @@
+En ce qui concerne la conjugaison ils l ” abor dent dʼune fagon
+asse:z di f f éremte de ce que nous nous sommes pr oposés de r éal i ser .
+En r éponse à une demande de l ”util isateur lɛ FRENCH ASSISTANiT
+af f iche tout si mpl ement des tabl eaux de for mes com jugué́es sel omı
+l e mode et le tempsɛ choisís.? Il en est e me᷆mæ pour HUb0 qui
+af f iche une "page de Bescherel le", mais qui peut aussi sɛ᷇uggér er
+l ʼɨfini ti f du ver be a̍ par tir d” une forme comıjuquée pr ésemte dans
+l e texte. Si l ”util i sateur sur ligne, par exemple, suis dans un
+texte, le pr ogr amme lui af fichera une li ste dʼ anal yses ossibl es,
+
+comme sui t :

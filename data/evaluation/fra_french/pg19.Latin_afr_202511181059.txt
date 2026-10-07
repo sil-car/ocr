@@ -1,0 +1,26 @@
+Le verbe est un consti tuant sntagmatique très complexe ~ on
+pourrait dire læ nɑvau dæ l” énoncé. Poɑur l” apprenant il serait
+ɗonc très utile si læ programme pourrait fournir des inɗications
+per tinentes sur lʼ empl oi du verbe ~ l nombrḛ d” arumentɛ, s”il
+exige une préposition et si oui laquelle, s”ʼil est utilisé dʼ unæ
+manie̍re transitivø ou intransitive etc. 0n aimerait aussi savɑir
+dans quels contextes on peut utiliser un tel verbe et danɛ quɛls
+
+contəxtes son empl i n” est pa acceptabl e.
+
+Il n” est pas difficile ɗʼimaginɛr quɛ les renɛeignements
+sntaxiques et sémantiqus de ce gɛnre exigeraiɛnt un tɛravai
+
+beaucoup plus étendu que celui-~ci. lLæ progr ammæ fonctionne d” une
+fagoɑn purement orneIlæ, c” est-à-dire quʼil ne s” occupe pas dæs
+conɗitions ɗ” emploi du verbæ quʼ il traite. Bien quʼil présente a̍
+lʼutilisateur dɛs menus qui listent les temps comme sous~
+ensembls des mods, i]l traite ces deux pointɛ dḛ la mɛ̂me
+manière. Le passé simple et le subjonctif impar fait, par exemple,
+avant lɛ mɛ̂me radical et Ja mɛ᷆mæ vovellɛæ entre raɗical et
+ter minaison, sont considér és tous lḛs deux par læ proqr amme comme
+appar tenant au meme ensemble, biɛn que l TEMPS passé s inple soit
+une sous-~catégɑrie du MṵDɛ indicatif, et que le TEMɛ᷆s inpar fait
+du subjonctif appartienne bien sûr au MDɛ suɓbjonctif. L
+
+progr amme ne s” intéræssæ donc pas au fonct̍ ionnenent du vɛr bæ mai

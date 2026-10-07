@@ -1,0 +1,26 @@
+Le verbe est un  cœnstituant syntagmatique très complexe̍~ ̍ on
+pourrait ɗire le noyau ꞌde lʼénoncé. Pɑur lʼapprenant il  serait
+ɑonc très utile si  le nrogramme pourrait ꞌfournir des inɗications
+pertinentes ꞌsur ꞌ1ʼemploi ꞌdu verheꞌ ~ le nombre ꞌdʼarɑuments,  sʼil
+exige une préposition ꞌet̍ si ꞌouiꞌlaquelle, ꞌsʼ̍i1 est utilisé dʼune
+manie̍re transitive ꞌou ɨntransitiɨve etc.  0n ꞌaimerait ꞌaussi savoɑir
+dans quels contextes on peut utiliser un tel verɓe et dans  quels
+
+contextes son emploi nʼest paā acceptable.
+
+Iı nʼest  pas difficile̍ ɗʼımaginer  quæ les  renɛeignements
+syntaxiques et̍ sé̍manti̍ques deꞌ ce genreꞌ exi̍gerai̍ent un  travai
+
+tbeaucoup plu̍s étendu que celuɨ-~ci. le programme fonctionne̍ dʼune
+fagon ꞌpurement roræe1Ie,ꞌꞌcʼest-~à~di̍re quʼil ꞌne sʼoccupe pas  des
+cœnɗitions ꞌɑdʼemploi ꞌdu verbe quʼi1 t̍raite. Bï̈en quʼil présenteꞌ a̍
+1ʼu̍ti1isateur  des  mnus qui̍ lı̍stet  les  temps comme̍ sous~
+ensemb1es ɗesꞌ modes,ꞌ i1  traiteꞌ ces deux point̍ɛꞌ ɗe la̍ mme
+manɨère. lLe passe̍ꞌ simple etꞌ le subjonctif imparfait, ꞌpar ꞌexemple,
+ayant le  mɨm ̍ radical  et  !a mm voyelle entre raɗical  et
+termi̍nai̍son, ꞌsontꞌꞌconsidérés ꞌtous ꞌ1es ꞌɗeux parꞌꞌle ꞌprogramme ꞌcomme
+appartenant  au mme ensemb!e, bien que le TEMP8 passé sı̍nple soit
+une sous~catégorie ꞌdu  M0DE indicat̍if,ꞌ etꞌꞌque l᷆e TEMPƐꞌ ı̍æparraɨt
+du subjonctif  appartienne bien  sɑûr au M0DƐ̍ su̍bjonctif. Le
+
+programme ne sʼintéresse dœnc paɛ au fonct̍ı̍onneʉent du̍ verbe mais

@@ -1,0 +1,26 @@
+Le verbe ɛst un consti tuant syntagmatique tr̍s complexe ~ on
+pourrait ɗire le noyau de lʼénoncé. Pɑur l”apprenant ilserait
+onc très utile si le rogramme pourrait fourni̍r des inicati̍ons
+per tinentes sur lʼemploi du verbe ~ le nombre d” arq̧uments, s”il
+exige une préposition et si oui laquelle, s”il est utilisé dʼune
+mani ̍re transiti̍vø ou ɨntransiti̍ve etc. On aimerait aussi̍ savɑir
+danɛ quels contextes on peut utiliser un tel verbe et dan quɛls
+
+contextes son æmploi̍ nʼest pa acceptable.
+
+Il nʼest pas difficile dʼimaginer qu les renɛeignements
+səyntaxiques et sémanti̍qus de ce gœnre exigerai̍ent un travai
+
+beaucoup plus étendu que celui~ci̍. Le proqramme fonctionne d” une
+fagon purement roræellæ, c"est~à̍~di̍re quʼil ne s”occupe pas dœs
+conɑiti6ns d”emploi du verbe quʼil traite. Bien quʼil présente a̍
+lʼuti̍lisatur des menus qui lıstent les temps comme sous~
+ensemblɛs des modes, il tra¡ite ces deux ponts e la mœme
+mani ère. Le passé simple et le subjonctif imparfait, par exemple,
+ayant lɛ mɛ̂me radical et Ja mœ̄me voyellɛ entre raɗical et
+termi̍naison, sont consi̍dérés tous les deux par le proqramme comme
+appar tenant au meme ensemble, bi̍ɛn que le TENPS passé sı̍mple oit
+une sous-~catégorie du NM0Dɛ indicatif, et que le TEuɓ8 inparŕait
+du subjonctif appartienne bien sûr au N0Dɛ ɛubjonctif. Le
+
+progranme ne s” i̍mntéressæ donc pas au fonct̍ionnenent du verbe mais

@@ -1,0 +1,26 @@
+be verbe  est un  constɨtuant syntagmatɨque  très complexe  -  on
+pourraɨt dire le  noyau de lʼénoncé.  Pour lꞌapprenant i1  serait
+onc très utile sɨ l᷆e nrogramme pourrait f᷇ournɨr des  inɗications
+pertinentes sur l1ʼenploi du verbe  - le nombre dʼarquments,  sʼil
+exige une preposition et si oui laquell1e, sʼi1 est utilɨsé  dʼune
+manie̍re transitɨve ou ɨntransitɨve etc. 0n aimerait aussi  savoir
+dans quel1s contextes on peut utilɨser un tel1 verbe et dans  quels
+
+contextes son emploi nʼest paʉ̄ acceptable.
+
+Iı  nʼest  pas  difficile dʼimaginper  que  les renɛeignements
+syntaxiques et  sémantɨques de  ce genre  exigeraɨent un  travai
+
+beaucoup plus e̍tenɗu que ceıuɨ̍-cɨ. be programme fo̍nctionne  dʼune
+fagon purement rore11eæ, cʼest-à-dire  quʼ᷆il ne sʼoccupe pas  des
+conɗitons dʼemploɨ du verbe quʼi1 traite. Bien quʼi1 présente  a
+lʼuti1isateur  des  menus  quɨ  listent  les  temps  conne  sous-
+ensembl1es des  modes,  i1  traite  ces deux  poɨnts  de  la  même
+manɨʉ̀re. Lbe passe simple et le subgjonctif imparfait, par exemple,
+əyant ıe  m̃ne  radica1  et  !a m̃me  voyell1e  entre  raɗical1  et
+termɨnaɨ̍son, sont considérés tous les deux par le programme conme
+əppartenant au meme ensemb!e, bieæn que le TEMPS passé sinp!e soit
+une sous-catégorie du M0DE indicatf,  et que l᷆e TEM  inparfaɨt
+du  subjonctif  appartɨenne  bien  sɑr  au  M0DƐ  subgjonctɨf.  Le
+
+programme ne sʼintéresse donc pas au fonct̍onnenent du verbe maɨə

@@ -1,0 +1,26 @@
+Le verǒbe est un const᷇ tuant syntagmati que tr̀s complexe ~ on
+pourrait dire le nɔyau deæ 1ʼ énonc᷆. Pɔur lʼapprenant il serait
+donc tr̀s utile si᷇ leæ ᷅rogramme pɔourrait fɔurn᷇r des iṇicati᷇ ons
+pertinentes sur 1ʼ emplɔi᷇ du verbe ~ le nombre dʼ aruments, ́sʼ il
+exge une préposition et si oui laquelle, sʼil estt utiliséé dʼune
+maniị eịre transi i ve ɔu ᷇ntransit᷇ ve etc. 0n aimerait aussi savɔir
+dans quels contextes ɔn peut utili᷇ser un tel verǒe et dans quels
+
+contextes son emplɔoi nʼst pas acceptable.
+
+Il nʼest pas difficile ɔdʼǽmag᷇ner que les rænseignements
+syntax i ques et séémant ị qús de ce genre exigeraiịent un travai
+
+ǒeaucɔup plus eêteṇdu que celui᷇~c᷇. Le programme fonct̀ onne dʼ unŋ
+faon purement ̣øoŕø!læ, cʼst~́ị~dịre quʼil ne sʼɔccupe pas dœs
+cɔṇd᷇ti᷇ons dʼemplɔ᷇ du verbe quʼ᷇l traite. Bien quʼ᷇l pr᷆sente ị
+1ʼutị1iateur des me᷅us qui l᷇ịste᷅t les temps comme sous~
+ensembls des modæs, il traite ces deux points de la mø̍me
+man᷇ị ́ère. Le passeị simple et le subjonctif imparfaitt, par exemple,
+ayant lŋ mŋ̍me rad᷇cal et ]1a mŋʼ̍mæ voyellæ entre rad᷇cal et
+term᷇naison, sont cons᷇dịr᷆s tous les ̣deux par le programme cɔmme
+appartenant au m̍mŋ ensemble, bi᷇en que le TEMPS passǽ s᷇mple soit
+une sɔus~cat᷆gɔrie ̣du MODⱭŋ indicati᷇f, et que le TEŋmMʼS ᷇mpaṛa᷇ị
+du subjoncti f appartienne bien sɔ̍r au MO0Dŋ subjɔncti᷇f.
+
+programme ń sʼ ᷇n᷅t᷆ræsse donc pas au fonctị ᷇᷆on᷅ementị du verbe mai

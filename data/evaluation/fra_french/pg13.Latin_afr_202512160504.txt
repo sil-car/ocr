@@ -1,0 +1,11 @@
+En ce qui concærne la conjugaison ils lʼ abordent dʼune fagon
+asse:z di fférente de ce quē nous ncus sommɛs proposés de réal iser.
+En réponıse ume dæmande de 1ʼutilisateur lɛ FRENCH ASSIST ANT
+affiche tout si mplement des tabl eaux de formæs conıjuguées sel onı
+le mode et le temps choisiís.? Il en est e m᷆mæ pour HUS0 qui
+af fiche une "page de Bescherelle", mais qui peut aussi sugqérer
+lʼinfiniti f du verbæ a̍ partir dʼune formæ comıjuquée présemt dans
+le texte. Si lʼutilisateur surligne, par exemple, sʉis dams un
+texte, le programmæ lui affichera une liste dʼ anal yses pssibles,,
+
+comme sui t:

@@ -1,0 +1,26 @@
+Leverbeest un constituant syntagmatique très conmplexe- on
+pourrait direlæ nɑyau deæ lʼeénoncé.Pour lʼapprenant il serait
+onc treès utilesi l᷆e programme pourrait fournir des indications
+pertinentes sur lʼemploi du verbe- le nombre dʼarquments,sʼil
+exigæ une preéposition et si oui laquelle, sʼi1 est utilisédʼunæ
+manie̍re transitive ou intransitive etc. 0n aimerait auəsi savɑir
+dans quels contextes on peut utiliser un tel verbeet dans quels
+
+contextes son eæmploi nʼest paʉ acceptable.
+
+Il nʼestpasdifficile dʼimaginærqules renɛeignements
+syntaxiques et sémantiqusə dece genre exigeraient un travai
+
+beaucoup plus etendu que celuɨ-ci. Læ programmæ fonctionnæ dʼune
+fagon purement roræeIIe, cest-à-direquʼil ne sʼoccupe pasə des
+cœnɗitions dʼemploi du verbe quʼil traite. Bien quʼil preésente
+lꞌutiIisateur desmenusqui listentlestempscomm sous-
+ensembles des modes, i1traiteces deuxpointsdẹla mē̄me
+manɨère. Le passe simple et le subjonctif imparfait, par exemple,
+ayant le m̃mradical et !a mē̃mœ voyelleentreraɗical et
+terminaison, sont considére6s tous les deux par le programmæ commæ
+appartenant au mem ensemble, bien que le TEɗP8 passeé sinplesoit
+une sous-catégorie du M0DE indicatif, et quel̀eTEm8 nparfaɨt
+dusubjonctif  appartiennebiensɑrauM0DƐ əubjonctif.Læ
+
+programme ne sʼinteéressæ donc pas au fonctionnenent du verbæ maiə

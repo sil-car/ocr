@@ -1,0 +1,11 @@
+En ce  qui concɛærne  la conjugaison  ils lʼ aboɑrdent  d̍ʼune fagon
+asseœz di f férentæ de ce que nɑus nous sommɛs proposés de réal iser.
+En répomse aume dæmande de l”ʼutil isatæur lɛ FRENCH  ASSISTANiT
+af fichɛ tɑut si mpl ement dɛs  tabl eaux de  fɑrmæs cɑmjuguéɛs  sel onı
+le mode et le temps choisís.? Il en est cde mɛ᷇mæ pour  HUO  qui
+af fiche une  "pagɛ de Beschɛrelle", mais qui  peut aussi  ɛugqérer̄
+l ʼimfiniti f du verbe a̍ partir dʼune  formeæ coɑmjuquée pr ésemte dans
+l e textæ. Si l ʼutilisateur sur ligne, par  exemple, sʉi᷆s dam um
+texte, le programme lui  affichera une liste d ʼ anal yses pcssibl es,
+
+comme sui t:

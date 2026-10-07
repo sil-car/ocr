@@ -1,0 +1,11 @@
+En ceꞌ qui ꞌconcerneꞌ 1a conjugaison  ils lʼabcrdent  dʼune  fagon
+assez différente de ce quē nous nous sommeɛs proposés de réaliɛer.
+En ré̍ponɛe à  une deæmənde  ɗde l1ʼutili̍satæeur  le FRƐNCH  ʉ88IST0NT
+əffi̍che tout simplæment d̍eɛs  tableaux ɗdæ formæs cœnjugũ̍ées  selon
+1e mode et le tempɛ  chøiɛsı́ɛs.ʼ  Il en est  ɑe memø pour HÜɓ0  qui
+affiche une "page de Bescherḛıle“, ̍ mais qui peu̍t aussi  ɛugqgérer
+1ʼ̍infinitif du verbe à̍ partir dʼune forme coniuguée présentæ dans
+1e textæ. 8i  1ʼuti1is̰ateur surligne, par  exemple, suɨi̍s danɛs  un
+texte, le programme lui affichera une liste dʼanalyseɛ pcɛsɛsiɓles,
+
+comme suit:

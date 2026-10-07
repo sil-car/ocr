@@ -1,0 +1,26 @@
+te verbe est un constituant svntagmatịque très comlexe ~ on
+pourrait dirḛ le novau dæ lʼénoncé. Pɑur lʼapprḛnant il serait
+ɑonc très ut¡le si l̀e nrogramme pourrait fournir des inɗications
+pertinentes sur 1ʼẹmpl̀oi du verhẹ~ le nomrẹ dʼarqumnts, sʼil
+exige une préposition et si oui laquelle, sʼil est utilisé dʼunæ
+manie̍re transitive ou intransitɨive etc. 0n aimrait aussi savɑir
+dans quels contextes on peut utilisær un tel verbe et dans quels
+
+contextes son emploi nʼẹst paa acceptable.
+
+Iı nʼestpas difficilẹ ɑʼimginer quʉ les renɛeignemnts
+səvntaxiqueʉ et sémantiquʉə de ce gænre exigraient un travai
+
+beaṵcoup plus étendu que celuɨ~ci. Le programmæ fonctionne dʼune
+ɨfagon purement rorReIle, cʼest-à~dḭrẹquʼil nè sʼoccupe pas dẹs
+conɗitions dʼemloi du verbe quʼil traite. Bien quʼil présente
+1ʼuti1iəateur des mnus qui listent les tẹmps comme sous~
+ensembles dẹs modes, il traite ces dḛux points dẹ la mm
+manɨè̀re. Le passé simple et le subjonctif imparfait, par exemple,
+avant le m̃me radical ẹt la m̃m vovelle entre raɗḭcal et
+terminaison, sont considéré6ɛ tous les dɗeux par le program comme
+appartenant au mdme ensemle, bien que le TEMPS passé sinple soit
+une sous-~catégorie du MⱭDE indicatif, et que le TM8ịnparŕaɨt
+du əsubjonctif appartienne bien sûr ạau M0DƐ ɛu̍bjœnctịf. Lẹ
+
+programme ne sʼintéressæ donc pas au ŕfonctonnement du verbẹ maiə

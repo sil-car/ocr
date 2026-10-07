@@ -1,0 +1,26 @@
+Le verbe est un  constituant svntagmatique trè̍s complexe- on
+pourrait ɗdire læ novau dæ lʼé̍noncé̍.  Pɑur ꞌ1ʼʼappreænant i1 serait
+óonc trè̍s uti1e sḭ l᷆æprogranme pourrait f́ournir des indications
+pertinentes sur 1ʼemp᷆oi du verhe - leæ nombre dʼargquments,  sʼi1
+exige une préposition et si  oui ꞌlaquel᷆1e, sʼi1 est uti1isé dʼunæ
+maniẹ̍re transitive ou ɨntransitive etc. 0n aimerait  aussi savɑir
+dans quels contextes on peut utiliser ꞌun ꞌtel ꞌverbe et dans quels
+
+contəxtes son eæmploi nʼest pa̍ʉ acceptable.
+
+Iı̍ nʼest pas diffici1e  ɗʼimginer qu̍ 1es renɛeignements
+svntaxiques et sémantiques de ce genre exigeraient un t̍ravai
+
+beaucoup plus é̍tendu  que cēui-ci. Leæ programme fonct̍ionneꞌdʼune
+ɨ́agon purement roræe11e, cʼest-à̀-díre quʼil ne sʼoccupe pas des
+conditions dʼempoi ꞌdu verbe quʼ̄i1 t̍raite. Bïen quʼi1 pré̍senteæ a̍
+lʼuti1isateur des mnusqui  li̍st̍ent 1es tempscomm s̄ous-
+ensemb1es des modes,  i1 traite ces deu points dela mē᷇m
+manɨè̀re. Le passe̍ simple et 1e subjonctif imparfait, par ꞌexenmple,
+avant e m̃m radical et  !a m̃᷄œ̣vovel1e entre radical et
+terminai̍son, sont considérés tous 1esdeux par  leprograme comme
+appartenant au mēm ensemb1e, bien que le TEMP8 passé sinp1esoit
+une sous-catégorie du M᷇DƐE indicatif, et que 1᷆eæ TEMe8 inparfait
+du  subjonctif  aəppartienme bien sɑ̂r au M0DƐ subjonctf.  Le
+
+programme ne sʼintéressæ doɑnc pas au fonct̍onnenent du verbe mai̍ə

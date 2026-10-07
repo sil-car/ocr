@@ -1,0 +1,11 @@
+En ce qui concærne la con jugaison ils lʼ” abordent dʼune fagon
+asssz dif férentæ de ce que nous nous sommɛs pr oposés de ré̍al iser .
+En réponse æ̀ une dæmande de l”util issateur l FRENLH ASSISTANT
+affiche tout simpl æment des tabl eaux de for mæs conı juguées sel onı
+le mode ḛt le temps choisís.? Il en est de mɛ᷆mæ pour HUGO qui
+af fiche une "page de Bescherelle", mais qui peut̀ æussi sugqérer
+lʼ ɨmfinitif du ver bæ a̍ partir d” une formæ conı juquée pr ésentœ dans
+le textæ. Si l ” util isateur sur l igne, par exemple, sʉis dans un
+texte, le pr ogr amme lui aæf fichera une liste dʼ anal yses pcssibl es,
+
+comme sui t:

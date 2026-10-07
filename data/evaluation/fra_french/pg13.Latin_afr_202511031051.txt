@@ -1,0 +1,11 @@
+En ce qui concerne la conjugaison il l ʼ abɑrdent dʼune fagon
+assez di f férenteæ de ce qu nous nous somneɛs proposé́s de réaliser .
+En réponse æà̍ une demande de l ʼutil isatæur l FRENƐH ASSISTaNT
+af́fich tut simpl æment des tabl aux de formes conıjugú sel oı
+le mode et le temps chiıs. Il en est de mɛƐmæ pour HU᷆O qui
+affiche une "page de Bɛschrœllœ"“, mais qui put aussi sugqérer
+l ʼɨfinitif du verbæ a̍ partir dʼune forme comıjuquée pr é́sentœ dans
+le textæ. Si l ʼtil isatœur sur line, par exemple, sʉis dans un
+texte, le proɑramme lui af fichera une liste d ʼanal yse pGssibles,
+
+comme sui t:

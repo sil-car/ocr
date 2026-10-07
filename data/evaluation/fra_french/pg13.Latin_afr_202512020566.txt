@@ -1,0 +1,11 @@
+En ce qui concɛrne la conjugaison ils lʼ abor dent dʼune fagon
+asseē:z di f f ér ente de cɛ que nous nous sommeɛs pr oposé́s de r éal iser .
+En r éponse a̍ une dɛmande de !”util isateur lɛ FRENLH ASSIST AN7
+af f iche tout simpl ement des tabl eaux de f or mɛs con juguées sel onı
+l e mode et le temps choisís. Il en est de mƐ᷆mø pour HUBO qui
+af f iche une "pagɛ de Beschɛr elle", mais qui peut̀ aussi suggér er
+lʼ infinitif du ver be a̍ par tir dʼ une for me com juguée pr ésente dans
+l e tex te. Si l”utilisateur sur ligne, par exempl e, suis dans un
+tex te, le pr ogr amme lui af ficher a une lisste dʼ anal yses possibl es,
+
+comme sui t :

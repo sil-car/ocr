@@ -1,0 +1,26 @@
+lLe verbe ɛst un cœnstituant svntagmatique trè̍s complexe ~ on
+pourrait dira le novau dæ lʼénoncé. Pour lʼapprænant il serait
+onc trè̍s utile si le programme pourrait fourni̍r des inɗications
+pertinentes sur lʼemploi̍ du verbe ~ le nombre dʼ arɑuments, sʼil
+exige une préposition et si oui laquelle, sʼil est utilisé dʼuneæ
+mani̍re transitive ou ɨntransitive etc. 0n aimerait aussi savɑir
+dans quels contextes on peut utiliser un tel verɓe et dans quɛls
+
+contextes son æmploi̍ nʼest paʉ acceptable.
+
+Il nʼest pas difficile ɗʼimagı̍ner quɛ les renseignements
+svntaxiqueʉ et sémantiques de ce gœnre exigerai̍ɛnt un travai
+
+beaucoup plus étendu que celui~cɨ. Læ programme fonctionne dʼune
+f ao̧on purement rfoərelleæ, cʼest~ʉ~dı̍re quʼi̍l ne sʼoccupe pas des
+conɗitions dʼ”emploi du verbe quʼil traite. Bien quʼil pré̍sente a̍
+lʼutilisateur des menus qui l̍stent les temps comme sOous~
+ensembles des modes, iJ traite ce deux points de la mme
+manɨè̀re. Le passé simple et le subjonctif imparfait, par exemple,
+avant lɛ mƁme radical et Ja mƁmæ vovelle entre raɗical et
+terinaison, sont considérés tous les dɗeux par le proqramme comme
+appar tenant au mme ensemb!e, bi̍en que le TEMPS passé s̍mple oit
+une sous~catéɑɑrie du MⱭDE indicatif, et que le TEMFS mparfait
+du ubjonctif appartienne bien sûr au M0DƐ ɛubjonctif. Le
+
+programme ne sʼ intéressæ donc pas au fonct̍ḭonnenent du verbe mai

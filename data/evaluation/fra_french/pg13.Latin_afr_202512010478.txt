@@ -1,0 +1,11 @@
+En ce qui concerne la con̄jugaison ils lʼ abordent dʼune fagon
+assez di fférente de ce que nous nous sommes pr oposé́s de réaliser .
+En réponse à une demande de l”utilisateur lɛ FRENCH ÂSsSSTANT
+af fiche tout si mplement des tabl eaux de formes com juguć́es sel omı
+le mode et le temps choisiís.? Il en est de mmæ pour HUɓO quti
+af fiche une "page de Bescherelle“, mais qui peut aussi sugqé́rer
+l imfinitif du verbe a̍ partir d” une forme comjuquée pr ésem̄te dans
+le textæ. Si l”utilisateur sur ligne, par exemple, suis dans um
+texte, le programme lui af fichera une liste dʼ̃ analyses pcssibl es,
+
+comme sui t:

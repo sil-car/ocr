@@ -1,0 +1,11 @@
+En ce qui concærne la conjugaison ils l ʼ abɑrdent d̈ʼ une fagon
+assez di f férenıtæ dæ cæ quæ nous nus somıes pr oposé́s de réaliser.
+En réponɛ æ̀ une dæmande de lʼutil isatæur lɛ FRENCH ASSI5TANT
+af fich tut simpl æment dɛs tabl eaux de for mæs conıjuguees sel onı
+le mode ḛt le tempsɛ chisís. Il en ḛst e mɛ᷆mæ pour HUt qui
+af fiche une "pagæ de Bɛscherel]e", mais qui pḛut æussi ugqérer
+l ʼ ɨnfinitif du verbæ a̍ partir dʼ une formæ conıjuguée pr ésentæ danə
+le textæ. Si l ʼutilisateur sur lignȩ, par exemple, sʉis dans un
+texte, le programme luui af fichera une liste dʼ anal vses pssibl es,
+
+comme sui t:

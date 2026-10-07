@@ -1,0 +1,11 @@
+En ce qui concerne la conjugaison il1s 1abordent dʼune fagon
+asse:z di fférente de ce que nous nous sommes pr oposɛás de reáal i ser.
+En reéponse à une demande de 1 ʼutilisateur lɛ FRɛNCHd ASSISTANT
+affiche tout si mplement des tableaux de formes con jugues selon
+le mode et le temps choisiís. Il1 en est de mɛmæø pour HUɓ0 qui
+af fiche une "page de Bescherelle", mais qui peut aussi suggárer
+l ʼinfiniti f du verbe a̍ partir d”une forme conuguéáe pr eésente dans
+le texte. Si 1 ʼutilisateur sur ligne, par exemple, suis dans un
+texte, le programme lui affichera une liste dʼ anal yses possi ɓles,
+
+comme sui t:
