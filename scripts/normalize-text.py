@@ -18,8 +18,8 @@ def main():
     )
     ap.add_argument(
         "--form",
-        default="NFD",
-        help="normalization form"
+        default="NFC",
+        help="normalization form [default: NFC]"
     )
     args = ap.parse_args()
     for p in args.file:
