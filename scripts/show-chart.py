@@ -20,8 +20,10 @@ CHART_TYPES = {
     "summary",
 }
 SUMMARY_THRESHOLD_CER = 0.08
+SUMMARY_THRESHOLD_CER = 0.10
 SUMMARY_THRESHOLD_SCORE = 875
 SUMMARY_THRESHOLD_SCORE = 825
+SUMMARY_Y_AXIS_MIN = 750
 
 
 class GroupedData:
@@ -167,7 +169,7 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
         )  # 2% CER threshold shading
     elif plottype.lower() == "score":
         # Set y-axis limits.
-        ax.set_ylim([800, 1000])
+        ax.set_ylim([SUMMARY_Y_AXIS_MIN, 1000])
         # Add shaded thresholds.
         ax.axhspan(
             900, 1000, alpha=0.1, color="yellow", zorder=0.0
@@ -282,7 +284,7 @@ def get_best_model(model_data, basis="CER"):
     return best_model
 
 
-def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
+def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis="score"):
     x = None
     y = None
     z = None
@@ -292,29 +294,37 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None):
     ylabel = None
 
     if chart_type == "summary" and model_names is not None:
+        if basis == "score":
+            attrib = "score"
+            threshold = SUMMARY_THRESHOLD_SCORE
+            comp = "above"
+            ylabel = "Score (function of CER & STDEV; perfect: 1000)"
+        elif basis.lower() == "cer":
+            attrib = "cer_group"
+            threshold = SUMMARY_THRESHOLD_CER
+            comp = "below"
+            ylabel = "CER"
         # Print data table to stdout.
-        print("Model Name\tScore")
+        print(f"Model Name\t{basis.capitalize()}")
         for m in model_data:
-            print(f"{m.name}\t{m.score}")
+            print(f"{m.name}\t{getattr(m, attrib)}")
 
         # Get scores by model.
-        values = [m.score for m in model_data]
+        values = [getattr(m, attrib) for m in model_data]
 
         # Remove models whose CERs are greater than cer_limit.
-        threshold = SUMMARY_THRESHOLD_SCORE
         model_names_limited = []
         values_limited = []
         for i, m in enumerate(model_names):
-            print(i, m, values[i])
-            if values[i] >= threshold or m == "Latin":
+            if (comp == "above" and values[i] >= threshold) or (comp == "below" and values[i] <= threshold) or m == "Latin":
                 model_names_limited.append(m)
                 values_limited.append(values[i])
 
         # Prepare plot data.
         x = model_names_limited
         y = values_limited
-        out_file = out_dir / f"models-above-score-{threshold}.png"
-        title = f"Models Scoring Above {threshold}"
+        out_file = out_dir / f"models-{comp}-{basis.lower()}-{threshold}.png"
+        title = f"Models Scoring {comp.capitalize()} {threshold}"
         xlabel = "Model Name"
         ylabel = "Score (function of CER & STDEV; perfect: 1000)"
     elif chart_type == "best":
@@ -419,6 +429,14 @@ def get_args():
     parser = argparse.ArgumentParser(
         description=description,
         # formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-b",
+        "--basis",
+        type=str,
+        choices=("CER", "score"),
+        default="score",
+        help="type of chart to display",
     )
     parser.add_argument(
         "-t",
@@ -557,9 +575,9 @@ def main():
     elif chart_type == "summary":
         # Show summary chart of scores by Model Name.
         x, y, z, outf, t, xl, yl = prepare_chart_data(
-            "summary", model_data, out_dir, model_names=all_model_names
+            "summary", model_data, out_dir, model_names=all_model_names, basis=args.basis
         )
-        plot_bar2d(x, y, z, outf, t, xl, yl, plottype="score")
+        plot_bar2d(x, y, z, outf, t, xl, yl, plottype=args.basis)
 
 
 if __name__ == "__main__":
