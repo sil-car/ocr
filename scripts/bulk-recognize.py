@@ -14,6 +14,11 @@ import pytesseract
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--lang",
+        default="Latin_afr",
+        help="language model name",
+    )
+    parser.add_argument(
         "basedir",
         metavar="PATH/TO/IMAGES_DIR",
         type=Path,

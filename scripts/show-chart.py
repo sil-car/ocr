@@ -562,7 +562,7 @@ def main():
     elif chart_type == "model":
         # Show summary chart of CER by ISO_Language for the given model.
         if not args.models:
-            print("ERROR: Please pass a model name; e.g. '-l Latin_afr'")
+            print("ERROR: Please pass a model name; e.g. '-m Latin_afr'")
             sys.exit(1)
         model = args.models[0]
         if len(args.models) > 1:
