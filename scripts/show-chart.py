@@ -31,49 +31,113 @@ class GroupedData:
         self.name = name
         self.data = csv_data
         self.data_ct = len(csv_data)
-        self.cers = None
-        self.cer_sum = None
-        self.cer_avg = None
-        self.cer_group = None
-        self.cer_stdev = None
-        self.score = None
+        self._hits = None
+        self._c_sum = None
+        self._cer_avg = None
+        self._cer_group = None
+        self._cer_stdev = None
+        self._cer_sum = None
+        self._cers = None
+        self._d_sum = None
+        self._deletions = None
+        self._i_sum = None
+        self._insertions = None
+        self._s_sum = None
+        self._score = None
+        self._substitutions = None
 
-        self.c_sum = sum([float(d.get("hits")) for d in self.data])
-        self.d_sum = sum([float(d.get("deletions")) for d in self.data])
-        self.i_sum = sum([float(d.get("insertions")) for d in self.data])
-        self.s_sum = sum([float(d.get("substitutions")) for d in self.data])
-        self.set_cers()
-        self.set_cer_avg()
-        self.set_group_cer()
-        self.set_cer_stdev()
-        self.set_score()
+    @property
+    def c_sum(self):
+        if self._c_sum is None:
+            self._c_sum = sum(self.hits)
+        return self._c_sum
 
-    def set_cers(self):
-        self.cers = [float(d.get("cer")) for d in self.data]
+    @property
+    def cer_avg(self):
+        if self._cer_avg is None:
+            self._cer_avg = round(self.cer_sum / self.data_ct, 4)
+        return self._cer_avg
 
-    def set_cer_avg(self):
-        self.cer_sum = sum(self.cers)
-        self.cer_avg = round(self.cer_sum / self.data_ct, 4)
+    @property
+    def cer_group(self):
+        if self._cer_group is None:
+            # CER = (S + D + I) / (C + S + D)
+            self._cer_group = round(
+                float(self.s_sum + self.d_sum + self.i_sum)
+                / float(self.c_sum + self.s_sum + self.d_sum),
+                4,
+            )
+        return self._cer_group
 
-    def set_group_cer(self):
-        # CER = (S + D + I) / (C + S + D)
-        self.cer_group = round(
-            float(self.s_sum + self.d_sum + self.i_sum)
-            / float(self.c_sum + self.s_sum + self.d_sum),
-            4,
-        )
+    @property
+    def cer_stdev(self):
+        if self._cer_stdev is None and len(self.cers) > 1:
+            self._cer_stdev = np.std(self.cers, ddof=1)
+        return self._cer_stdev
 
-    def set_cer_stdev(self):
-        if len(self.cers) and len(self.cers) > 1:
-            self.cer_stdev = np.std(self.cers, ddof=1)
+    @property
+    def cer_sum(self):
+        if self._cer_sum is None:
+            self._cer_sum = sum(self.cers)
+        return self._cer_sum
 
-    def set_score(self):
+    @property
+    def cers(self):
+        if self._cers is None:
+            self._cers = [float(d.get("cer")) for d in self.data]
+        return self._cers
+
+    @property
+    def d_sum(self):
+        if self._d_sum is None:
+            self._d_sum = sum(self.deletions)
+        return self._d_sum
+
+    @property
+    def deletions(self):
+        if self._deletions is None:
+            self._deletions = [float(d.get("deletions")) for d in self.data]
+        return self._deletions
+
+    @property
+    def hits(self):
+        if self._hits is None:
+            self._hits = [float(d.get("hits")) for d in self.data]
+        return self._hits
+
+    @property
+    def i_sum(self):
+        if self._i_sum is None:
+            self._i_sum = sum(self.insertions)
+        return self._i_sum
+
+    @property
+    def insertions(self):
+        if self._insertions is None:
+            self._insertions = [float(d.get("insertions")) for d in self.data]
+        return self._insertions
+
+    @property
+    def s_sum(self):
+        if self._s_sum is None:
+            self._s_sum = sum(self.insertions)
+        return self._s_sum
+
+    @property
+    def score(self):
         """Score is an empirical value based on model's overall CER and it's standard deviation."""
-        if self.cer_stdev:
-            self.score = round(
+        if self._score is None and self.cer_stdev:
+            self._score = round(
                 1000
                 / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cer_stdev)) ** 2,
             )
+        return self._score
+
+    @property
+    def substitutions(self):
+        if self._substitutions is None:
+            self._substitutions = [float(d.get("substitutions")) for d in self.data]
+        return self._substitutions
 
 
 def get_csv_data(csv_file):
@@ -305,9 +369,9 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis=
             comp = "below"
             ylabel = "CER"
         # Print data table to stdout.
-        print(f"Model Name\t{basis.capitalize()}")
+        print(f"Model Name{" "*14}  {basis.capitalize():6}  CER (grp) CER (avg)")
         for m in model_data:
-            print(f"{m.name}\t{getattr(m, attrib)}")
+            print(f"{m.name:24}  {getattr(m, attrib):<6}  {m.cer_group:<8}  {m.cer_avg}")
 
         # Get scores by model.
         values = [getattr(m, attrib) for m in model_data]
