@@ -5,6 +5,7 @@
 import argparse
 import csv
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -21,123 +22,164 @@ CHART_TYPES = {
 }
 SUMMARY_THRESHOLD_CER = 0.08
 SUMMARY_THRESHOLD_CER = 0.10
-SUMMARY_THRESHOLD_SCORE = 875
 SUMMARY_THRESHOLD_SCORE = 825
-SUMMARY_Y_AXIS_MIN = 750
+SUMMARY_Y_AXIS_MIN = 800
 
-
-class GroupedData:
-    def __init__(self, name, csv_data):
-        self.name = name
-        self.data = csv_data
-        self.data_ct = len(csv_data)
-        self._hits = None
-        self._c_sum = None
-        self._cer_avg = None
-        self._cer_group = None
-        self._cer_stdev = None
-        self._cer_sum = None
-        self._cers = None
-        self._d_sum = None
-        self._deletions = None
-        self._i_sum = None
-        self._insertions = None
-        self._s_sum = None
-        self._score = None
-        self._substitutions = None
+@dataclass
+class DataRow:
+    # iso_lang,image-file,truth-text-file,model,ocr-text-file,cer,number-truth,substitutions,deletions,insertions,hits
+    row: dict
 
     @property
-    def c_sum(self):
-        if self._c_sum is None:
-            self._c_sum = sum(self.hits)
-        return self._c_sum
+    def cer(self):
+        return float(self.row.get("cer"))
+
+    @property
+    def document(self):
+        return Path(self.image_file).name.split("-p")[0]
+
+    @property
+    def deletions(self):
+        return int(self.row.get("deletions"))
+
+    @property
+    def hits(self):
+        return int(self.row.get("hits"))
+
+    @property
+    def image_file(self):
+        return self.row.get("image-file")
+
+    @property
+    def insertions(self):
+        return int(self.row.get("insertions"))
+
+    @property
+    def iso_lang(self):
+       return self.row.get("iso_lang")
+
+    @property
+    def model(self):
+        return self.row.get("model")
+
+    @property
+    def substitutions(self):
+        return int(self.row.get("substitutions"))
+
+
+class OcrData:
+    def __init__(self, data: list | None = None, name: str | None = None):
+        if name is None:
+            name = self.__class__.__name__
+        self.name = name
+        if data is None:
+            data = []
+        self.data = []
+        for d in data:
+            if isinstance(d, DataRow):
+                self.data.append(d)
+            else:
+                self.data.append(DataRow(d))
+        # Ingested from data.
+        self._cers = None
+        self._deletions = None
+        self._hits = None
+        self._image_files = None
+        self._insertions = None
+        self._number_truth = None
+        self._substitutions = None
+        # Derived from data.
+        self._cer_avg = None
+        self._cers_stdev = None
+        self._grouped_cers = None
+        self._groups = None
 
     @property
     def cer_avg(self):
+        """Average CER over each recognized data grouping."""
         if self._cer_avg is None:
-            self._cer_avg = round(self.cer_sum / self.data_ct, 4)
+            self._cer_avg = round(sum(self.grouped_cers) / len(self.grouped_cers), 4)
         return self._cer_avg
-
-    @property
-    def cer_group(self):
-        if self._cer_group is None:
-            # CER = (S + D + I) / (C + S + D)
-            self._cer_group = round(
-                float(self.s_sum + self.d_sum + self.i_sum)
-                / float(self.c_sum + self.s_sum + self.d_sum),
-                4,
-            )
-        return self._cer_group
-
-    @property
-    def cer_stdev(self):
-        if self._cer_stdev is None and len(self.cers) > 1:
-            self._cer_stdev = np.std(self.cers, ddof=1)
-        return self._cer_stdev
-
-    @property
-    def cer_sum(self):
-        if self._cer_sum is None:
-            self._cer_sum = sum(self.cers)
-        return self._cer_sum
 
     @property
     def cers(self):
         if self._cers is None:
-            self._cers = [float(d.get("cer")) for d in self.data]
+            self._cers = [d.cer for d in self.data]
         return self._cers
 
     @property
-    def d_sum(self):
-        if self._d_sum is None:
-            self._d_sum = sum(self.deletions)
-        return self._d_sum
+    def cers_stdev(self):
+        if self._cers_stdev is None and len(self.cers) > 1:
+            self._cers_stdev = np.std(self.cers, ddof=1)
+        return self._cers_stdev
 
     @property
-    def deletions(self):
-        if self._deletions is None:
-            self._deletions = [float(d.get("deletions")) for d in self.data]
-        return self._deletions
+    def grouped_cers(self):
+        """Average CERs for all images from the same group [language or document]."""
+        if self._grouped_cers is None:
+            groups_cers = {}
+            self._grouped_cers = []
+            for row in self.data:
+                g = self._get_group(row)
+                if g not in groups_cers:
+                    groups_cers[g] = {}
+                for k in ("deletions", "hits", "insertions", "substitutions"):
+                    if k not in groups_cers[g]:
+                        groups_cers[g][k] = []
+                    groups_cers[g][k].append(getattr(row, k))
+            # Calculate CER from totals of all relevant counts.
+            for g, v in groups_cers.items():
+                c = sum(v.get("hits"))
+                d = sum(v.get("deletions"))
+                i = sum(v.get("insertions"))
+                s = sum(v.get("substitutions"))
+                self._grouped_cers.append(self.calculate_cer(c=c, d=d, i=i, s=s))
+        return self._grouped_cers
 
     @property
-    def hits(self):
-        if self._hits is None:
-            self._hits = [float(d.get("hits")) for d in self.data]
-        return self._hits
+    def groups(self):
+        if self._groups is None:
+            self._groups = {self._parse_group(n) for n in self.image_files}
+        return self._groups
 
     @property
-    def i_sum(self):
-        if self._i_sum is None:
-            self._i_sum = sum(self.insertions)
-        return self._i_sum
+    def image_files(self):
+        if self._image_files is None:
+            self._image_files = [d.image_file for d in self.data]
+        return self._image_files
 
-    @property
-    def insertions(self):
-        if self._insertions is None:
-            self._insertions = [float(d.get("insertions")) for d in self.data]
-        return self._insertions
+    def calculate_cer(self, s, d, i, c):
+        """Return CER, calcluated as (S + D + I) / (C + S + D)"""
+        return round((s + d + i) / (c + s + d), 4)
 
-    @property
-    def s_sum(self):
-        if self._s_sum is None:
-            self._s_sum = sum(self.insertions)
-        return self._s_sum
+    def _get_group(self, data_row):
+        raise NotImplementedError
+
+
+class LanguageData(OcrData):
+    def _get_group(self, data_row):
+        """Language data is grouped by recognized document."""
+        return data_row.document
+
+
+class ModelData(OcrData):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._score = None
 
     @property
     def score(self):
         """Score is an empirical value based on model's overall CER and it's standard deviation."""
-        if self._score is None and self.cer_stdev:
+        if self._score is None and self.cers_stdev:
             self._score = round(
                 1000
-                / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cer_stdev)) ** 2,
+                / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cers_stdev)) ** 2,
             )
         return self._score
 
-    @property
-    def substitutions(self):
-        if self._substitutions is None:
-            self._substitutions = [float(d.get("substitutions")) for d in self.data]
-        return self._substitutions
+    def _get_group(self, data_row):
+        """Model data is grouped by recognized language."""
+        return data_row.iso_lang
 
 
 def get_csv_data(csv_file):
@@ -337,8 +379,7 @@ def get_best_model(model_data, basis="CER"):
     best_model = [None, None]
     for m in model_data:
         if basis.lower() == "cer":
-            # a = m.cer_avg
-            a = m.cer_group
+            a = m.cer_avg
             if best_model[0] is None or a < best_model[1]:
                 best_model = [m.name, a]
         elif basis.lower() == "score":
@@ -359,19 +400,21 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis=
 
     if chart_type == "summary" and model_names is not None:
         if basis == "score":
+            title = "Score"
             attrib = "score"
             threshold = SUMMARY_THRESHOLD_SCORE
             comp = "above"
             ylabel = "Score (function of CER & STDEV; perfect: 1000)"
         elif basis.lower() == "cer":
-            attrib = "cer_group"
+            title = "CER (avg)"
+            attrib = "cer_avg"
             threshold = SUMMARY_THRESHOLD_CER
             comp = "below"
             ylabel = "CER"
         # Print data table to stdout.
-        print(f"Model Name{" "*14}  {basis.capitalize():6}  CER (grp) CER (avg)")
+        print(f"Model Name{" "*14}  {title:6}")
         for m in model_data:
-            print(f"{m.name:24}  {getattr(m, attrib):<6}  {m.cer_group:<8}  {m.cer_avg}")
+            print(f"{m.name:24}  {getattr(m, attrib)}")
 
         # Get scores by model.
         values = [getattr(m, attrib) for m in model_data]
@@ -402,12 +445,12 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis=
         for m in model_data:
             if m.name == best_model[0]:
                 for lg in m.lang_data:
-                    cer_values.append(lg.cer_group)
+                    cer_values.append(lg.cer_avg)
                     lang_names_filtered.append(lg.name)
                 break
 
         # Print data table to stdout.
-        print("ISO_Language\tCER")
+        print(f"ISO_Language\tCER for {best_model[0]}")
         for lg, c in zip(lang_names_filtered, cer_values):
             print(f"{lg}\t{c}")
 
@@ -445,7 +488,7 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis=
         # List CER values.
         cer_values = []
         for m in model_data:
-            cer_values.append(m.cer_group)
+            cer_values.append(m.cer_avg)
 
         print("Model\tCER")
         for m, c in zip(model_names, cer_values):
@@ -466,7 +509,7 @@ def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis=
         for m in model_data:
             if m.name == model_name:
                 for lg in m.lang_data:
-                    cer_values.append(lg.cer_group)
+                    cer_values.append(lg.cer_avg)
                     lang_names_filtered.append(lg.name)
                 break
 
@@ -549,19 +592,17 @@ def main():
     iso_langs = list({r.get("iso_lang") for r in csv_data})
     iso_langs.sort()
 
-    # model_data is a list of GroupedData objects of models.
     model_data = [
-        GroupedData(m, [r for r in csv_data if r.get("model") == m])
+        ModelData(name=m, data=[DataRow(r) for r in csv_data if r.get("model") == m])
         for m in all_model_names
     ]
 
-    # lang_data is a list of iso_lang GroupedData objects.
     for m in model_data:
         m.lang_data = []
         for lg in iso_langs:
-            sub_data = [r for r in m.data if r.get("iso_lang") == lg]
-            if sub_data:
-                m.lang_data.append(GroupedData(lg, sub_data))
+            lg_data = [r for r in m.data if r.iso_lang == lg]
+            if lg_data:
+                m.lang_data.append(LanguageData(name=lg, data=lg_data))
 
     plt.style.use("_mpl-gallery")
     out_dir = csv_file.parent
@@ -613,9 +654,9 @@ def main():
         else:
             models = args.models
 
-        # model_data is a list of GroupedData objects for the given language.
+        # model_data is a list of LanguageData objects for the given language.
         model_data = [
-            GroupedData(m, [r for r in csv_data if r.get("iso_lang") == args.language_iso and r.get("model") == m])
+            ModelData(name=m, data=[r for r in csv_data if r.get("iso_lang") == args.language_iso and r.get("model") == m])
             for m in models
         ]
         x, y, z, outf, t, xl, yl = prepare_chart_data(
