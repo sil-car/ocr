@@ -2,3 +2,4 @@ jiwer
 matplotlib
 pillow
 pytesseract
+regex
