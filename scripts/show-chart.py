@@ -6,27 +6,38 @@ import argparse
 import csv
 import sys
 from dataclasses import dataclass
+from itertools import groupby
+from operator import attrgetter
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 CHART_TYPES = {
-    "3d",
     "best",
     "comp",
-    "comparison",
     "language",
     "model",
     "summary",
 }
-SUMMARY_THRESHOLD_CER = 0.08
-SUMMARY_THRESHOLD_CER = 0.10
-SUMMARY_THRESHOLD_SCORE = 825
 SUMMARY_Y_AXIS_MIN = 800
 
+
 @dataclass
-class DataRow:
+class ChartData:
+    # x, y, z, out_file, title, xlabel, ylabel
+    term_title: str = None
+    term_lines: list = None
+    x: np.array = None
+    y: np.array = None
+    z: np.array = None
+    out_file: Path = None
+    title: str = None
+    x_label: str = None
+    y_label: str = None
+
+@dataclass
+class EvalItem:
     # iso_lang,image-file,truth-text-file,model,ocr-text-file,cer,number-truth,substitutions,deletions,insertions,hits
     row: dict
 
@@ -67,169 +78,413 @@ class DataRow:
         return int(self.row.get("substitutions"))
 
 
-class OcrData:
-    def __init__(self, data: list | None = None, name: str | None = None):
-        if name is None:
-            name = self.__class__.__name__
-        self.name = name
-        if data is None:
-            data = []
-        self.data = []
-        for d in data:
-            if isinstance(d, DataRow):
-                self.data.append(d)
-            else:
-                self.data.append(DataRow(d))
-        # Ingested from data.
-        self._cers = None
+class EvalDocument:
+    def __init__(self, name=None, items=None):
+        if items is None:
+            items = []
+        self.items = items
+        self._name = name
+        self._cer = None
         self._deletions = None
         self._hits = None
-        self._image_files = None
         self._insertions = None
-        self._number_truth = None
+        self._iso = None
+        self._model = None
         self._substitutions = None
-        # Derived from data.
-        self._cer_avg = None
-        self._cers_stdev = None
-        self._grouped_cers = None
-        self._groups = None
 
     @property
-    def cer_avg(self):
+    def cer(self):
+        """Return CER calculated collectively over all document items."""
+        if self._cer is None:
+            self._cer = calculate_cer(
+                self.substitutions,
+                self.deletions,
+                self.insertions,
+                self.hits,
+            )
+        return self._cer
+
+    @property
+    def deletions(self):
+        if self._deletions is None:
+            self._deletions = sum(int(i.deletions) for i in self.items)
+        return self._deletions
+
+    @property
+    def name(self):
+        if self._name is None and self.items:
+            self._name = self.items[0].document
+        return self._name
+
+    @property
+    def hits(self):
+        if self._hits is None:
+            self._hits = sum(int(i.hits) for i in self.items)
+        return self._hits
+
+    @property
+    def insertions(self):
+        if self._insertions is None:
+            self._insertions = sum(int(i.insertions) for i in self.items)
+        return self._insertions
+
+    @property
+    def iso(self):
+        if self._iso is None and self.items:
+           self._iso = self.items[0].iso_lang
+        return self._iso
+
+    @property
+    def model(self):
+        if self._model is None and self.items:
+            self._model = self.items[0].model
+        return self._model
+
+    @property
+    def substitutions(self):
+        if self._substitutions is None:
+            self._substitutions = sum(int(i.substitutions) for i in self.items)
+        return self._substitutions
+
+
+class EvalLanguage:
+    def __init__(self, items=None):
+        if items is None:
+            items = []
+        self.items = items
+        self._cer = None
+        self._documents = None
+        self._iso = None
+        self._language = None
+        self._model = None
+
+    @property
+    def cer(self):
+        """Return average CER of all documents."""
+        if self._cer is None:
+            self._cer = round(np.average([d.cer for d in self.documents]), 4)
+        return self._cer
+
+    @property
+    def documents(self):
+        if self._documents is None:
+            self._documents = [
+                EvalDocument(items=list(group))
+                for _, group in groupby(self.items, key=attrgetter('document'))
+            ]
+        return self._documents
+
+    @property
+    def iso(self):
+        if self._iso is None and self.items:
+            self._iso = self.items[0].iso_lang
+        return self._iso
+
+    @property
+    def model(self):
+        if self._model is None and self.items:
+            self._model = self.items[0].model
+        return self._model
+
+    @property
+    def name(self):
+        return self.iso
+
+
+class EvalModel:
+    def __init__(self, name=None, items=None):
+        if items is None:
+            items = []
+        self.items = items
+        self._name = name
+        self._cer = None
+        self._cers = None
+        self._stdev = None
+        self._languages = None
+        self._pmcer = None
+        self._score = None
+
+    @property
+    def languages(self):
+        if self._languages is None:
+            self._languages = [
+                EvalLanguage(items=list(group))
+                for _, group in groupby(self.items, key=attrgetter('iso_lang'))
+            ]
+        return self._languages
+
+    @property
+    def name(self):
+        if self._name is None and self.items:
+            self._name = self.items[0].model
+        return self._name
+
+    @property
+    def cer(self):
         """Average CER over each recognized data grouping."""
-        if self._cer_avg is None:
-            self._cer_avg = round(sum(self.grouped_cers) / len(self.grouped_cers), 4)
-        return self._cer_avg
+        if self._cer is None:
+            self._cer = round(np.average(self.cers), 4)
+        return self._cer
 
     @property
     def cers(self):
         if self._cers is None:
-            self._cers = [d.cer for d in self.data]
+            self._cers = [lg.cer for lg in self.languages]
         return self._cers
 
     @property
-    def cers_stdev(self):
-        if self._cers_stdev is None and len(self.cers) > 1:
-            self._cers_stdev = np.std(self.cers, ddof=1)
-        return self._cers_stdev
-
-    @property
-    def grouped_cers(self):
-        """Average CERs for all images from the same group [language or document]."""
-        if self._grouped_cers is None:
-            groups_cers = {}
-            self._grouped_cers = []
-            for row in self.data:
-                g = self._get_group(row)
-                if g not in groups_cers:
-                    groups_cers[g] = {}
-                for k in ("deletions", "hits", "insertions", "substitutions"):
-                    if k not in groups_cers[g]:
-                        groups_cers[g][k] = []
-                    groups_cers[g][k].append(getattr(row, k))
-            # Calculate CER from totals of all relevant counts.
-            for g, v in groups_cers.items():
-                c = sum(v.get("hits"))
-                d = sum(v.get("deletions"))
-                i = sum(v.get("insertions"))
-                s = sum(v.get("substitutions"))
-                self._grouped_cers.append(self.calculate_cer(c=c, d=d, i=i, s=s))
-        return self._grouped_cers
-
-    @property
-    def groups(self):
-        if self._groups is None:
-            self._groups = {self._parse_group(n) for n in self.image_files}
-        return self._groups
-
-    @property
-    def image_files(self):
-        if self._image_files is None:
-            self._image_files = [d.image_file for d in self.data]
-        return self._image_files
-
-    def calculate_cer(self, s, d, i, c):
-        """Return CER, calcluated as (S + D + I) / (C + S + D)"""
-        return round((s + d + i) / (c + s + d), 4)
-
-    def _get_group(self, data_row):
-        raise NotImplementedError
-
-
-class LanguageData(OcrData):
-    def _get_group(self, data_row):
-        """Language data is grouped by recognized document."""
-        return data_row.document
-
-
-class ModelData(OcrData):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._score = None
+    def pmcer(self):
+        """Return the power mean CER.
+        The power mean of the per-language CERs always improves when any
+        language improves, but weighs the bad languages more heavily.
+        """
+        if self._pmcer is None:
+            p = 2
+            cers = np.asarray(self.cers)
+            self._pmcer = round(np.mean(cers ** p) ** (1 / p), 4)
+        return self._pmcer
 
     @property
     def score(self):
-        """Score is an empirical value based on model's overall CER and it's standard deviation."""
-        if self._score is None and self.cers_stdev:
+        """Score is an empirical value based on model's overall CER and it's
+       standard deviation.
+
+       It has been superseded by Power Mean CER."""
+        if self._score is None and self.stdev:
             self._score = round(
                 1000
-                / (0.75 * (1 + self.cer_avg) + 0.25 * (1 + self.cers_stdev)) ** 2,
+                / (0.75 * (1 + self.cer) + 0.25 * (1 + self.stdev)) ** 2,
             )
         return self._score
 
-    def _get_group(self, data_row):
-        """Model data is grouped by recognized language."""
-        return data_row.iso_lang
+    @property
+    def stdev(self):
+        if self._stdev is None and len(self.cers) > 1:
+            self._stdev = round(np.std(self.cers, ddof=1), 4)
+        return self._stdev
+
+    def get_language(self, iso):
+        return next((lg for lg in self.languages if lg.iso == iso), None)
+
+    def __str__(self):
+        return self.name
 
 
-def get_csv_data(csv_file):
-    with csv_file.open(newline="") as c:
-        reader = csv.DictReader(c)
-        csv_data = [r for r in reader]
-    return csv_data
+class EvalCollection:
+    def __init__(self):
+        self.data_file = Path(__file__).parents[1] / "data" / "evaluation" / "data.csv"
+        self.out_dir = self.data_file.parent
+        self._data = None
+        self._documents = None
+        self._isos = None
+        self._items = None
+        self._model_names = None
+        self._models = None
+
+    @property
+    def data(self):
+        if self._data is None:
+            with self.data_file.open(newline="") as c:
+                reader = csv.DictReader(c)
+                self._data = [r for r in reader]
+        return self._data
+
+    @property
+    def items(self):
+        if self._items is None:
+            self._items = (EvalItem(r) for r in self.data)
+        return self._items
+
+    @property
+    def isos(self):
+        if self._isos is None and self.items:
+            self._isos = sorted({i.iso_lang for i in self.items})
+        return self._isos
+
+    @property
+    def model_names(self):
+        if self._model_names is None:
+            self._model_names = sorted([m.name for m in self.models])
+        return self._model_names
+
+    @property
+    def models(self):
+        if self._models is None:
+            self._models = [
+                EvalModel(items=list(group))
+                for _, group in groupby(self.items, key=attrgetter('model'))
+            ]
+        return self._models
+
+    def best_model(self, basis="pmcer"):
+        """Return the best-performing model using the given basis."""
+        basis = basis.lower()
+        return max(self.models, key=lambda x: getattr(x, basis))
+
+    def chart_data(
+        self,
+        basis="cer",
+        chart_type="summary",
+        iso=None,
+        model_names=None,
+    ):
+        basis = basis.lower()
+        if model_names is None:
+            model_names = []
+        elif model_names == "all":
+            model_names = self.model_names
+
+        match chart_type:
+            case "best":
+                chart_data = self._chart_data__best(basis)
+            case "comp":
+                chart_data = self._chart_data__comparison(basis, model_names)
+            case "language":
+                chart_data = self._chart_data__language(iso)
+            case "model":
+                chart_data = self._chart_data__model(model_names[0])
+            case "summary":
+                chart_data = self._chart_data__summary(basis)
+        return chart_data
+
+    def _chart_data__best(self, basis):
+        best_model = self.best_model(basis=basis)
+        chart_data = ChartData()
+        y = []
+        isos = []
+        for lg in best_model.languages:
+            y.append(lg.cer)
+            isos.append(lg.iso)
+        chart_data.term_title = f"ISO_Language\tCER for {best_model.name}"
+        chart_data.term_lines = [f"{lg}\t{c}" for lg, c in zip(isos, y)]
+        chart_data.title = f"CERs by ISO_Language for model: {best_model.name}"
+        chart_data.x = isos
+        chart_data.y = y
+        chart_data.out_file = self.out_dir / "best-model-perf-by-lang.png"
+        chart_data.x_label = "ISO_Language"
+        chart_data.y_label = "Character Error Rate"
+        return chart_data
+
+    def _chart_data__comparison(self, basis, model_names):
+        chart_data = ChartData()
+        best_model = self.best_model(basis=basis)
+        for i, n in enumerate(model_names[:]):
+            if n == "best":
+                model_names[i] = best_model.name
+        n1, n2 = model_names
+        m1 = None
+        m2 = None
+        for m in self.models:
+            if n1 == m.name:
+                m1 = m
+            elif n2 == m.name:
+                m2 = m
+            if m1 and m2:
+                break
+
+        chart_data.title = f"CER Comparison for {m1.name} & {m2.name}"
+        chart_data.x = [lg.iso for lg in m1.languages]
+        chart_data.y = [lg.cer for lg in m1.languages]
+        chart_data.z = [lg.cer for lg in m2.languages]
+        chart_data.x_label = "ISO_Language"
+        chart_data.y_label = "Character Error Rate"
+        chart_data.out_file = self.out_dir / f"comp-{m1.name}-{m2.name}.png"
+        return chart_data
+
+    def _chart_data__language(self, iso):
+        iso = iso.lower()
+        chart_data = ChartData()
+        # List CER values.
+        cers = []
+        models = []
+        for m in self.models:
+            lg = m.get_language(iso)
+            cers.append(lg.cer)
+            models.append(m.name)
+        chart_data.term_title = "Model\tCER"
+        chart_data.term_lines = [f"{m}\t{c}" for m, c in zip(models, cers)]
+        chart_data.title = f"CERs by model for ISO_Language: {iso}"
+        chart_data.x = models
+        chart_data.y = cers
+        chart_data.x_label = "Model"
+        chart_data.y_label = "Character Error Rate"
+        chart_data.out_file = self.out_dir / f"{iso}-perf-by-model.png"
+        return chart_data
+
+    def _chart_data__model(self, name):
+        chart_data = ChartData()
+        model = None
+        for m in self.models:
+            if m.name == name:
+                model = m
+                break
+        if model is None:
+            print(f"Error: Model not found: {name}")
+            sys.exit(1)
+
+        # List CER values and filtered ISO_Langs.
+        cers = []
+        isos = []
+        for lg in model.languages:
+            cers.append(lg.cer)
+            isos.append(lg.iso)
+        chart_data.term_title = "ISO_Language\tCER"
+        chart_data.term_lines = [f"{lg}\t{c}" for lg, c in zip(isos, cers)]
+        chart_data.title = f"CERs by ISO_Language for model: {model.name}"
+        chart_data.x = isos
+        chart_data.y = cers
+        chart_data.x_label = "ISO_Language"
+        chart_data.y_label = "Character Error Rate"
+        chart_data.out_file = self.out_dir / f"{model.name}-perf-by-lang.png"
+        return chart_data
+
+    def _chart_data__summary(self, basis):
+        chart_data = ChartData()
+        chart_data.term_title = f"Model Name{" "*14}  {basis.upper()}"
+        chart_data.x = []
+        chart_data.y = []
+        chart_data.term_lines = []
+        for m in self.top_models(basis=basis):
+            chart_data.x.append(m.name)
+            chart_data.y.append(getattr(m, basis))
+            chart_data.term_lines.append(f"{m.name:24}  {getattr(m, basis)}")
+        chart_data.x_label = "Model Name"
+
+        if basis == "score":
+            chart_data.title = "Top Models by Score"
+            chart_data.y_label = "Score (function of CER & STDEV; perfect: 1000)"
+        elif basis == "cer":
+            chart_data.title = "Top Models by CER"
+            chart_data.y_label = "CER"
+        elif basis == "pmcer":
+            chart_data.title = "Top Models by Power Mean CER"
+            chart_data.y_label = "Power Mean CER"
+        chart_data.out_file = self.out_dir / f"top-models-by-{basis}.png"
+        return chart_data
+
+    def top_models(self, basis="pmcer", count=5):
+        """Return a list of best-performing models using the given basis."""
+        basis = basis.lower()
+        top = sorted(self.models, key=attrgetter(basis))[:count]
+        top.sort(key=attrgetter("name"))  # re-sort by model name
+        top.insert(0, self.models[0])  # add Latin
+        return top
 
 
-def build_3d_slices(data):
-    # Each slice is a unique iso_lang set of (model_name, CER).
-    #   slices = {iso_lang: {model_name: CER}, ...}
-    slices = {}
-    # data = {
-    #   model_name: {
-    #       'cer-avg': float,
-    #       'data': [rows],
-    #   }
-    # }
-
-    # Get list of model_names.
-    model_names = list(data.keys())
-    model_names.sort()
-
-    # Get list of iso_langs.
-    iso_langs = []
-    for m, v in data.items():
-        for r in v.get("data"):
-            iso_langs.append(r.get("iso_lang"))
-    iso_langs = list(set(iso_langs))
-    iso_langs.sort()
-
-    # Get CER for each combo of (model_name, iso_lang).
-    for m in model_names:
-        rows = data.get(m).get("data")
-        for lg in iso_langs:
-            c = 0
-            for row in rows:
-                if row.get("iso_lang") == lg:
-                    c = row.get("cer")
-                    break
-            if lg not in slices:
-                slices[lg] = {m: c}
-            else:
-                slices[lg][m] = c
-    return slices
+def calculate_cer(subs, dels, ins, hits):
+    """Return CER, calcluated as (S + D + I) / (C + S + D)"""
+    return round((subs + dels + ins) / (hits + subs + dels), 4)
 
 
-def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
-    # Generate and format plot.
+def plot_bar2d(cd, plottype="cer"):
+    # Print table to terminal.
+    if cd.term_title:
+        print(cd.term_title)
+    if cd.term_lines:
+        for i in cd.term_lines:
+            print(i)
+
+    # Prepare plot.
     bw = 0.3  # bar width
     lw = 0.5  # line width
 
@@ -238,18 +493,18 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
     plt.subplots_adjust(
         left=0.1, bottom=0.30, right=0.9, top=0.8, wspace=0.1, hspace=0.1
     )
-    plt.title(title, pad=12.0)
+    plt.title(cd.title, pad=12.0)
 
-    if z is not None:
-        # Ref: https://stackoverflow.com/questions/10369681
-        ind = np.arange(len(x))
-        lx = title.split("&")[0].split()[-1].strip()  # hack
-        lz = title.split("&")[1].strip()  # hack
-        plt.xticks(ind + bw / 2, x, horizontalalignment="right", rotation=60)
-        ax.bar(ind - 0.1, y, width=bw, edgecolor="w", linewidth=lw, label=lx)
+    if cd.z is not None:
+        # Ref: https:/DataRow/stackoverflow.com/questions/10369681
+        ind = np.arange(len(cd.x))
+        lx = cd.title.split("&")[0].split()[-1].strip()  # hack
+        lz = cd.title.split("&")[1].strip()  # hack
+        plt.xticks(ind + bw / 2, cd.x, horizontalalignment="right", rotation=60)
+        ax.bar(ind - 0.1, cd.y, width=bw, edgecolor="w", linewidth=lw, label=lx)
         ax.bar(
             ind + 0.1,
-            z,
+            cd.z,
             width=bw,
             edgecolor="w",
             linewidth=lw,
@@ -259,13 +514,13 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
         plt.legend(loc="best")
     else:
         plt.xticks(horizontalalignment="right", rotation=60)
-        ax.bar(x, y, width=bw, edgecolor="blue", linewidth=0)
+        ax.bar(cd.x, cd.y, width=bw, edgecolor="blue", linewidth=0)
     # Remove x-axis grid lines.
     ax.tick_params(axis="x", grid_linewidth=0)
     # Add axis labels.
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    if plottype.lower() == "cer":
+    ax.set_xlabel(cd.x_label)
+    ax.set_ylabel(cd.y_label)
+    if plottype in ("cer", "pmcer"):
         # Add shaded thresholds.
         ax.axhspan(
             0, 0.05, alpha=0.1, color="yellow", zorder=0.0
@@ -273,7 +528,7 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
         ax.axhspan(
             0, 0.02, alpha=0.2, color="green", zorder=0.1
         )  # 2% CER threshold shading
-    elif plottype.lower() == "score":
+    elif plottype == "score":
         # Set y-axis limits.
         ax.set_ylim([SUMMARY_Y_AXIS_MIN, 1000])
         # Add shaded thresholds.
@@ -285,248 +540,9 @@ def plot_bar2d(x, y, z, out_file, title, xlabel, ylabel, plottype="CER"):
         )  # 980 threshold shading
 
     # Show plot.
-    plt.savefig(out_file)
+    plt.savefig(cd.out_file)
     plt.show()
     sys.exit()
-
-
-def plot_bar3d(slices_dict):
-    # slices_dict = {iso_lang: {model: l_cer}}
-
-    # Set list of all model_names
-    model_names = []
-    iso_langs = []
-    for lg, d1 in slices_dict.items():
-        iso_langs.append(lg)
-        model_names.extend([k for k in d1])
-    iso_langs = list(set(iso_langs))
-    iso_langs.sort()
-    model_names = list(set(model_names))
-    model_names.sort()
-
-    cers = []
-    for lg in iso_langs:
-        for m in model_names:
-            # print(f"{m}, {l}")
-            if slices_dict.get(lg):
-                if slices_dict.get(lg).get(m):
-                    cer_real = float(slices_dict.get(lg).get(m))
-                    # cer = cer_real if cer_real < 0.1 else 0 # hide large CERs
-                    cer = cer_real
-                    cers.append(cer)
-                else:
-                    cers.append(0.0)
-            else:
-                cers.append(0.0)
-
-    fig = plt.figure()
-    ax = fig.add_subplot(projection="3d")
-
-    xticklabels = model_names  # [f"\n{m}\n\n" for m in model_names]
-    yticklabels = iso_langs
-    sp = 8
-    pi = 2
-    d = 2
-
-    # x is list of numbers to set x-axis placement of every bar.
-    x = [pi + i * sp for i in range(len(xticklabels))] * len(yticklabels)
-    # xticks is list of numbers to set placement of x-axis labels.
-    xticks = [sp * (i + 1) for i in range(len(xticklabels))]
-
-    # y is list of numbers to set y-axis placement of every bar.
-    y = [
-        pi + i // len(xticklabels) * sp
-        for i in range(len(yticklabels) * len(xticklabels))
-    ]
-    # yticks is list of numbers to set placement of y-axis labels.
-    yticks = [sp * (i + 1) for i in range(len(yticklabels))]
-
-    z = 0  # value of bottom of every bar
-    dx = d  # thickness of bar
-    dy = d  # width of bar
-    # Hide dz == 0 bars:
-    #   https://stackoverflow.com/questions/70196729/matplotlib-hide-bar-in-bar3d-if-height-is-zero
-    dz = cers
-    s0 = 0
-    s1 = -1
-    ax.bar3d(x[s0:s1], y[s0:s1], z, dx, dy, dz[s0:s1], alpha=0.6)
-    ax.set_xticks(xticks)
-    fs = 8
-    lpad = 30
-    # tlpad = 0.5
-    xha = "right"
-    yha = "left"
-    ax.set_xticklabels(
-        xticklabels,
-        fontdict={"fontsize": fs, "horizontalalignment": xha},
-    )
-    ax.set_yticks(yticks)
-    ax.set_yticklabels(
-        yticklabels,
-        fontdict={"fontsize": fs, "horizontalalignment": yha},
-    )
-    ax.xaxis.labelpad = lpad
-    ax.yaxis.labelpad = lpad
-    ax.set_xlabel("Model Name")
-    ax.set_ylabel("ISO_Language")
-    ax.set_zlabel("CER")
-
-    plt.show()
-
-
-def get_best_model(model_data, basis="CER"):
-    # Determine best_model and its CER.
-    best_model = [None, None]
-    for m in model_data:
-        if basis.lower() == "cer":
-            a = m.cer_avg
-            if best_model[0] is None or a < best_model[1]:
-                best_model = [m.name, a]
-        elif basis.lower() == "score":
-            a = m.score
-            if best_model[0] is None or a > best_model[1]:
-                best_model = [m.name, a]
-    return best_model
-
-
-def prepare_chart_data(chart_type, model_data, out_dir, model_names=None, basis="score"):
-    x = None
-    y = None
-    z = None
-    out_file = None
-    title = None
-    xlabel = None
-    ylabel = None
-
-    if chart_type == "summary" and model_names is not None:
-        if basis == "score":
-            title = "Score"
-            attrib = "score"
-            threshold = SUMMARY_THRESHOLD_SCORE
-            comp = "above"
-            ylabel = "Score (function of CER & STDEV; perfect: 1000)"
-        elif basis.lower() == "cer":
-            title = "CER (avg)"
-            attrib = "cer_avg"
-            threshold = SUMMARY_THRESHOLD_CER
-            comp = "below"
-            ylabel = "CER"
-        # Print data table to stdout.
-        print(f"Model Name{" "*14}  {title:6}")
-        for m in model_data:
-            print(f"{m.name:24}  {getattr(m, attrib)}")
-
-        # Get scores by model.
-        values = [getattr(m, attrib) for m in model_data]
-
-        # Remove models whose CERs are greater than cer_limit.
-        model_names_limited = []
-        values_limited = []
-        for i, m in enumerate(model_names):
-            if (comp == "above" and values[i] >= threshold) or (comp == "below" and values[i] <= threshold) or m == "Latin":
-                model_names_limited.append(m)
-                values_limited.append(values[i])
-
-        # Prepare plot data.
-        x = model_names_limited
-        y = values_limited
-        out_file = out_dir / f"models-{comp}-{basis.lower()}-{threshold}.png"
-        title = f"Models Scoring {comp.capitalize()} {threshold}"
-        xlabel = "Model Name"
-        ylabel = "Score (function of CER & STDEV; perfect: 1000)"
-    elif chart_type == "best":
-        # Determine best_model and its CER.
-        basis = "Score"
-        best_model = get_best_model(model_data, basis=basis)
-
-        # List CER values and filtered ISO_Langs.
-        cer_values = []
-        lang_names_filtered = []
-        for m in model_data:
-            if m.name == best_model[0]:
-                for lg in m.lang_data:
-                    cer_values.append(lg.cer_avg)
-                    lang_names_filtered.append(lg.name)
-                break
-
-        # Print data table to stdout.
-        print(f"ISO_Language\tCER for {best_model[0]}")
-        for lg, c in zip(lang_names_filtered, cer_values):
-            print(f"{lg}\t{c}")
-
-        x = lang_names_filtered
-        y = cer_values
-        out_file = out_dir / "best-model-perf-by-lang.png"
-        title = f"CERs by ISO_Language for model: {best_model[0]}"
-        xlabel = "ISO_Language"
-        ylabel = "Character Error Rate"
-    elif chart_type == "comp" and model_names is not None:
-        for i, n in enumerate(model_names[:]):
-            if n == "best":
-                n = get_best_model(model_data)[0]
-                model_names[i] = n
-        m1 = model_names[0]
-        m2 = model_names[1]
-
-        print(f"Updated {model_names = }")
-        x1, y1, z1, outf1, t1, xl1, yl1 = prepare_chart_data(
-            "model", model_data, out_dir, model_names=[m1]
-        )
-        x2, y2, z2, outf2, t2, xl2, yl2 = prepare_chart_data(
-            "model", model_data, out_dir, model_names=[m2]
-        )
-
-        x = x1
-        y = y1
-        z = y2
-        out_file = out_dir / f"comp-{m1}-{m2}.png"
-        title = f"CER Comparison for {m1} & {m2}"
-        xlabel = xl1
-        ylabel = yl1
-    elif chart_type == "language":
-        lg_iso = model_data[0].data[0].get("iso_lang")
-        # List CER values.
-        cer_values = []
-        for m in model_data:
-            cer_values.append(m.cer_avg)
-
-        print("Model\tCER")
-        for m, c in zip(model_names, cer_values):
-            print(f"{m}\t{c}")
-
-        x = model_names
-        y = cer_values
-        out_file = out_dir / f"{lg_iso}-perf-by-model.png"
-        title = f"CERs by model for ISO_Language: {lg_iso}"
-        xlabel = "Model"
-        ylabel = "Character Error Rate"
-
-    elif chart_type == "model" and model_names is not None:
-        model_name = model_names[0]
-        # List CER values and filtered ISO_Langs.
-        cer_values = []
-        lang_names_filtered = []
-        for m in model_data:
-            if m.name == model_name:
-                for lg in m.lang_data:
-                    cer_values.append(lg.cer_avg)
-                    lang_names_filtered.append(lg.name)
-                break
-
-        print(f"{model_name = }")
-
-        # Print data table to stdout.
-        print("ISO_Language\tCER")
-        for lg, c in zip(lang_names_filtered, cer_values):
-            print(f"{lg}\t{c}")
-
-        x = lang_names_filtered
-        y = cer_values
-        out_file = out_dir / f"{model_name}-perf-by-lang.png"
-        title = f"CERs by ISO_Language for model: {model_name}"
-        xlabel = "ISO_Language"
-        ylabel = "Character Error Rate"
-    return x, y, z, out_file, title, xlabel, ylabel
 
 
 def get_args():
@@ -535,21 +551,20 @@ def get_args():
     )
     parser = argparse.ArgumentParser(
         description=description,
-        # formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "-b",
         "--basis",
         type=str,
-        choices=("CER", "score"),
-        default="score",
-        help="type of chart to display",
+        choices=("cer", "pmcer"),
+        default="pmcer",
+        help="property used for comparing models",
     )
     parser.add_argument(
         "-t",
         "--chart-type",
-        nargs=1,
         type=str,
+        default="summary",
         choices=CHART_TYPES,
         help="type of chart to display",
     )
@@ -566,123 +581,70 @@ def get_args():
         nargs="+",
         type=str,
         default=[],
-        help="language models to display",
+        help="OCR models to display",
     )
-
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     return parser.parse_args()
 
 
 def main():
+    plt.style.use("_mpl-gallery")
     args = get_args()
 
-    # Prepare csv_data.
-    csv_file = (
-        Path(__file__).expanduser().resolve().parents[1]
-        / "data"
-        / "evaluation"
-        / "data.csv"
-    )
-    if not csv_file.is_file():
-        print(f"ERROR: File does not exist: {csv_file}")
-    csv_data = get_csv_data(csv_file)
-
-    # Prepare sorted lists of model_names and iso_langs.
-    all_model_names = list({r.get("model") for r in csv_data})
-    all_model_names.sort()
-    iso_langs = list({r.get("iso_lang") for r in csv_data})
-    iso_langs.sort()
-
-    model_data = [
-        ModelData(name=m, data=[DataRow(r) for r in csv_data if r.get("model") == m])
-        for m in all_model_names
-    ]
-
-    for m in model_data:
-        m.lang_data = []
-        for lg in iso_langs:
-            lg_data = [r for r in m.data if r.iso_lang == lg]
-            if lg_data:
-                m.lang_data.append(LanguageData(name=lg, data=lg_data))
-
-    plt.style.use("_mpl-gallery")
-    out_dir = csv_file.parent
+    if args.test:
+        c = EvalCollection()
+        print(f"{c.models[0].name=}")
+        sys.exit()
 
     # Set output variables.
-    chart_type = "summary"
-    if args.chart_type is not None:
-        chart_type = args.chart_type[0]
-        # if args.chart_type[0] in CHART_TYPES:
-        #     chart_type = args.chart_type[0]
-        # else:
-        #     print(f"ERROR: Valid chart types: {', '.join(chart_types)}")
-        #     sys.exit(1)
-    if chart_type == "summary" and args.models:
+    if args.chart_type == "summary" and args.models:
         print("INFO: Models not needed for summary chart")
+
     models = ["Latin", "best"]
     if len(args.models) == 1:
-        models = ["Latin", args.models[0]]
+        models[1] = args.models[0]
     elif len(args.models) >= 2:
         models = args.models[:2]
         if len(args.models) > 2:
             print(f"INFO: Ignoring extra models: {', '.join(args.models[2:])}")
 
     # Output chosen chart with chosen language models.
-    if chart_type == "3d":
-        data_slices = build_3d_slices(model_data)
-        plot_bar3d(data_slices)
-
-    elif chart_type == "best":
+    eval_data = EvalCollection()
+    if args.chart_type == "best":
         # Show best model summary chart of CER by ISO_Language.
-        x, y, z, out_file, title, xlabel, ylabel = prepare_chart_data(
-            "best", model_data, out_dir
-        )
-        plot_bar2d(x, y, z, out_file, title, xlabel, ylabel)
-
-    elif chart_type in ["comp", "comparison"]:
-        print(f"INFO: Comparing {models = }")
-
+        chart_data = eval_data.chart_data(chart_type=args.chart_type)
+    elif args.chart_type.startswith("comp"):
         # Produce summary chart with both 'best' and 'Latin' models together.
-        x, y, z, outf, t, xl, yl = prepare_chart_data(
-            "comp", model_data, out_dir, model_names=models
-        )
-        plot_bar2d(x, y, z, outf, t, xl, yl)
-
-    elif chart_type == "language":
+        chart_data = eval_data.chart_data(chart_type=args.chart_type, model_names=models)
+    elif args.chart_type == "language":
         # Show CER bar for each model in the given language (ISO).
         if not args.models:
-            models = all_model_names
+            models = "all"
         else:
             models = args.models
-
-        # model_data is a list of LanguageData objects for the given language.
-        model_data = [
-            ModelData(name=m, data=[r for r in csv_data if r.get("iso_lang") == args.language_iso and r.get("model") == m])
-            for m in models
-        ]
-        x, y, z, outf, t, xl, yl = prepare_chart_data(
-            "language", model_data, out_dir, model_names=models
+        chart_data = eval_data.chart_data(
+            chart_type=args.chart_type,
+            iso=args.language_iso,
+            model_names=models,
         )
-        plot_bar2d(x, y, z, outf, t, xl, yl)
-
-    elif chart_type == "model":
+    elif args.chart_type == "model":
         # Show summary chart of CER by ISO_Language for the given model.
         if not args.models:
-            print("ERROR: Please pass a model name; e.g. '-m Latin_afr'")
+            print("ERROR: Please pass a model name; e.g. '-m Latin'")
             sys.exit(1)
         model = args.models[0]
         if len(args.models) > 1:
             print(f"INFO: Ignoring extra models: {', '.join(models[1:])}")
-        x, y, z, outf, t, xl, yl = prepare_chart_data(
-            "model", model_data, out_dir, model_names=[model]
-        )
-        plot_bar2d(x, y, z, outf, t, xl, yl)
-
-    elif chart_type == "summary":
+        chart_data = eval_data.chart_data(chart_type=args.chart_type, model_names=[model])
+    elif args.chart_type == "summary":
         # Show summary chart of scores by Model Name.
-        x, y, z, outf, t, xl, yl = prepare_chart_data(
-            "summary", model_data, out_dir, model_names=all_model_names, basis=args.basis
-        )
-        plot_bar2d(x, y, z, outf, t, xl, yl, plottype=args.basis)
+        chart_data = eval_data.chart_data(basis=args.basis)
+
+    plot_bar2d(chart_data, plottype=args.basis)
 
 
 if __name__ == "__main__":
