@@ -19,7 +19,7 @@ Usage:
                         [--sort count|codepoint]
 
 Defaults:
-    root_dir           = data/evaluation/full-coverage-set
+    root_dir           = data/representative-languages
     reference-config   = data/Latin_afr/config.toml (only used if present)
     sort               = count (ascending, so zero-count rows are easy to spot)
 """
@@ -39,7 +39,7 @@ def parse_args():
     p.add_argument(
         "root_dir",
         nargs="?",
-        default="data/evaluation/full-coverage-set",
+        default="data/representative-languages",
         help="Directory to search recursively for *.gt.txt files "
              "(default: %(default)s)",
     )

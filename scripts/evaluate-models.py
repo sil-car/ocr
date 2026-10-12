@@ -3,6 +3,7 @@
 
 import csv
 import os
+import re
 import unicodedata
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from PIL import Image
 
 repo_dir_path = Path(__file__).parents[1]
 data_dir_path = repo_dir_path / "data"
+BLANK_LINES = re.compile(r"\n\s*\n+")
 MODELS_DIR_PATH = repo_dir_path / "tessdata"
 MODELS = [m.stem for m in MODELS_DIR_PATH.glob("*.traineddata")]
 MODELS.sort()
@@ -27,8 +29,10 @@ def get_timestamp(file_path):
         return str(file_path.stat().st_mtime)
 
 
-def convert_to_nfd(chars):
-    return unicodedata.normalize("NFD", chars)
+def normalize_for_scoring(text):
+    """NFD-normalize and collapse blank lines (paragraph breaks are layout, not content)."""
+    text = unicodedata.normalize("NFD", text)
+    return BLANK_LINES.sub("\n", text)
 
 
 def compare_text_files(truth_file, hypothesis_file):
@@ -36,10 +40,10 @@ def compare_text_files(truth_file, hypothesis_file):
     Calculate and return CER between two text files.
     """
     with open(truth_file) as t:
-        truth = convert_to_nfd(t.read())
+        truth = normalize_for_scoring(t.read())
 
     with open(hypothesis_file) as h:
-        hypothesis = convert_to_nfd(h.read())
+        hypothesis = normalize_for_scoring(h.read())
 
     cer_default_transform = jiwer.transforms.Compose(
         [

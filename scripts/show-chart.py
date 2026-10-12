@@ -319,7 +319,11 @@ class EvalCollection:
     def best_model(self, basis="pmcer"):
         """Return the best-performing model using the given basis."""
         basis = basis.lower()
-        return max(self.models, key=lambda x: getattr(x, basis))
+        if basis == "score":
+            best = max(self.models, key=lambda x: getattr(x, basis))
+        else:
+            best = min(self.models, key=lambda x: getattr(x, basis))
+        return best
 
     def chart_data(
         self,
