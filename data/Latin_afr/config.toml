@@ -122,6 +122,8 @@ punctuation = [
     # TODO: This compiled without much effort. Some chars could be missing.
     "!",
     '"',
+    "“",
+    "”",
     "'",
     "(",
     ")",
