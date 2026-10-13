@@ -1,12 +1,32 @@
 #!/usr/bin/env python3
 
-"""generate tesseract training data to fine tune the Latin script for use in African languages"""
+"""generate tesseract training data to fine tune the Latin script for use in African languages
+
+Each iteration renders one line of text as an image and saves it with its
+ground-truth text. A line is either:
+  - a real line from the file(s) given with --lines-file, e.g. the "<lang>.txt"
+    or "all.txt" output of extract-text-lines.py; or
+  - a pseudo-word line generated from the characters in
+    data/Latin_afr/config.toml (--line-length characters long).
+
+With --lines-file, --real-ratio of the images (default 0.75) use real lines and
+the rest use pseudo-words, which cover characters missing from the real texts.
+Real lines are used in file order, and each line is used once before any line
+repeats. Without --lines-file, every line is pseudo-words.
+
+Each line is drawn in a randomly chosen font family and style that has every
+character in it, so the image always matches its ground truth; a line that no
+allowed font can draw is skipped with a warning.
+"""
 
 # https://tesseract-ocr.github.io/tessdoc/tess5/TrainingTesseract-5.html
 # Generate training data for Tesseract:
 #   - data folder: "data/training/Latin_afr-ground-truth"
-#   - image files of individual lines of text: "img.tif|img.png"
-#   - text files of individual lines of text: "img.gt.txt"
+#   - image files of individual lines of text: "<name>.png" (or ".tif" with -t)
+#   - text files of individual lines of text: "<name>.gt.txt"
+#   - <name> is "<7-digit number>-<font>-<style>", e.g.
+#     "0000123-Charis_SIL_Compact-Bold_Italic"; numbering continues from the
+#     highest number already in the folder.
 
 import argparse
 import multiprocessing
@@ -776,7 +796,10 @@ def plan_real_lines(iterations, num_lines, ratio):
 
 
 def get_parsed_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument(
         "-c",
         "--combinations",
