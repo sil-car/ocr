@@ -35,8 +35,8 @@ def get_timestamp(file_path):
 def load_codepoint_map(config_file=CONFIG_FILE):
     """return a str.translate() table from [properties.codepoint_map]
 
-    Each key and value must be a single code point; anything else is a
-    config error, because a longer key would silently never match.
+    Each key must be a single code point (a longer key would silently never
+    match); each value is a single code point, or "" to delete the key.
     """
     try:
         with config_file.open("rb") as f:
@@ -46,9 +46,10 @@ def load_codepoint_map(config_file=CONFIG_FILE):
         sys.exit(1)
     table = {}
     for k, v in props.get("codepoint_map", {}).items():
-        if len(k) != 1 or len(v) != 1:
+        if len(k) != 1 or len(v) > 1:
             print(
-                "Error: codepoint_map entries must be single code points; got "
+                "Error: codepoint_map keys must be single code points and "
+                "values single code points or \"\"; got "
                 f"{k!r} = {v!r} in {config_file}",
                 file=sys.stderr,
             )

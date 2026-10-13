@@ -25,6 +25,11 @@ uses the same code points as the training and evaluation data.
 
 Output is deterministic for a given seed, arguments, codepoint map and source
 files, so the sources themselves never need to be committed anywhere public.
+
+With --report-unhandled, nothing is selected or written except
+unhandled.tsv and unhandled-by-language.tsv in OUT_DIR: an audit of the code
+points in the wrapped source lines that are outside the character inventory
+(see allowed_code_points), and how many lines a filter would drop.
 """
 
 import argparse
@@ -55,6 +60,9 @@ USFM_SKIP_MARKERS = {
 # su), glossary headwords (W), and numbered heading levels (\{1}, \{2}, ...).
 LEGACY_SKIP_MARKERS = {"st", "g", "G", "H", "U", "W", "z", "su", "y"}
 LEGACY_SKIP_RE = regex.compile(r"\\(?:P\d+p|\{\d+\})")
+# Plain-text exports (e.g. Paratext) wrap verse numbers in zero width spaces:
+# "\u200b5\u200bƐni ...". Also matches ranges and parts like 5-6, 5a.
+ZWSP_VERSE_RE = regex.compile(r"\u200b\d+[a-z]?(?:[-\u2013,]\d+[a-z]?)*\u200b")
 # Markers that start a new paragraph (line breaks happen there in print).
 # "\p[" / "\p(" are legacy paragraph markers followed by a bracket.
 USFM_PARA_MARKERS = r"p|m|pi\d?|mi|nb|q\d?|qr|qc|qm\d?|li\d?|pc|pr|pm|b"
@@ -65,23 +73,31 @@ CONFIG_FILE = Path(__file__).resolve().parents[1] / "data" / "Latin_afr" / "conf
 LANG_DIR_RE = regex.compile(r"^[a-z]{3}_[\w-]+$")
 
 
-def load_codepoint_map(config_file=CONFIG_FILE):
-    """return a str.translate() table from [properties.codepoint_map]
-
-    Each key and value must be a single code point; anything else is a
-    config error, because a longer key would silently never match.
-    """
+def load_properties(config_file=CONFIG_FILE):
+    """return the [properties] table of the repo's config.toml"""
     try:
         with config_file.open("rb") as f:
-            props = tomllib.load(f).get("properties", {})
+            return tomllib.load(f).get("properties", {})
     except FileNotFoundError:
         print(f"Error: config file not found: {config_file}", file=sys.stderr)
         sys.exit(1)
+
+
+PROPERTIES = load_properties()
+
+
+def load_codepoint_map(props=PROPERTIES, config_file=CONFIG_FILE):
+    """return a str.translate() table from [properties.codepoint_map]
+
+    Each key must be a single code point (a longer key would silently never
+    match); each value is a single code point, or "" to delete the key.
+    """
     table = {}
     for k, v in props.get("codepoint_map", {}).items():
-        if len(k) != 1 or len(v) != 1:
+        if len(k) != 1 or len(v) > 1:
             print(
-                "Error: codepoint_map entries must be single code points; got "
+                "Error: codepoint_map keys must be single code points and "
+                "values single code points or \"\"; got "
                 f"{k!r} = {v!r} in {config_file}",
                 file=sys.stderr,
             )
@@ -93,6 +109,38 @@ def load_codepoint_map(config_file=CONFIG_FILE):
 CODEPOINT_MAP = load_codepoint_map()
 
 
+def allowed_code_points(props=PROPERTIES):
+    """return the set of code points in the character inventory
+
+    The inventory is checked per code point (on NFD text), not per grapheme:
+    any listed diacritic may go on any listed letter, as on the keyboard, so
+    e.g. c + cedilla and s + dot below are allowed. It contains:
+      - consonants and vowels, and their upper-case forms
+      - top and bottom diacritics
+      - numbers, punctuation and space
+      - all printable ASCII (U+0020-U+007E)
+    """
+    allowed = {chr(cp) for cp in range(0x20, 0x7F)}
+    for c in props.get("consonants", []) + props.get("vowels", []):
+        allowed.add(c)
+        allowed.update(c.upper())
+    diacritics = props.get("diacritics", {})
+    allowed.update(diacritics.get("top", []))
+    allowed.update(diacritics.get("bottom", []))
+    for key in ("numbers", "punctuation", "space"):
+        allowed.update(props.get(key, []))
+    # Entries are meant to be single code points; split any that aren't.
+    return {cp for item in allowed for cp in unicodedata.normalize("NFD", item)}
+
+
+ALLOWED = allowed_code_points()
+
+
+def unhandled_code_points(line):
+    """return the code points of line (NFD) that are not in ALLOWED"""
+    return [c for c in unicodedata.normalize("NFD", line) if c not in ALLOWED]
+
+
 def nfc(s):
     """NFC, then look-alike code points replaced (CODEPOINT_MAP), then NFC
     again in case a replacement can combine with a following mark."""
@@ -101,8 +149,12 @@ def nfc(s):
 
 
 def codepoint_map_for_manifest():
-    """CODEPOINT_MAP as {"U+03B1": "U+0251"} for the JSON manifests."""
-    return {f"U+{k:04X}": f"U+{ord(v):04X}" for k, v in sorted(CODEPOINT_MAP.items())}
+    """CODEPOINT_MAP as {"U+03B1": "U+0251", "U+200B": ""} for the JSON
+    manifests ("" = deleted)."""
+    return {
+        f"U+{k:04X}": f"U+{ord(v):04X}" if v else ""
+        for k, v in sorted(CODEPOINT_MAP.items())
+    }
 
 
 def graphemes(s):
@@ -214,6 +266,9 @@ def read_sources(src_dir):
         data = p.read_bytes()
         hashes[str(p.relative_to(src_dir))] = hashlib.sha256(data).hexdigest()
         text = data.decode("utf-8-sig")
+        # Before parsing: the map later deletes the zero width spaces, which
+        # would leave the number stuck to the next word ("5Ɛni").
+        text = ZWSP_VERSE_RE.sub(" ", text)
         if p.suffix.lower() in USFM_SUFFIXES:
             paras.extend(usfm_paragraphs(text))
         else:
@@ -330,6 +385,76 @@ def select_lines(pool, n, rng, min_count, coverage_share, no_adjacent):
     return lines, counts, phase1, index
 
 
+# ---------------------------------------------------------------- audit
+
+
+def show_code_point(c):
+    """printable form of a code point; combining marks get a dotted circle"""
+    if unicodedata.combining(c):
+        return f"\u25cc{c}"
+    if c == " ":
+        return "\u2423"
+    if not c.isprintable():
+        return ""
+    return c
+
+
+def audit_pool(pool):
+    """return (lines checked, lines with unhandled code points, per code
+    point: [occurrences, lines, first example line])"""
+    checked = dropped = 0
+    per_cp = {}
+    for line in pool:
+        if not line:
+            continue
+        checked += 1
+        bad = unhandled_code_points(line)
+        if not bad:
+            continue
+        dropped += 1
+        for c, n in Counter(bad).items():
+            entry = per_cp.setdefault(c, [0, 0, line])
+            entry[0] += n
+            entry[1] += 1
+    return checked, dropped, per_cp
+
+
+def write_audit(out_dir, results):
+    """results: {lang: (checked, dropped, per_cp)}"""
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    rows = ["language\tpool_lines\tlines_with_unhandled\tshare"]
+    for lang, (checked, dropped, _) in sorted(results.items()):
+        share = dropped / checked if checked else 0
+        rows.append(f"{lang}\t{checked}\t{dropped}\t{share:.2%}")
+    (out_dir / "unhandled-by-language.tsv").write_text(
+        "\n".join(rows) + "\n", encoding="utf-8"
+    )
+
+    total = defaultdict(lambda: [0, 0])
+    by_lang = defaultdict(dict)
+    example = {}
+    for lang, (_, _, per_cp) in sorted(results.items()):
+        for c, (n, lines, ex) in per_cp.items():
+            total[c][0] += n
+            total[c][1] += lines
+            by_lang[c][lang] = lines
+            example.setdefault(c, ex)
+    rows = ["code_point\tchar\tname\tcount\tlines\tby_language\texample"]
+    for c in sorted(total, key=lambda x: (-total[x][1], x)):
+        n, lines = total[c]
+        langs = " ".join(
+            f"{lang.split('_')[0]}:{k}" for lang, k in sorted(by_lang[c].items())
+        )
+        name = unicodedata.name(c, "")
+        rows.append(
+            f"U+{ord(c):04X}\t{show_code_point(c)}\t{name}\t{n}\t{lines}"
+            f"\t{langs}\t{example[c]}"
+        )
+    (out_dir / "unhandled.tsv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    return total
+
+
 # ---------------------------------------------------------------- output
 
 
@@ -443,6 +568,10 @@ def main():
                     help='basename of the combined output files ["all"]')
     ap.add_argument("--allow-adjacent", action="store_true",
                     help="allow lines that follow each other in the source")
+    ap.add_argument("--report-unhandled", action="store_true",
+                    help="only audit code points outside the character inventory: "
+                         "write unhandled.tsv and unhandled-by-language.tsv to "
+                         "OUT_DIR, select nothing and leave other outputs alone")
     args = ap.parse_args()
 
     # Resolve language names up front and refuse to run if two source
@@ -469,7 +598,7 @@ def main():
             sys.exit(1)
         jobs[lang] = src
 
-    per_lang, pool_counts = {}, {}
+    per_lang, pool_counts, audit = {}, {}, {}
     for lang, src in jobs.items():
         print(f"{lang}:")
         # Per-language seed: adding a language never changes another's sample.
@@ -482,6 +611,12 @@ def main():
             continue
         pool = build_pool(paras, rng, args.min_width, args.max_width)
         available = sum(1 for l in pool if l)
+        if args.report_unhandled:
+            audit[lang] = audit_pool(pool)
+            checked, dropped, _ = audit[lang]
+            print(f"  {checked} lines in pool, {dropped} with unhandled code points "
+                  f"({dropped / checked:.1%})" if checked else "  0 lines in pool")
+            continue
         lines, counts, phase1, index = select_lines(
             pool, args.lines, rng, args.min_count,
             args.coverage_share, not args.allow_adjacent,
@@ -509,6 +644,20 @@ def main():
               f"({phase1} for coverage, {manifest['sampled_fraction']:.1%} of pool)")
         if low:
             print(f"  below {args.min_count}: {' '.join(low)}")
+
+    if args.report_unhandled:
+        if audit:
+            total = write_audit(args.out_dir, audit)
+            checked = sum(a[0] for a in audit.values())
+            dropped = sum(a[1] for a in audit.values())
+            print(f"all: {dropped} of {checked} lines with unhandled code points "
+                  f"({dropped / checked:.1%})" if checked else "all: no lines")
+            top = sorted(total, key=lambda c: -total[c][1])[:15]
+            if top:
+                print("  most lines: " + "  ".join(
+                    f"U+{ord(c):04X} {show_code_point(c)} ({total[c][1]})" for c in top))
+            print(f"  details: {args.out_dir / 'unhandled.tsv'}")
+        return
 
     if per_lang:
         lines, low = write_combined(

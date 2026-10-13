@@ -201,14 +201,15 @@ def show_character_combinations():
 def load_codepoint_map(properties):
     """return a str.translate() table from [properties.codepoint_map]
 
-    Each key and value must be a single code point; anything else is a
-    config error, because a longer key would silently never match.
+    Each key must be a single code point (a longer key would silently never
+    match); each value is a single code point, or "" to delete the key.
     """
     table = {}
     for k, v in properties.get("codepoint_map", {}).items():
-        if len(k) != 1 or len(v) != 1:
+        if len(k) != 1 or len(v) > 1:
             print(
-                "ERROR: codepoint_map entries must be single code points; got "
+                "ERROR: codepoint_map keys must be single code points and "
+                "values single code points or \"\"; got "
                 f"{k!r} = {v!r} in config.toml"
             )
             sys.exit(1)
