@@ -171,6 +171,18 @@ vowels = [
     "ʉ",
 ]
 
+[properties.codepoint_map]
+# Look-alike code points that are replaced with the standard form wherever
+# text comes in (real text lines, ground truth, OCR output for scoring), so
+# training and evaluation always use one code point per letter.
+# Keys and values are single code points; applied after NFC normalization.
+#
+# Alpha: the SIL Cameroon keyboard types lowercase alpha as Greek U+03B1, but
+# its capital as Latin U+2C6D. The Latin pair U+0251/U+2C6D is the standard
+# form here (Unicode/orthography standard; str.upper() pairs it correctly).
+"\u03b1" = "\u0251"  # Greek small alpha α -> Latin small alpha ɑ
+"\u0391" = "\u2c6d"  # Greek capital alpha Α -> Latin capital alpha Ɑ
+
 [properties.weights]
 # Define probabilities.
 # Base characters; should equal 100%,
