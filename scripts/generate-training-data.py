@@ -17,6 +17,10 @@ repeats. Without --lines-file, every line is pseudo-words.
 Each line is drawn in a randomly chosen font family and style that has every
 character in it, so the image always matches its ground truth; a line that no
 allowed font can draw is skipped with a warning.
+
+All text (real lines, --text and pseudo-words) is NFC-normalized, then
+look-alike code points are replaced with their standard form using
+[properties.codepoint_map] in config.toml (e.g. Greek alpha -> Latin alpha).
 """
 
 # https://tesseract-ocr.github.io/tessdoc/tess5/TrainingTesseract-5.html
@@ -192,6 +196,34 @@ def show_character_combinations():
     print(f"{num_cases}\tcases (upper/lower)")
     print("-" * 40)
     print(f"{combinations}\t total possible combinations")
+
+
+def load_codepoint_map(properties):
+    """return a str.translate() table from [properties.codepoint_map]
+
+    Each key and value must be a single code point; anything else is a
+    config error, because a longer key would silently never match.
+    """
+    table = {}
+    for k, v in properties.get("codepoint_map", {}).items():
+        if len(k) != 1 or len(v) != 1:
+            print(
+                "ERROR: codepoint_map entries must be single code points; got "
+                f"{k!r} = {v!r} in config.toml"
+            )
+            sys.exit(1)
+        table[ord(k)] = v
+    return table
+
+
+def normalize_text(text):
+    """return text in NFC with look-alike code points replaced (CODEPOINT_MAP)
+
+    NFC is applied again after replacing, in case a replacement can combine
+    with a following mark.
+    """
+    text = normalize("NFC", text).translate(CODEPOINT_MAP)
+    return normalize("NFC", text)
 
 
 def show_installed_fonts(fonts_dict):
@@ -741,7 +773,7 @@ def save_training_data_pair(gt_dir, name, txtdata, pngdata):
 
 
 def load_text_lines(paths):
-    """return NFC-normalized, non-blank lines from the given text files
+    """return normalized (see normalize_text), non-blank lines from the given text files
 
     Expects one text line per file line, e.g. the "<lang>.txt" or "all.txt"
     files written by extract-text-lines.py. Lines are kept in file order and
@@ -754,7 +786,7 @@ def load_text_lines(paths):
             sys.exit(1)
         n_before = len(lines)
         for line in p.read_text(encoding="utf-8-sig").splitlines():
-            line = normalize("NFC", line.strip())
+            line = normalize_text(line.strip())
             if line:
                 lines.append(line)
         if VERBOSE:
@@ -928,7 +960,7 @@ def run_iteration(iter_num):
         )
 
     # clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
-    text_line = normalize("NFC", text_line)
+    text_line = normalize_text(text_line)
     if VERBOSE:
         # print(f"INFO: start ({len(dirty_char_str)}): {dirty_char_str}")
         # print(f"INFO: bad:   {bad_chars}")
@@ -983,6 +1015,10 @@ def main():
     global PROPERTIES
     with (get_model_dir(WRITING_SYSTEM_NAME) / "config.toml").open('rb') as f:
         PROPERTIES = tomllib.load(f).get("properties")
+
+    # Set before the worker pool starts, so forked workers inherit it.
+    global CODEPOINT_MAP
+    CODEPOINT_MAP = load_codepoint_map(PROPERTIES)
 
     global CHARACTER_HEIGHT
     CHARACTER_HEIGHT = args.character_height

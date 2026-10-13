@@ -8,7 +8,7 @@ A perfect model has a pmCER of 0. Unlike a plain average, the power mean weighs 
 
 ### How the CER is calculated
 
-1. **Page:** each test image is OCR'd (`--psm 4`) and compared with its ground truth by `jiwer`. Both texts are NFD-normalized and blank lines are collapsed (paragraph breaks are layout, not content). CER = (S + D + I) / (S + D + H).
+1. **Page:** each test image is OCR'd (`--psm 4`) and compared with its ground truth by `jiwer`. In both texts, look-alike code points are first replaced with their standard form (`[properties.codepoint_map]` in [config.toml](data/Latin_afr/config.toml), e.g. Greek α → Latin ɑ), then the texts are NFD-normalized and blank lines are collapsed (paragraph breaks are layout, not content). CER = (S + D + I) / (S + D + H).
 2. **Document:** pages are grouped by the part of the file name before `-p` (e.g. `aye-pg02.png` and `aye-pg03.png` belong to document `aye`). The document CER is calculated over the summed errors and characters of all its pages, so longer pages count more.
 3. **Language:** the average of its documents' CERs.
 4. **Model:** the pmCER of its language CERs. The plain average of the language CERs is also available (`-b cer`).

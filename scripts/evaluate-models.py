@@ -4,6 +4,8 @@
 import csv
 import os
 import re
+import sys
+import tomllib
 import unicodedata
 from pathlib import Path
 
@@ -13,6 +15,7 @@ from PIL import Image
 
 repo_dir_path = Path(__file__).parents[1]
 data_dir_path = repo_dir_path / "data"
+CONFIG_FILE = data_dir_path / "Latin_afr" / "config.toml"
 BLANK_LINES = re.compile(r"\n\s*\n+")
 MODELS_DIR_PATH = repo_dir_path / "tessdata"
 MODELS = [m.stem for m in MODELS_DIR_PATH.glob("*.traineddata")]
@@ -29,8 +32,43 @@ def get_timestamp(file_path):
         return str(file_path.stat().st_mtime)
 
 
+def load_codepoint_map(config_file=CONFIG_FILE):
+    """return a str.translate() table from [properties.codepoint_map]
+
+    Each key and value must be a single code point; anything else is a
+    config error, because a longer key would silently never match.
+    """
+    try:
+        with config_file.open("rb") as f:
+            props = tomllib.load(f).get("properties", {})
+    except FileNotFoundError:
+        print(f"Error: config file not found: {config_file}", file=sys.stderr)
+        sys.exit(1)
+    table = {}
+    for k, v in props.get("codepoint_map", {}).items():
+        if len(k) != 1 or len(v) != 1:
+            print(
+                "Error: codepoint_map entries must be single code points; got "
+                f"{k!r} = {v!r} in {config_file}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        table[ord(k)] = v
+    return table
+
+
+CODEPOINT_MAP = load_codepoint_map()
+
+
 def normalize_for_scoring(text):
-    """NFD-normalize and collapse blank lines (paragraph breaks are layout, not content)."""
+    """Replace look-alike code points with their standard form (after NFC, so
+    precomposed characters are matched too), NFD-normalize, and collapse blank
+    lines (paragraph breaks are layout, not content).
+
+    Applied to both ground truth and OCR output, so e.g. a keyboard-typed Greek
+    alpha in the ground truth matches the model's Latin alpha.
+    """
+    text = unicodedata.normalize("NFC", text).translate(CODEPOINT_MAP)
     text = unicodedata.normalize("NFD", text)
     return BLANK_LINES.sub("\n", text)
 

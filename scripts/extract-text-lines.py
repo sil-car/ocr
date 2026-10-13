@@ -18,8 +18,13 @@ Across all languages it also writes:
                        per-language breakdown, flagged against --total-min-count
   all.json             manifest for the combined set
 
-Output is deterministic for a given seed, arguments and source files, so the
-sources themselves never need to be committed anywhere public.
+Text is NFC-normalized, then look-alike code points are replaced with their
+standard form using [properties.codepoint_map] in the repo's
+data/Latin_afr/config.toml (e.g. Greek alpha -> Latin alpha), so the output
+uses the same code points as the training and evaluation data.
+
+Output is deterministic for a given seed, arguments, codepoint map and source
+files, so the sources themselves never need to be committed anywhere public.
 """
 
 import argparse
@@ -27,6 +32,7 @@ import hashlib
 import json
 import random
 import sys
+import tomllib
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -53,12 +59,50 @@ LEGACY_SKIP_RE = regex.compile(r"\\(?:P\d+p|\{\d+\})")
 # "\p[" / "\p(" are legacy paragraph markers followed by a bracket.
 USFM_PARA_MARKERS = r"p|m|pi\d?|mi|nb|q\d?|qr|qc|qm\d?|li\d?|pc|pr|pm|b"
 MIN_LINE_CHARS = 10
+# The repo's config, found relative to this script (scripts/ -> repo root).
+CONFIG_FILE = Path(__file__).resolve().parents[1] / "data" / "Latin_afr" / "config.toml"
 # Language folder names follow the repo convention "iso_name", e.g. "gbp_gbeya".
 LANG_DIR_RE = regex.compile(r"^[a-z]{3}_[\w-]+$")
 
 
+def load_codepoint_map(config_file=CONFIG_FILE):
+    """return a str.translate() table from [properties.codepoint_map]
+
+    Each key and value must be a single code point; anything else is a
+    config error, because a longer key would silently never match.
+    """
+    try:
+        with config_file.open("rb") as f:
+            props = tomllib.load(f).get("properties", {})
+    except FileNotFoundError:
+        print(f"Error: config file not found: {config_file}", file=sys.stderr)
+        sys.exit(1)
+    table = {}
+    for k, v in props.get("codepoint_map", {}).items():
+        if len(k) != 1 or len(v) != 1:
+            print(
+                "Error: codepoint_map entries must be single code points; got "
+                f"{k!r} = {v!r} in {config_file}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        table[ord(k)] = v
+    return table
+
+
+CODEPOINT_MAP = load_codepoint_map()
+
+
 def nfc(s):
+    """NFC, then look-alike code points replaced (CODEPOINT_MAP), then NFC
+    again in case a replacement can combine with a following mark."""
+    s = unicodedata.normalize("NFC", s).translate(CODEPOINT_MAP)
     return unicodedata.normalize("NFC", s)
+
+
+def codepoint_map_for_manifest():
+    """CODEPOINT_MAP as {"U+03B1": "U+0251"} for the JSON manifests."""
+    return {f"U+{k:04X}": f"U+{ord(v):04X}" for k, v in sorted(CODEPOINT_MAP.items())}
 
 
 def graphemes(s):
@@ -353,6 +397,7 @@ def write_combined(out_dir, name, per_lang, pool_counts, seed, total_min):
         "lines": len(lines),
         "duplicates_removed": sum(len(ls) for ls in per_lang.values()) - len(lines),
         "total_min_count": total_min,
+        "codepoint_map": codepoint_map_for_manifest(),
         "low_non_ascii_graphemes": low,
     }
     (out_dir / f"{name}.json").write_text(
@@ -450,6 +495,7 @@ def main():
             "seed": seed,
             "args": {k: (str(v) if isinstance(v, Path) else v)
                      for k, v in vars(args).items() if k != "source_dir"},
+            "codepoint_map": codepoint_map_for_manifest(),
             "sources": hashes,
             "pool_lines": available,
             "selected_lines": len(lines),
