@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 import tomllib
+from functools import cache
 from pathlib import Path
 from unicodedata import normalize
 
@@ -501,21 +502,26 @@ def generate_text_line_pseudo_words(length=50):
     return text_line.rstrip()
 
 
-def remove_unknown_characters(chars, fontfile):
+@cache
+def font_codepoints(fontfile):
+    """return the set of Unicode code points the font file maps to glyphs
+
+    Combines all Unicode cmap subtables. The result is cached, so each font
+    file is read once per process; workers forked after a lookup in the main
+    process inherit its cache. A font that can't be read gives an empty set,
+    so it covers no text instead of appearing to cover everything.
+    """
     try:
-        font = TTFont(fontfile, fontNumber=0)
-    except Exception as e:  # noqa
-        # Ignore exception by returning original characters.
-        print(f"ERROR: file: {fontfile}; {e}")
-        return chars
-
-    def char_in_font(unicode_char, font):
+        font = TTFont(fontfile, fontNumber=0, lazy=True)
+        codepoints = set()
         for cmap in font["cmap"].tables:
-            if cmap.isUnicode() and ord(unicode_char) in cmap.cmap:
-                return True
-        return False
-
-    return "".join(c for c in chars if char_in_font(c, font))
+            if cmap.isUnicode():
+                codepoints.update(cmap.cmap)
+        font.close()
+    except Exception as e:  # noqa
+        print(f"ERROR: file: {fontfile}; {e}")
+        return frozenset()
+    return frozenset(codepoints)
 
 
 def generate_text_line_png(chars, fontfile):
@@ -552,8 +558,9 @@ def generate_text_line_png(chars, fontfile):
         image = image.filter(ImageFilter.GaussianBlur(px_radius))
         return image
 
-    # Remove chars not found in font.
-    chars = remove_unknown_characters(chars, fontfile)
+    # Characters are drawn exactly as given, so the image always matches the
+    # ground truth; run_iteration only passes fonts that cover every character
+    # (see choose_covering_font).
     # Create image using pillow.
     font = ImageFont.truetype(fontfile, size=CHARACTER_HEIGHT)
     # Define enough padding to avoid character overruns.
@@ -608,16 +615,61 @@ def generate_text2image_data_pair(basedir, filename, chars, fontname, fontstyle)
         subprocess.run(cmd, check=False)
 
 
-def choose_font_family(desired_fonts, system_fonts):
-    """Choose font family randomly from desired_fonts that are also installed."""
-    fonts = desired_fonts.copy()
-    while fonts:
-        idx = get_random_index(len(fonts))
-        font_family = fonts.pop(idx)
-        if font_family in system_fonts:
+def weighted_order(items, weights):
+    """return items in a random order, drawing without replacement by weight"""
+    items, weights = list(items), list(weights)
+    order = []
+    while items:
+        i = get_weighted_index(weights)
+        order.append(items.pop(i))
+        weights.pop(i)
+    return order
+
+
+def choose_covering_font(text):
+    """choose a font family and style that can draw every character of text
+
+    Returns (family, style, fontfile, missing). The first family and style
+    are drawn exactly as before: a uniformly random installed family (or the
+    one given with --font), then a style by weight. Only if that font file
+    lacks a character in text are the family's other styles tried, then the
+    other families. If nothing fits, fontfile is None and missing is the set
+    of characters that none of the tried fonts has (empty if each character
+    is in some font but no single font has them all), or None if there were
+    no installed fonts to try.
+    """
+    style_weights = {
+        "Bold": 0.2,
+        "Italic": 0.2,
+        "Bold Italic": 0.1,
+    }
+    if FORCED_FONT:
+        families = [FORCED_FONT] if FORCED_FONT in SYSTEM_FONTS else []
+    else:
+        families = [f for f in PROPERTIES.get("fonts") if f in SYSTEM_FONTS]
+        random.shuffle(families)
+
+    needed = {ord(c) for c in text}
+    covered = set()
+    tried_any = False
+    for family in families:
+        # Only styles that are both wanted and installed for this family.
+        styles = [s for s in PROPERTIES.get("styles") if s in SYSTEM_FONTS[family]]
+        # One weight per style (default 1.0); weights for styles not in
+        # config.toml are ignored (same IndexError risk as in get_character).
+        weights = [style_weights.get(s, 1) for s in styles]
+        for style in weighted_order(styles, weights):
+            fontfile = SYSTEM_FONTS[family][style]
+            codepoints = font_codepoints(fontfile)
+            tried_any = True
+            if needed <= codepoints:
+                return family, style, fontfile, set()
             if VERBOSE:
-                print(f"INFO: {font_family=}")
-            return font_family
+                print(f"INFO: {family} {style} lacks some characters; trying another")
+            covered |= codepoints
+    if not tried_any:
+        return None, None, None, None
+    return None, None, None, {chr(cp) for cp in needed - covered}
 
 
 def verify_fonts(needed_fonts, installed_fonts):
@@ -806,22 +858,7 @@ def run_iteration(iter_num):
     if VERBOSE:
         print(f"INFO: Iteration: {iter_num}")
 
-    # Choose font family.
-    font_families = PROPERTIES.get("fonts")
-    if FORCED_FONT:
-        if FORCED_FONT in font_families:
-            font_fam = FORCED_FONT
-        else:
-            print(
-                f"ERROR: Font not installed: {FORCED_FONT}; skipping iteration: {iter_num}"
-            )
-            return
-    else:
-        font_fam = choose_font_family(font_families, SYSTEM_FONTS)
-    if not font_fam:
-        print(f"ERROR: No valid font found; skipping iteration: {iter_num}")
-        return
-
+    # Choose the text first, so that the font can be chosen to cover it.
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
     if FORCED_TEXT:
         text_line = FORCED_TEXT
@@ -848,33 +885,30 @@ def run_iteration(iter_num):
         print(f"INFO: text: ({len(text_line)}): {text_line}")
         print(f"INFO: {b''.join([c.encode('unicode-escape') for c in text_line])}")
 
-    # Choose font style.
-    fontfile = None
-    styles = PROPERTIES.get("styles")
-    style_weights = {
-        "Bold": 0.2,
-        "Italic": 0.2,
-        "Bold Italic": 0.1,
-    }
-    # One weight per entry in styles (default 1.0); weights for styles not in
-    # config.toml are ignored (same IndexError risk as in get_character).
-    weights = [style_weights.get(s, 1) for s in styles]
-    tried = set()
-    while not fontfile and len(tried) != len(styles):
-        # n = get_random_index(len(styles))
-        n = get_weighted_index(weights)
-        tried.add(n)
-        font_sty = styles[n]
-        if VERBOSE:
-            print(f"INFO: {font_sty}")
-        # if args.verbose and fontfile is not None:
-        #     print(f"INFO: No font file found; skipping font style: {font_fam} {font_sty}")
-        fontfile = SYSTEM_FONTS.get(font_fam).get(font_sty)
-    if not fontfile:
+    # Choose a font family and style whose font file covers every character.
+    if FORCED_FONT and FORCED_FONT not in PROPERTIES.get("fonts"):
         print(
-            f'WARNING: "{font_fam}" doesn\'t have any matching font styles; skipping.'
+            f"ERROR: Font not installed: {FORCED_FONT}; skipping iteration: {iter_num}"
         )
         return
+    font_fam, font_sty, fontfile, missing = choose_covering_font(text_line)
+    if not fontfile:
+        if missing is None:
+            print(f"ERROR: No valid font found; skipping iteration: {iter_num}")
+        elif missing:
+            chars = " ".join(f"{c} (U+{ord(c):04X})" for c in sorted(missing))
+            print(
+                f"WARNING: no allowed font has {chars}; skipping iteration: {iter_num}"
+            )
+        else:
+            print(
+                "WARNING: no single allowed font covers all characters of the "
+                f"line; skipping iteration: {iter_num}"
+            )
+        return
+    if VERBOSE:
+        print(f"INFO: {font_fam=}")
+        print(f"INFO: {font_sty}")
 
     # Generate files.
     filename = set_data_filename(font_fam, font_sty)
