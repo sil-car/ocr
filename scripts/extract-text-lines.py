@@ -102,9 +102,7 @@ def skip_unit(unit):
         return True
     # Legacy typesetter notes (English picture descriptions, "End of Tape
     # Three Side One^"): marked with {[}o{]} or ending in "^".
-    if "{[}o{]}" in unit or regex.search(r"\^\s*$", unit):
-        return True
-    return False
+    return "{[}o{]}" in unit or regex.search(r"\^\s*$", unit)
 
 
 def legacy_cleanup(t):
