@@ -813,7 +813,7 @@ def get_parsed_args():
         "--line-length",
         type=int,
         default=DEFAULT_LINE_LENGTH,
-        help=f"number of characters per generated line of text [{DEFAULT_LINE_LENGTH}]",
+        help=f"number of characters per generated pseudo-word line; real lines from --lines-file keep their own length [{DEFAULT_LINE_LENGTH}]",
     )
     parser.add_argument(
         "-l",
