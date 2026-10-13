@@ -6,6 +6,7 @@ There are several factors considered when preparing and running the training:
 - precise list of unicode characters used
 - whether to normalize to NFC or NFD
 - character generation type (random, weighted by frequency, pseudo-word, etc.)
+- share of real text lines vs. generated pseudo-word lines
 - adjusting character frequency to match "real world" data
 - text line length (in characters)
 - number of fonts and font styles used
@@ -53,17 +54,30 @@ At first it was assumed that simply generating random combinations of valid char
 
 Then character selection was made based on a weighting system that attempted to mimic real-world rates of the various types of characters.
 
-Currently, a "pseudo-word" generation method is used. This assumes a CVCV word structure with varied word lengths, diacritics occasionally added over or below vowels, and diacritics rarely added over consonants.
+Then a "pseudo-word" generation method was introduced. This assumes a CVCV word structure with varied word lengths, diacritics occasionally added over or below vowels, and diacritics rarely added over consonants.
+
+Currently, real text lines can be mixed in with the pseudo-word lines. The real lines can be extracted from text files and sampled by `scripts/extract-text-lines.py`, which balances the sample so that rare non-ASCII characters are well represented. The source texts stay outside the repo; only the selected lines are needed.
+
+Pass the extracted lines with `-l/--lines-file` (it can be given more than once). By default 75% of the images use real lines (`-R/--real-ratio`) and the rest use pseudo-words, because many characters in the character list don't occur in the real texts. Real lines are used in file order, and each line is used once before any line repeats; each repeat gets a new random font, style and degradation. Without `--lines-file`, every line is pseudo-words, as before.
+
+Each line is drawn only in a font that has every character in it, so an image always matches its ground truth text. If no allowed font can draw a line, that iteration is skipped with a warning naming the missing characters.
 
 ### Generating the training data
 Corresponding text line images and ground truth text files will be created.
 ```
 (env) $ ./scripts/generate-training-data.py -i 500 # more likely over 100_000
 ```
+To mix in real text lines (see above):
+```
+(env) $ ./scripts/generate-training-data.py -i 200000 -l ~/ocr-data/lines/all.txt
+```
+Files are named `<7-digit number>-<font>-<style>`, e.g. `0000123-Charis_SIL_Compact-Bold_Italic.png` and `.gt.txt`, so they sort in the order they were created. A second run into the same folder continues the numbering.
 
 ### Image line length
 
-The length of each text line in the generated images is set to 75. It's not clear if changing this value would have any effect on the model's training. It was chosen to roughly match real-world line lengths.
+The length of each generated pseudo-word line is set to 75 characters (`-L/--line-length`). It's not clear if changing this value would have any effect on the model's training. It was chosen to roughly match real-world line lengths.
+
+Real text lines keep the lengths they were given by `scripts/extract-text-lines.py`, which wraps each paragraph at a random width between 35 and 75 graphemes (`--min-width`/`--max-width`), to give the mix of line lengths found in real columns and pages.
 
 ### Image height
 
