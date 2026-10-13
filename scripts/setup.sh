@@ -57,11 +57,24 @@ fi
 echo "Copying user fonts..."
 cp -fr "${repo_dir}/data/extra-fonts/"* "$dest_dir"
 
+# Get OCR docs repo.
+repo="ocr-example-docs"
+if [[ ! -d ${HOME}/${repo}/.git ]]; then
+    echo "Getting \"${repo}\" repository..."
+    if [[ -z $OCR_PAT ]]; then
+        read -p "GH PAT for $repo repo: " OCR_PAT
+    fi
+    rm -rf ${HOME}/${repo}/
+    git clone --depth=1 "https://oauth2:${OCR_PAT}github.com/sil-car/${repo}.git"
+fi
+unset OCR_PAT
+
 # Get tesstrain repo.
-if [[ ! -d $HOME/tesstrain/.git ]]; then
-    echo "Getting \"tesstrain\" repository..."
-    rm -rf $HOME/tesstrain/
-    git clone --depth=1 "https://github.com/tesseract-ocr/tesstrain.git"
+repo="tesstrain"
+if [[ ! -d ${HOME}/${repo}/.git ]]; then
+    echo "Getting \"${repo}\" repository..."
+    rm -rf ${HOME}/${repo}/
+    git clone --depth=1 "https://github.com/tesseract-ocr/${repo}.git"
 fi
 
 # Get & install tesseract build.
