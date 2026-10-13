@@ -11,10 +11,10 @@
 import argparse
 import multiprocessing
 import random
+import re
 import subprocess
 import sys
 import tempfile
-import time
 import tomllib
 from functools import cache
 from pathlib import Path
@@ -33,6 +33,10 @@ DEFAULT_LINE_LENGTH = 75
 # Keep some pseudo-word lines even when real text is given: many characters
 # and diacritic combinations are known to be missing from the real texts.
 DEFAULT_REAL_RATIO = 0.75
+# Ground-truth files are named "<number>-<font>-<style>"; 7 digits sort
+# correctly up to 9,999,999 files (names stay unique beyond that).
+FILE_NUMBER_DIGITS = 7
+FILE_NUMBER_RE = re.compile(rf"^(\d{{{FILE_NUMBER_DIGITS}}})-")
 CORE_FONTS = [
     "Andika",
     "Andika Compact",
@@ -251,8 +255,31 @@ def get_random_char_type(options):
     return char_type
 
 
-def set_data_filename(fontname, fontstyle):
-    return f"{time.time()}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
+def get_next_file_number(gt_dir):
+    """return the number after the highest numbered file in gt_dir, or 0
+
+    Only names starting with FILE_NUMBER_DIGITS digits and a hyphen count, so
+    older time-based names (e.g. "1791881323.028-...") are ignored.
+    """
+    if not gt_dir.is_dir():
+        return 0
+    numbers = [
+        int(m.group(1))
+        for p in gt_dir.iterdir()
+        if (m := FILE_NUMBER_RE.match(p.name))
+    ]
+    return max(numbers) + 1 if numbers else 0
+
+
+def set_data_filename(iter_num, fontname, fontstyle):
+    """return a unique base name that sorts in the order files were planned
+
+    The zero-padded number makes names unique across worker processes and
+    across runs into the same folder (numbering continues from the highest
+    existing file; see get_next_file_number).
+    """
+    number = f"{FIRST_FILE_NUMBER + iter_num:0{FILE_NUMBER_DIGITS}d}"
+    return f"{number}-{fontname.replace(' ', '_')}-{fontstyle.replace(' ', '_')}"
 
 
 def generate_text_line(length=50, method="random-chars"):
@@ -911,7 +938,7 @@ def run_iteration(iter_num):
         print(f"INFO: {font_sty}")
 
     # Generate files.
-    filename = set_data_filename(font_fam, font_sty)
+    filename = set_data_filename(iter_num, font_fam, font_sty)
     if VERBOSE:
         print(f"INFO: base name: {filename}")
     if USE_TEXT2IMAGE:
@@ -996,6 +1023,13 @@ def main():
 
     # Ensure training fonts are installed.
     # verify_fonts(CHAR_VARS.get("fonts"), SYSTEM_FONTS)
+
+    # Continue file numbering after any files already in the folder, so a
+    # second run into the same folder doesn't overwrite the first.
+    global FIRST_FILE_NUMBER
+    FIRST_FILE_NUMBER = get_next_file_number(GROUND_TRUTH_DIR)
+    if FIRST_FILE_NUMBER and not SIMULATE:
+        print(f"INFO: Numbering new files from {FIRST_FILE_NUMBER:0{FILE_NUMBER_DIGITS}d}.")
 
     # Load real text lines once, before the worker pool starts, so that
     # forked workers inherit them instead of re-reading the files.
