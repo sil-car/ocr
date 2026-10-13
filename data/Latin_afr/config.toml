@@ -33,11 +33,12 @@ consonants = [
     "y",
     "z",
     "ɓ",
+    "ƴ",  # \u01b4: y with hook
     "ɗ",  # \u0257: latin lowercase d with hook; \u018a: latin captial d with hook
+    "ʼ",  # \u02bc: modifier apostrophe
     "ŋ",
     "ẅ",
     "ꞌ",  # \ua78c: lowercase saltillo; \ua78b: capital saltillo
-    "ʼ",  # \u02bc: modifier apostrophe
 ]
 
 diacritics.bottom = [
@@ -168,7 +169,6 @@ vowels = [
     "ø",
     "œ",
     "ʉ",
-    "ƴ",  # \u01b4: y with hook
 ]
 
 [properties.weights]
