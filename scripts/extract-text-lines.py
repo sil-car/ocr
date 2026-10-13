@@ -26,6 +26,11 @@ uses the same code points as the training and evaluation data.
 Output is deterministic for a given seed, arguments, codepoint map and source
 files, so the sources themselves never need to be committed anywhere public.
 
+Wrapped lines containing a code point outside the character inventory (see
+allowed_code_points) are dropped before selection, so every selected line can
+be used for training; the counts are printed and recorded in the manifests.
+--keep-unhandled turns this off.
+
 With --report-unhandled, nothing is selected or written except
 unhandled.tsv and unhandled-by-language.tsv in OUT_DIR: an audit of the code
 points in the wrapped source lines that are outside the character inventory
@@ -297,10 +302,15 @@ def wrap_paragraph(para, rng, min_w, max_w):
     return lines
 
 
-def build_pool(paras, rng, min_w, max_w):
+def build_pool(paras, rng, min_w, max_w, filter_unhandled=True):
     """Wrap all paragraphs; keep the stream order (needed for adjacency
-    checks), drop short and duplicate lines."""
+    checks), drop short and duplicate lines, and (if filter_unhandled) lines
+    with code points outside the character inventory.
+
+    Returns (pool, number of lines dropped as unhandled, Counter of
+    unhandled code point -> lines dropped that contain it)."""
     pool, seen = [], set()
+    unhandled_lines, unhandled_cps = 0, Counter()
     for para in paras:
         for line in wrap_paragraph(para, rng, min_w, max_w):
             if len(line) < MIN_LINE_CHARS or line in seen:
@@ -309,9 +319,16 @@ def build_pool(paras, rng, min_w, max_w):
             if not any(ch.isalpha() for ch in line):
                 pool.append(None)
                 continue
+            if filter_unhandled:
+                bad = set(unhandled_code_points(line))
+                if bad:
+                    unhandled_lines += 1
+                    unhandled_cps.update(bad)
+                    pool.append(None)
+                    continue
             seen.add(line)
             pool.append(line)
-    return pool
+    return pool, unhandled_lines, unhandled_cps
 
 
 # ---------------------------------------------------------------- selection
@@ -476,9 +493,18 @@ def write_outputs(out_dir, lang, lines, counts, index, min_count, manifest):
     )
 
 
-def write_combined(out_dir, name, per_lang, pool_counts, seed, total_min):
+def unhandled_for_manifest(cps):
+    """Counter of code point -> lines as {"U+2013": 12}, most lines first."""
+    return {f"U+{ord(c):04X}": n for c, n in sorted(cps.items(), key=lambda x: (-x[1], x[0]))}
+
+
+def write_combined(out_dir, name, per_lang, pool_counts, seed, total_min,
+                   unhandled=None):
     """per_lang: {lang: list of selected lines}; pool_counts: {lang: Counter
-    of graphemes in that language's whole source pool}."""
+    of graphemes in that language's whole source pool}; unhandled: {lang:
+    (lines dropped as unhandled, Counter of code point -> lines)}."""
+    unhandled = unhandled or {}
+    unhandled_cps = sum((u[1] for u in unhandled.values()), Counter())
     rng = random.Random(f"{seed}:{name}")
     lines, seen = [], set()
     for lang in sorted(per_lang):
@@ -523,6 +549,8 @@ def write_combined(out_dir, name, per_lang, pool_counts, seed, total_min):
         "duplicates_removed": sum(len(ls) for ls in per_lang.values()) - len(lines),
         "total_min_count": total_min,
         "codepoint_map": codepoint_map_for_manifest(),
+        "unhandled_lines_dropped": sum(u[0] for u in unhandled.values()),
+        "unhandled_code_points": unhandled_for_manifest(unhandled_cps),
         "low_non_ascii_graphemes": low,
     }
     (out_dir / f"{name}.json").write_text(
@@ -568,6 +596,9 @@ def main():
                     help='basename of the combined output files ["all"]')
     ap.add_argument("--allow-adjacent", action="store_true",
                     help="allow lines that follow each other in the source")
+    ap.add_argument("--keep-unhandled", action="store_true",
+                    help="keep lines with code points outside the character "
+                         "inventory (by default they are dropped)")
     ap.add_argument("--report-unhandled", action="store_true",
                     help="only audit code points outside the character inventory: "
                          "write unhandled.tsv and unhandled-by-language.tsv to "
@@ -598,7 +629,7 @@ def main():
             sys.exit(1)
         jobs[lang] = src
 
-    per_lang, pool_counts, audit = {}, {}, {}
+    per_lang, pool_counts, audit, unhandled = {}, {}, {}, {}
     for lang, src in jobs.items():
         print(f"{lang}:")
         # Per-language seed: adding a language never changes another's sample.
@@ -609,7 +640,11 @@ def main():
         if not paras:
             print("  no text found; skipping", file=sys.stderr)
             continue
-        pool = build_pool(paras, rng, args.min_width, args.max_width)
+        # The audit needs the unfiltered pool, so it never filters.
+        pool, n_unhandled, unhandled_cps = build_pool(
+            paras, rng, args.min_width, args.max_width,
+            filter_unhandled=not (args.keep_unhandled or args.report_unhandled),
+        )
         available = sum(1 for l in pool if l)
         if args.report_unhandled:
             audit[lang] = audit_pool(pool)
@@ -623,6 +658,7 @@ def main():
         )
         low = sorted(g for g in index if counts[g] < args.min_count)
         per_lang[lang] = lines
+        unhandled[lang] = (n_unhandled, unhandled_cps)
         pool_counts[lang] = Counter(g for l in pool if l for g in graphemes(l))
 
         manifest = {
@@ -633,6 +669,8 @@ def main():
             "codepoint_map": codepoint_map_for_manifest(),
             "sources": hashes,
             "pool_lines": available,
+            "unhandled_lines_dropped": n_unhandled,
+            "unhandled_code_points": unhandled_for_manifest(unhandled_cps),
             "selected_lines": len(lines),
             "coverage_lines": phase1,
             "sampled_fraction": round(len(lines) / available, 4),
@@ -642,6 +680,12 @@ def main():
                       args.min_count, manifest)
         print(f"  {available} lines in pool, {len(lines)} selected "
               f"({phase1} for coverage, {manifest['sampled_fraction']:.1%} of pool)")
+        if n_unhandled:
+            top = "  ".join(
+                f"U+{ord(c):04X} {show_code_point(c)} ({n})"
+                for c, n in unhandled_cps.most_common(5)
+            )
+            print(f"  {n_unhandled} lines dropped for unhandled code points: {top}")
         if low:
             print(f"  below {args.min_count}: {' '.join(low)}")
 
@@ -662,7 +706,7 @@ def main():
     if per_lang:
         lines, low = write_combined(
             args.out_dir, args.combined_name, per_lang, pool_counts,
-            args.seed, args.total_min_count,
+            args.seed, args.total_min_count, unhandled,
         )
         print(f"{args.combined_name}: {len(lines)} lines from {len(per_lang)} languages")
         if low:

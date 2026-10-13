@@ -21,6 +21,8 @@ allowed font can draw is skipped with a warning.
 All text (real lines, --text and pseudo-words) is NFC-normalized, then
 look-alike code points are replaced with their standard form using
 [properties.codepoint_map] in config.toml (e.g. Greek alpha -> Latin alpha).
+Real lines with a code point outside the character inventory (see
+allowed_code_points) are skipped with one summary warning.
 """
 
 # https://tesseract-ocr.github.io/tessdoc/tess5/TrainingTesseract-5.html
@@ -215,6 +217,35 @@ def load_codepoint_map(properties):
             sys.exit(1)
         table[ord(k)] = v
     return table
+
+
+def allowed_code_points(properties):
+    """return the set of code points in the character inventory
+
+    Must match allowed_code_points() in extract-text-lines.py. Checked per
+    code point (on NFD text), not per grapheme: any listed diacritic may go on
+    any listed letter, as on the keyboard. It contains:
+      - consonants and vowels, and their upper-case forms
+      - top and bottom diacritics
+      - numbers, punctuation and space
+      - all printable ASCII (U+0020-U+007E)
+    """
+    allowed = {chr(cp) for cp in range(0x20, 0x7F)}
+    for c in properties.get("consonants", []) + properties.get("vowels", []):
+        allowed.add(c)
+        allowed.update(c.upper())
+    diacritics = properties.get("diacritics", {})
+    allowed.update(diacritics.get("top", []))
+    allowed.update(diacritics.get("bottom", []))
+    for key in ("numbers", "punctuation", "space"):
+        allowed.update(properties.get(key, []))
+    # Entries are meant to be single code points; split any that aren't.
+    return {cp for item in allowed for cp in normalize("NFD", item)}
+
+
+def unhandled_code_points(line):
+    """return the set of code points of line (NFD) that are not in ALLOWED"""
+    return {c for c in normalize("NFD", line) if c not in ALLOWED}
 
 
 def normalize_text(text):
@@ -778,9 +809,12 @@ def load_text_lines(paths):
 
     Expects one text line per file line, e.g. the "<lang>.txt" or "all.txt"
     files written by extract-text-lines.py. Lines are kept in file order and
-    are not de-duplicated, so giving a file twice doubles its weight.
+    are not de-duplicated, so giving a file twice doubles its weight. Lines
+    with code points outside the character inventory are skipped, with one
+    warning for all of them.
     """
     lines = []
+    skipped, skipped_cps = 0, {}
     for p in paths:
         if not p.is_file():
             print(f"ERROR: Lines file not found: {p}")
@@ -788,10 +822,24 @@ def load_text_lines(paths):
         n_before = len(lines)
         for line in p.read_text(encoding="utf-8-sig").splitlines():
             line = normalize_text(line.strip())
-            if line:
-                lines.append(line)
+            if not line:
+                continue
+            bad = unhandled_code_points(line)
+            if bad:
+                skipped += 1
+                for c in bad:
+                    skipped_cps[c] = skipped_cps.get(c, 0) + 1
+                continue
+            lines.append(line)
         if VERBOSE:
             print(f"INFO: {len(lines) - n_before} lines loaded from {p}")
+    if skipped:
+        top = sorted(skipped_cps.items(), key=lambda x: (-x[1], x[0]))
+        shown = "  ".join(f"U+{ord(c):04X} ({n})" for c, n in top[:10])
+        print(
+            f"WARNING: skipped {skipped} real lines with code points outside "
+            f"the character inventory: {shown}"
+        )
     if not lines:
         print("ERROR: No text lines found in the given lines file(s).")
         sys.exit(1)
@@ -1020,6 +1068,9 @@ def main():
     # Set before the worker pool starts, so forked workers inherit it.
     global CODEPOINT_MAP
     CODEPOINT_MAP = load_codepoint_map(PROPERTIES)
+
+    global ALLOWED
+    ALLOWED = allowed_code_points(PROPERTIES)
 
     global CHARACTER_HEIGHT
     CHARACTER_HEIGHT = args.character_height
