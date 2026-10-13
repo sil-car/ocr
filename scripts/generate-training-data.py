@@ -638,6 +638,31 @@ def save_training_data_pair(gt_dir, name, txtdata, pngdata):
     pngdata.save(pngfile)
 
 
+def load_text_lines(paths):
+    """return NFC-normalized, non-blank lines from the given text files
+
+    Expects one text line per file line, e.g. the "<lang>.txt" or "all.txt"
+    files written by extract-text-lines.py. Lines are kept in file order and
+    are not de-duplicated, so giving a file twice doubles its weight.
+    """
+    lines = []
+    for p in paths:
+        if not p.is_file():
+            print(f"ERROR: Lines file not found: {p}")
+            sys.exit(1)
+        n_before = len(lines)
+        for line in p.read_text(encoding="utf-8-sig").splitlines():
+            line = normalize("NFC", line.strip())
+            if line:
+                lines.append(line)
+        if VERBOSE:
+            print(f"INFO: {len(lines) - n_before} lines loaded from {p}")
+    if not lines:
+        print("ERROR: No text lines found in the given lines file(s).")
+        sys.exit(1)
+    return lines
+
+
 def get_parsed_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -704,6 +729,14 @@ def get_parsed_args():
         type=int,
         default=DEFAULT_LINE_LENGTH,
         help=f"number of characters per generated line of text [{DEFAULT_LINE_LENGTH}]",
+    )
+    parser.add_argument(
+        "-l",
+        "--lines-file",
+        type=Path,
+        action="append",
+        metavar="FILE",
+        help="text file with one line of real text per line, e.g. from extract-text-lines.py; can be given more than once",
     )
     parser.add_argument(
         "-n",
@@ -878,6 +911,13 @@ def main():
 
     # Ensure training fonts are installed.
     # verify_fonts(CHAR_VARS.get("fonts"), SYSTEM_FONTS)
+
+    # Load real text lines once, before the worker pool starts, so that
+    # forked workers inherit them instead of re-reading the files.
+    global REAL_LINES
+    REAL_LINES = load_text_lines(args.lines_file) if args.lines_file else []
+    if REAL_LINES:
+        print(f"INFO: {len(REAL_LINES)} real text lines loaded.")
 
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
