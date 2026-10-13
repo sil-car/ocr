@@ -29,6 +29,9 @@ DEFAULT_CHARACTER_HEIGHT = 48
 DEFAULT_DEGRADED_IMAGE_PROBABILITY = 1.0
 DEFAULT_ITERATIONS = 1
 DEFAULT_LINE_LENGTH = 75
+# Keep some pseudo-word lines even when real text is given: many characters
+# and diacritic combinations are known to be missing from the real texts.
+DEFAULT_REAL_RATIO = 0.75
 CORE_FONTS = [
     "Andika",
     "Andika Compact",
@@ -410,7 +413,6 @@ def get_character(char_type):
             "æ": 0.06,
             "ɑ": 0.02,
             "ə": 0.10,
-            "ı": 0.09,
             "ɨ": 0.10,
             "ɔ": 0.11,
             "ø": 0.08,
@@ -419,12 +421,13 @@ def get_character(char_type):
         },
     }
     char_opts = PROPERTIES.get(char_type)
-    # Define character weights (default to 1).
-    weights = {c: 1 for c in char_opts}
-    # Update with adjusted character weights.
-    for c, w in char_weights.get(char_type, {}).items():
-        weights[c] = w
-    return char_opts[get_weighted_index(weights.values())]
+    # One weight per entry in char_opts (default 1.0). Weights for characters
+    # not in config.toml are ignored; adding them as extra entries made the
+    # weight list longer than char_opts, which caused an IndexError whenever
+    # one of those extra entries was picked.
+    adjusted = char_weights.get(char_type, {})
+    weights = [adjusted.get(c, 1) for c in char_opts]
+    return random.choices(char_opts, weights=weights)[0]
 
 
 def set_case(char, char_type):
@@ -663,6 +666,36 @@ def load_text_lines(paths):
     return lines
 
 
+def plan_real_lines(iterations, num_lines, ratio):
+    """return a list giving, for each iteration, a real line index or None
+
+    Exactly round(iterations * ratio) iterations get a real line; which
+    iterations those are is random, so real and pseudo-word lines are mixed
+    throughout the run. Real lines are handed out in file order, cycling
+    back to the start only after every line has been used once, so the
+    coverage balance from extract-text-lines.py is kept. Each repeat of a
+    line gets its own randomly chosen font, style and degradations.
+    """
+    plan = [None] * iterations
+    if not num_lines or ratio <= 0:
+        return plan
+    num_real = round(iterations * ratio)
+    for k, i in enumerate(sorted(random.sample(range(iterations), num_real))):
+        plan[i] = k % num_lines
+
+    passes = num_real / num_lines
+    print(
+        f"INFO: {num_real} of {iterations} images will use real lines "
+        f"({passes:.2f} passes through {num_lines} lines)."
+    )
+    if num_real < num_lines:
+        print(
+            f"WARNING: only {num_real} of {num_lines} real lines will be used; "
+            "raise -i or --real-ratio to use them all."
+        )
+    return plan
+
+
 def get_parsed_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -739,6 +772,13 @@ def get_parsed_args():
         help="text file with one line of real text per line, e.g. from extract-text-lines.py; can be given more than once",
     )
     parser.add_argument(
+        "-R",
+        "--real-ratio",
+        type=float,
+        default=DEFAULT_REAL_RATIO,
+        help=f"share of lines taken from --lines-file instead of generated as pseudo-words; ignored without --lines-file [{DEFAULT_REAL_RATIO}]",
+    )
+    parser.add_argument(
         "-n",
         "--simulate",
         action="store_true",
@@ -785,7 +825,14 @@ def run_iteration(iter_num):
     # Remove any 'bad_chars' items from 'dirty_char_str' to create clean 'char_line'.
     if FORCED_TEXT:
         text_line = FORCED_TEXT
+    elif REAL_LINE_PLAN[iter_num] is not None:
+        line_idx = REAL_LINE_PLAN[iter_num]
+        text_line = REAL_LINES[line_idx]
+        if VERBOSE:
+            print(f"INFO: source: real line {line_idx}")
     else:
+        if VERBOSE and REAL_LINES:
+            print("INFO: source: pseudo-words")
         text_line = generate_text_line(
             length=LINE_LENGTH,
             # method="random-chars",
@@ -809,15 +856,13 @@ def run_iteration(iter_num):
         "Italic": 0.2,
         "Bold Italic": 0.1,
     }
-    # Default weight is 1.0.
-    weights = {s: 1 for s in styles}
-    # Update with adjusted style weights.
-    for s, w in style_weights.items():
-        weights[s] = w
+    # One weight per entry in styles (default 1.0); weights for styles not in
+    # config.toml are ignored (same IndexError risk as in get_character).
+    weights = [style_weights.get(s, 1) for s in styles]
     tried = set()
     while not fontfile and len(tried) != len(styles):
         # n = get_random_index(len(styles))
-        n = get_weighted_index(weights.values())
+        n = get_weighted_index(weights)
         tried.add(n)
         font_sty = styles[n]
         if VERBOSE:
@@ -893,6 +938,12 @@ def main():
     global DEGRADED_IMAGE_PROBABILITY
     DEGRADED_IMAGE_PROBABILITY = args.degraded_image_probability
 
+    global REAL_RATIO
+    REAL_RATIO = args.real_ratio
+    if not 0.0 <= REAL_RATIO <= 1.0:
+        print(f"ERROR: --real-ratio must be between 0 and 1; got {REAL_RATIO}")
+        sys.exit(1)
+
     if args.combinations:
         show_character_combinations()
         sys.exit()
@@ -918,6 +969,13 @@ def main():
     REAL_LINES = load_text_lines(args.lines_file) if args.lines_file else []
     if REAL_LINES:
         print(f"INFO: {len(REAL_LINES)} real text lines loaded.")
+
+    # Decide up front which iterations get which real line. Workers can't
+    # share a counter, so the plan is built here and inherited by them.
+    global REAL_LINE_PLAN
+    REAL_LINE_PLAN = plan_real_lines(
+        args.iterations, len(REAL_LINES) if not FORCED_TEXT else 0, REAL_RATIO
+    )
 
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
