@@ -64,6 +64,13 @@ Look-alike code points are replaced with one standard form everywhere text comes
 
 Pass the extracted lines with `-l/--lines-file` (it can be given more than once). By default 75% of the images use real lines (`-R/--real-ratio`) and the rest use pseudo-words, because many characters in the character list don't occur in the real texts. Real lines are used in file order, and each line is used once before any line repeats; each repeat gets a new random font, style and degradation. Without `--lines-file`, every line is pseudo-words, as before.
 
+With `--lines-file`, the base letters, numbers and punctuation in pseudo-words follow their frequencies in the real lines that will be used (each keeps at least a fifth of an even share, so nothing disappears), instead of the built-in weights.
+
+`-m/--min-char-count N` makes every character the inventory can produce appear at least N times in the run. Characters are counted per NFC code point, the way tesseract's unicharset splits text: precomposed letters (é, ẹ) are characters of their own, while combinations without a precomposed form (ɛ̂) are a base letter plus a combining mark. Before the run, the script counts the code points in the real lines that will be used, and plans the shortfall into the pseudo-word lines (at most `--max-forced` per line, default 8). Upper-case letters are placed at the start of a word. At the end it reports how many code points reached N and lists any that didn't, e.g. because no font could draw their line. A starting value of 300 adds only about 2 planned characters per pseudo-word line in a 200,000-image run:
+```
+(env) $ ./scripts/generate-training-data.py -i 200000 -l ~/ocr-data/lines/all.txt -m 300
+```
+
 Each line is drawn only in a font that has every character in it, so an image always matches its ground truth text. If no allowed font can draw a line, that iteration is skipped with a warning naming the missing characters.
 
 ### Generating the training data

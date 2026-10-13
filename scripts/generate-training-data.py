@@ -23,6 +23,19 @@ look-alike code points are replaced with their standard form using
 [properties.codepoint_map] in config.toml (e.g. Greek alpha -> Latin alpha).
 Real lines with a code point outside the character inventory (see
 allowed_code_points) are skipped with one summary warning.
+
+With --lines-file, the base letters, numbers and punctuation of pseudo-words
+are drawn with the frequencies found in the real lines (with a small minimum
+share, so nothing disappears) instead of the built-in weights.
+
+With --min-char-count N, every code point that the inventory can produce (and
+every code point in the real lines) appears at least N times in the run: the
+real lines that will be used are counted first, and the shortfall is planned
+into the pseudo-word lines before the run starts (at most --max-forced per
+line). Counting is per NFC code point, because that is how tesseract's
+unicharset splits text: precomposed letters (é, ẹ) are their own characters,
+other combinations (ɛ̂) are a base letter plus a combining mark. A summary of
+reached and missed counts is printed at the end.
 """
 
 # https://tesseract-ocr.github.io/tessdoc/tess5/TrainingTesseract-5.html
@@ -42,6 +55,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from collections import Counter
 from functools import cache
 from pathlib import Path
 from unicodedata import normalize
@@ -49,6 +63,14 @@ from unicodedata import normalize
 from fontTools.ttLib import TTFont
 from matplotlib import font_manager
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+# Extended grapheme clusters, as far as Python's re allows: a non-mark
+# followed by combining marks. Enough for Latin script text.
+GRAPHEME_RE = re.compile(r"[^\u0300-\u036f\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f][\u0300-\u036f\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]*|[\u0300-\u036f\u1dc0-\u1dff]+")
+
+# Set in main(); defaults keep the module importable.
+REAL_CHAR_WEIGHTS = None
+CHAR_QUOTA_PLAN = None
 
 # Global variables.
 WRITING_SYSTEM_NAME = "Latin_afr"
@@ -63,6 +85,12 @@ DEFAULT_REAL_RATIO = 0.75
 # correctly up to 9,999,999 files (names stay unique beyond that).
 FILE_NUMBER_DIGITS = 7
 FILE_NUMBER_RE = re.compile(rf"^(\d{{{FILE_NUMBER_DIGITS}}})-")
+DEFAULT_MAX_FORCED = 8
+# Minimum share of a character within its type (consonants, vowels, numbers,
+# punctuation) when weights come from the real lines, as a fraction of a
+# uniform share: 0.2 means at least 1/5 of 1/len(type).
+MIN_SHARE_OF_UNIFORM = 0.2
+CHAR_TYPES = ("consonants", "vowels", "numbers", "punctuation")
 CORE_FONTS = [
     "Andika",
     "Andika Compact",
@@ -508,7 +536,15 @@ def get_next_char_type(last_c_type, current_word_length):
 
 
 def get_character(char_type):
-    """select random character of given 'char_type', but adjust for given weights"""
+    """select random character of given 'char_type', but adjust for given weights
+
+    With real lines (--lines-file), REAL_CHAR_WEIGHTS holds weights taken from
+    them (see real_char_weights); otherwise the built-in weights below are used.
+    """
+    char_opts = PROPERTIES.get(char_type)
+    if REAL_CHAR_WEIGHTS:
+        weights = REAL_CHAR_WEIGHTS[char_type]
+        return random.choices(char_opts, weights=weights)[0]
     char_weights = {
         # FIXME: This should be moved to `config.toml`.
         # NOTE: Unlisted characters' weights default to 1.0.
@@ -519,6 +555,7 @@ def get_character(char_type):
             "ẅ": 0.15,
             "ꞌ": 0.05,
             "ʼ": 0.05,
+            "ƴ": 0.05,  # was 1.0 (unlisted): the most frequent non-ASCII letter
         },
         "vowels": {
             "ɛ": 0.11,
@@ -532,7 +569,6 @@ def get_character(char_type):
             "ʉ": 0.08,
         },
     }
-    char_opts = PROPERTIES.get(char_type)
     # One weight per entry in char_opts (default 1.0). Weights for characters
     # not in config.toml are ignored; adding them as extra entries made the
     # weight list longer than char_opts, which caused an IndexError whenever
@@ -574,12 +610,18 @@ def set_diacritics(char, char_type):
 
 
 def generate_pseudo_word():
+    return "".join(g for g, _ in generate_pseudo_word_parts())
+
+
+def generate_pseudo_word_parts():
+    """return a pseudo-word as a list of (grapheme, character type)"""
     max_length = 9
 
     last_c_type = None
     min_length = 2
     length = max(min_length, get_random_index(max_length))
     word = ""
+    parts = []
     while len(word) < length:
         c_type = get_next_char_type(last_c_type, len(word))
         last_c_type = c_type
@@ -600,17 +642,202 @@ def generate_pseudo_word():
             length += len(c) - 1
 
         word += c
+        parts.append((c, c_type))
 
-    return word
+    return parts
 
 
-def generate_text_line_pseudo_words(length=50):
-    """return text of given length that resembles legitimate words"""
-    text_line = ""
-    while len(text_line) < length:
-        word = generate_pseudo_word()
-        text_line += f"{word} "
-    return text_line.rstrip()
+def generate_text_line_pseudo_words(length=50, forced=None):
+    """return text of given length that resembles legitimate words
+
+    forced: list of (grapheme, character type, upper) that must appear in the
+    line (see plan_char_quotas). Each replaces a randomly chosen generated
+    grapheme of the same type: upper-case ones only at the start of a word,
+    lower-case ones anywhere. If there is no free slot of that type, a
+    letter gets a new short word and punctuation or a number is added to the
+    end of a word.
+    """
+    words = []
+    total = 0
+    while total < length:
+        parts = generate_pseudo_word_parts()
+        words.append(parts)
+        total += sum(len(g) for g, _ in parts) + 1
+    used = set()
+    for grapheme, c_type, upper in forced or []:
+        slots = [
+            (w, i)
+            for w, parts in enumerate(words)
+            for i, (_, t) in enumerate(parts)
+            if t == c_type and (w, i) not in used and (i == 0 or not upper)
+        ]
+        if slots:
+            w, i = random.choice(slots)
+            words[w][i] = (grapheme, c_type)
+            used.add((w, i))
+        elif c_type in ("consonants", "vowels"):
+            # New short word: the grapheme plus one letter of the other type.
+            other = "vowels" if c_type == "consonants" else "consonants"
+            tail = set_diacritics(get_character(other), other)
+            w = random.randrange(len(words) + 1)
+            words.insert(w, [(grapheme, c_type), (tail, other)])
+            # Positions of later words moved; mark the new word as used.
+            used = {(x + (x >= w), i) for x, i in used} | {(w, 0)}
+        else:
+            w = random.randrange(len(words))
+            words[w].append((grapheme, c_type))
+            used.add((w, len(words[w]) - 1))
+    return " ".join("".join(g for g, _ in parts) for parts in words)
+
+
+def char_type_of(grapheme):
+    """return the character type (see CHAR_TYPES) of a grapheme's base
+    character, and whether it is upper case; types are those of config.toml,
+    other characters (e.g. ASCII symbols) count as punctuation"""
+    base = normalize("NFD", grapheme)[0]
+    lower = base.lower()
+    for t in ("consonants", "vowels", "numbers"):
+        if lower in PROPERTIES.get(t, []):
+            return t, base != lower
+    return "punctuation", False
+
+
+def char_recipes(real_lines=()):
+    """return {code point: [grapheme, ...]}: for every NFC code point that the
+    character inventory can produce, the shortest graphemes that contain it
+
+    The graphemes are every lower- and upper-case consonant with or without a
+    top diacritic, every vowel with or without a bottom and/or top diacritic,
+    every number and punctuation character, plus every grapheme found in
+    real_lines. A combining mark that composes with a letter (e.g. e + acute)
+    is only listed for letters where it stays separate (e.g. ɛ + acute).
+    """
+    top = [""] + PROPERTIES["diacritics"]["top"]
+    bottom = [""] + PROPERTIES["diacritics"]["bottom"]
+    graphemes = set()
+    for case in (str.lower, str.upper):
+        for c in PROPERTIES["consonants"]:
+            graphemes.update(case(c) + t for t in top)
+        for v in PROPERTIES["vowels"]:
+            graphemes.update(case(v) + b + t for b in bottom for t in top)
+    for t in ("numbers", "punctuation"):
+        graphemes.update(PROPERTIES.get(t, []))
+    for line in real_lines:
+        graphemes.update(g for g in GRAPHEME_RE.findall(line) if not g.isspace())
+    recipes = {}
+    for g in graphemes:
+        g = normalize("NFC", g)
+        for cp in set(g):
+            recipes.setdefault(cp, set()).add(g)
+    shortest = {}
+    for cp, gs in recipes.items():
+        n = min(len(g) for g in gs)
+        shortest[cp] = sorted(g for g in gs if len(g) == n)
+    return shortest
+
+
+def count_planned_real_chars(plan, lines):
+    """return a Counter of NFC code points over the real lines in plan"""
+    uses = Counter(i for i in plan if i is not None)
+    counts = Counter()
+    for i, n in uses.items():
+        for cp, k in Counter(lines[i]).items():
+            counts[cp] += k * n
+    return counts
+
+
+def real_char_weights(plan, lines):
+    """return {char type: [weight per entry in config.toml]} from the base
+    characters of the real lines in plan, each at least MIN_SHARE_OF_UNIFORM
+    of a uniform share"""
+    uses = Counter(i for i in plan if i is not None)
+    counts = Counter()
+    for i, n in uses.items():
+        for g in GRAPHEME_RE.findall(lines[i]):
+            counts[normalize("NFD", g)[0].lower()] += n
+    weights = {}
+    for t in CHAR_TYPES:
+        opts = PROPERTIES.get(t, [])
+        total = sum(counts[c] for c in opts)
+        floor = MIN_SHARE_OF_UNIFORM / len(opts)
+        weights[t] = [
+            max(counts[c] / total if total else 0, floor) for c in opts
+        ]
+    return weights
+
+
+def plan_char_quotas(real_plan, real_counts, recipes, min_count, max_forced):
+    """return (a list giving, for each iteration, the graphemes to force into
+    its pseudo-word line or None, {code point: planned extra count})
+
+    For each code point the shortfall is min_count minus its count in the
+    planned real lines. Code points are served round-robin, the rarest first,
+    so if there are too few slots (synthetic lines x max_forced) the rarest
+    still get the most. One recipe grapheme per forced slot is picked at
+    random; it is spread evenly over the synthetic iterations.
+    """
+    synthetic = [i for i, r in enumerate(real_plan) if r is None]
+    plan = [None] * len(real_plan)
+    capacity = len(synthetic) * max_forced
+    need = {
+        cp: min_count - real_counts[cp]
+        for cp in recipes if real_counts[cp] < min_count
+    }
+    order = sorted(need, key=lambda cp: (real_counts[cp], cp))
+    planned = Counter()
+    items = []
+    while len(items) < capacity and order:
+        still = []
+        for cp in order:
+            if len(items) >= capacity:
+                break
+            items.append(cp)
+            planned[cp] += 1
+            if planned[cp] < need[cp]:
+                still.append(cp)
+        order = still
+    short = {cp: need[cp] - planned[cp] for cp in need if planned[cp] < need[cp]}
+    random.shuffle(items)
+    for k, cp in enumerate(items):
+        it = synthetic[k % len(synthetic)]
+        grapheme = random.choice(recipes[cp])
+        c_type, upper = char_type_of(grapheme)
+        if plan[it] is None:
+            plan[it] = []
+        plan[it].append((grapheme, c_type, upper))
+    print(
+        f"INFO: --min-char-count {min_count}: {len(need)} of {len(recipes)} "
+        f"code points are short in the real lines; {len(items)} graphemes "
+        f"planned into {len(synthetic)} pseudo-word lines "
+        f"({len(items) / len(synthetic) if synthetic else 0:.1f} per line)."
+    )
+    if short:
+        print(
+            f"WARNING: not enough pseudo-word lines (max {max_forced} forced per "
+            f"line) for {len(short)} code points; raise -i, lower --real-ratio "
+            "or raise --max-forced."
+        )
+    return plan, planned
+
+
+def report_char_counts(texts, recipes, min_count):
+    """print how many code points reached min_count in the generated lines"""
+    counts = Counter()
+    for t in texts:
+        if t:
+            counts.update(t)
+    missed = sorted((counts[cp], cp) for cp in recipes if counts[cp] < min_count)
+    print(
+        f"INFO: {len(recipes) - len(missed)} of {len(recipes)} code points "
+        f"appear at least {min_count} times in the generated lines."
+    )
+    if missed:
+        shown = "  ".join(f"U+{ord(cp):04X} {cp} ({n})" for n, cp in missed[:30])
+        print(f"WARNING: below {min_count}: {shown}")
+        print(
+            "  (lines skipped because no font covers them lose their characters; "
+            "see the warnings above)"
+        )
 
 
 @cache
@@ -962,6 +1189,21 @@ def get_parsed_args():
         help=f"share of lines taken from --lines-file instead of generated as pseudo-words; ignored without --lines-file [{DEFAULT_REAL_RATIO}]",
     )
     parser.add_argument(
+        "-m",
+        "--min-char-count",
+        type=int,
+        default=0,
+        metavar="N",
+        help="make every code point the character inventory can produce appear at least N times, counting the real lines that will be used and planning the rest into pseudo-word lines [off]",
+    )
+    parser.add_argument(
+        "--max-forced",
+        type=int,
+        default=DEFAULT_MAX_FORCED,
+        metavar="K",
+        help=f"with --min-char-count, at most K planned graphemes per pseudo-word line [{DEFAULT_MAX_FORCED}]",
+    )
+    parser.add_argument(
         "-n",
         "--simulate",
         action="store_true",
@@ -986,6 +1228,8 @@ def get_parsed_args():
 
 
 def run_iteration(iter_num):
+    """generate one image/ground-truth pair; return its text, or None if the
+    iteration was skipped"""
     if VERBOSE:
         print(f"INFO: Iteration: {iter_num}")
 
@@ -1001,12 +1245,18 @@ def run_iteration(iter_num):
     else:
         if VERBOSE and REAL_LINES:
             print("INFO: source: pseudo-words")
-        text_line = generate_text_line(
-            length=LINE_LENGTH,
-            # method="random-chars",
-            # method="weighted-chars",
-            method="pseudo-words",
-        )
+        forced = CHAR_QUOTA_PLAN[iter_num] if CHAR_QUOTA_PLAN else None
+        if forced:
+            if VERBOSE:
+                print(f"INFO: forced: {' '.join(g for g, _, _ in forced)}")
+            text_line = generate_text_line_pseudo_words(LINE_LENGTH, forced)
+        else:
+            text_line = generate_text_line(
+                length=LINE_LENGTH,
+                # method="random-chars",
+                # method="weighted-chars",
+                method="pseudo-words",
+            )
 
     # clean_unicode_chars = [c for c in dirty_char_str if c not in bad_chars]
     text_line = normalize_text(text_line)
@@ -1053,6 +1303,7 @@ def run_iteration(iter_num):
         pngdata = generate_text_line_png(text_line, fontfile)
         if not SIMULATE:
             save_training_data_pair(GROUND_TRUTH_DIR, filename, text_line, pngdata)
+    return text_line
 
 
 def main():
@@ -1156,9 +1407,31 @@ def main():
         args.iterations, len(REAL_LINES) if not FORCED_TEXT else 0, REAL_RATIO
     )
 
+    # Pseudo-word base characters follow the real lines' frequencies.
+    global REAL_CHAR_WEIGHTS
+    if REAL_LINES and any(i is not None for i in REAL_LINE_PLAN):
+        REAL_CHAR_WEIGHTS = real_char_weights(REAL_LINE_PLAN, REAL_LINES)
+
+    # Plan the characters the real lines leave short into pseudo-word lines.
+    global CHAR_QUOTA_PLAN
+    recipes = None
+    if args.min_char_count > 0 and not FORCED_TEXT:
+        if args.max_forced < 1:
+            print("ERROR: --max-forced must be at least 1")
+            sys.exit(1)
+        recipes = char_recipes(REAL_LINES)
+        real_counts = count_planned_real_chars(REAL_LINE_PLAN, REAL_LINES)
+        CHAR_QUOTA_PLAN, _ = plan_char_quotas(
+            REAL_LINE_PLAN, real_counts, recipes,
+            args.min_char_count, args.max_forced,
+        )
+
     procs = multiprocessing.cpu_count()
     with multiprocessing.Pool(processes=procs) as pool:
-        pool.map(run_iteration, range(args.iterations))
+        texts = pool.map(run_iteration, range(args.iterations))
+
+    if recipes:
+        report_char_counts(texts, recipes, args.min_char_count)
 
     if SIMULATE:
         # TODO: Is there some way to verify TXT and PNG file contents without saving them to disk?
