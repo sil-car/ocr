@@ -121,3 +121,4 @@ Claude recommended fine-tuning based on real data rather than retraining.
       --model_output "${WORK_DIR}/checkpoints/rd1" \
       --max_iterations 800
     ```
+1. Lastly, after testing the model and finding it not to be appreciably better than previous ones, I removed the `data/training/real-gt` and `data/phase2_realdata/gt` folders.
