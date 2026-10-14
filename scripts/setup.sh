@@ -65,7 +65,7 @@ if [[ ! -d ${HOME}/${repo}/.git ]]; then
         read -p "GH PAT for $repo repo: " OCR_PAT
     fi
     rm -rf ${HOME}/${repo}/
-    git clone --depth=1 "https://oauth2:${OCR_PAT}github.com/sil-car/${repo}.git"
+    git clone --depth=1 "https://oauth2:${OCR_PAT}@github.com/sil-car/${repo}.git"
 fi
 unset OCR_PAT
 
