@@ -128,7 +128,7 @@ if [[ -n $detach && -z $OCR_TRAIN_DETACHED && -z $dry_run ]]; then
     if grep -q "\.${screen_name}[[:space:]]" <<<"$sessions"; then
         die "a screen session named \"${screen_name}\" already exists (screen -r ${screen_name})."
     fi
-    OCR_TRAIN_DETACHED=1 screen -dmS "$screen_name" bash -c '"$0" "$@"; exec bash' "$0" "${orig_args[@]}"
+    OCR_TRAIN_DETACHED=1 screen -dmS "$screen_name" bash -c 'bash "$0" "$@"; exec bash' "${ocr_script_dir}/$(basename "$0")" "${orig_args[@]}"
     echo "Training started in screen session \"${screen_name}\". Attach with: screen -r ${screen_name}"
     exit 0
 fi
@@ -251,7 +251,7 @@ else
         archive="${data_dir}/archive/${model_name}_$(date -r "$output_dir" +%Y%m%d%H%M)"
         run mkdir -p "${data_dir}/archive"
         run mv "$output_dir" "$archive"
-        [[ -f $final_model ]] && run mv "$final_model" "${archive}/"
+        [[ -f $final_model ]] && run mv "$final_model" "${archive}/${model_name}_final.traineddata"
     fi
     run cp -r "${repo_dir}/data/${model_name}" "${data_dir}/"
 
