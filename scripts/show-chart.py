@@ -434,6 +434,7 @@ class EvalCollection:
             isos.append(lg.iso)
         chart_data.term_title = "ISO_Language\tCER"
         chart_data.term_lines = [f"{lg}\t{c}" for lg, c in zip(isos, cers)]
+        chart_data.term_lines.append(f"PM-CER\t{model.pmcer}")
         chart_data.title = f"CERs by ISO_Language for model: {model.name}"
         chart_data.x = isos
         chart_data.y = cers
