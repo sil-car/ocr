@@ -8,43 +8,71 @@ Also consider:
 """
 
 # import argparse
+import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 MODEL_NAME = "Latin_afr"
-today = datetime.today()
-DEFAULT_DATESTAMP = f"{today.year}{today.month}{today.day}"
+today = datetime.now(tz=UTC)
+DEFAULT_DATESTAMP = today.strftime("%Y%m%d")
+
+
+def get_unicharset_size(model_file):
+    """Number of entries in the model's lstm-unicharset (what tesstrain puts in O1c###)."""
+    with tempfile.TemporaryDirectory() as d:
+        prefix = Path(d) / "model."
+        subprocess.run(
+            ("combine_tessdata", "-u", str(model_file), str(prefix)),
+            capture_output=True,
+            check=True,
+        )
+        unicharset = Path(f"{prefix}lstm-unicharset")
+        return int(unicharset.read_text(encoding="utf-8").splitlines()[0])
 
 
 def get_net_spec(model_file):
+    """Effective network spec, e.g. "[1,48,0,1Ct3,3,16Mp3,3Lfys64Lfx96Lrx96Lfx512O1c426]".
+
+    combine_tessdata -l shows the start model's spec, followed by "[...]" with the
+    replacement layers if the top was replaced (--append_index). The start model's
+    output size shows as O1c1, so the output size is taken from the unicharset.
+    """
     stdout = subprocess.run(
-        ("combine_tessdata", "-l", str(model_file)), capture_output=True
+        ("combine_tessdata", "-l", str(model_file)),
+        capture_output=True,
+        check=True,
     ).stdout.decode()
-    for line in stdout.splitlines():
-        if line.startswith("LSTM"):
-            line = line.lstrip("LSTM: ")
-            properties = line.split(", ")
-            lstm = {}
-            for property in properties:
-                k, v = property.split("=")
-                lstm[k] = v
-            network = lstm.get("network")
-            break
-    old, new = network.split("][")
-    return f"{old.rstrip('Lfx512O1c1')}{new.replace(' ', '')}"
+    m = re.search(r"network=(\[[^,]*(?:,[^,=]*)*\])(?:, |$)", stdout, re.MULTILINE)
+    if not m:
+        raise ValueError(f"no LSTM network found in {model_file}")
+    groups = re.findall(r"\[([^\]]*)\]", m.group(1))
+    base = groups[0].replace(" ", "")
+    for added in groups[1:]:
+        added = added.replace(" ", "")
+        # Drop the output layer of the base; if the added part starts with a
+        # new hidden layer, that layer replaced the base's top hidden layer.
+        base = re.sub(r"O1c\d+$", "", base)
+        if not added.startswith("O"):
+            base = re.sub(r"L[a-z]+\d+$", "", base)
+        base += added
+    # Use the real output size (unicharset entries), as tesstrain does for O1c###.
+    base = re.sub(r"O1c\d+$", f"O1c{get_unicharset_size(model_file)}", base)
+    return f"[{base}]"
 
 
 def get_version_string(model_file):
     stdout = subprocess.run(
         ("combine_tessdata", "-d", str(model_file)),
         capture_output=True,
+        check=True,
     ).stdout.decode()
     for line in stdout.splitlines():
         if line.startswith("Version:"):
-            return ":".join(line.split(":")[1:])
+            # Keep only the Tesseract version, in case the model was released before.
+            return line.split(":")[1]
 
 
 def set_version_string(model_file, new_version_string):
@@ -52,13 +80,10 @@ def set_version_string(model_file, new_version_string):
         tempdir = Path(d)
         version_file = tempdir / f"{MODEL_NAME}.version"
         version_file.write_text(new_version_string)
-        subprocess.check_output(
-            (
-                "combine_tessdata",
-                "-o",
-                str(model_file),
-                str(version_file),
-            ),
+        subprocess.run(
+            ("combine_tessdata", "-o", str(model_file), str(version_file)),
+            capture_output=True,
+            check=True,
         )
 
 
@@ -69,10 +94,9 @@ def set_version_info(model_file):
 
 
 def get_datestamp(model_file):
-    """Relies on the date and CER value being part of the filename; falls back to today"""
+    """Last "_" part of the file name if it starts with a date (e.g. 20261015a2921); else today."""
     datestamp = model_file.stem.split("_")[-1]
-    # Ensure that datestamp is valid.
-    if int(datestamp[0]) not in range(10):
+    if not re.match(r"20\d{6}", datestamp):
         datestamp = DEFAULT_DATESTAMP
     return datestamp
 
@@ -91,16 +115,22 @@ def main():
         print(f"ERROR: File does not exist: {model_file}")
         sys.exit(1)
 
-    # Use a tempfile; move into place when ready.
+    # Use a tempfile in the output folder (so the rename can't cross file
+    # systems); move into place when ready.
     outfile_path = Path.cwd() / f"{MODEL_NAME}.traineddata"
-    with tempfile.NamedTemporaryFile(delete=False) as t:
+    version_info = set_version_info(model_file)
+    with tempfile.NamedTemporaryFile(
+        dir=outfile_path.parent, suffix=".traineddata", delete=False
+    ) as t:
         temp_outfile = Path(t.name)
-        # Copy model data to tempfile.
+    try:
         temp_outfile.write_bytes(model_file.read_bytes())
-        # Set tempfile version.
-        set_version_string(temp_outfile, set_version_info(model_file))
-        # Move tempfile to outfile location
-        temp_outfile.rename(outfile_path)
+        set_version_string(temp_outfile, version_info)
+        temp_outfile.replace(outfile_path)
+    except BaseException:
+        temp_outfile.unlink(missing_ok=True)
+        raise
+    print(f"Version: {version_info}")
 
     # Show file name at completion.
     print(outfile_path)
