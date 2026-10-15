@@ -333,7 +333,7 @@ EOF
         ;;
 
     list)
-        doctl compute droplet list --tag-name "$tag" --format Name,PublicIPv4,Memory,VCPUs,Region,Status,Created
+        doctl compute droplet list --tag-name "$tag" --format Name,PublicIPv4,Memory,VCPUs,Region,Status
         ;;
 
     update)
