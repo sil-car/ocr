@@ -56,7 +56,10 @@ Training:
             start scripts/train.sh on the droplet, detached in screen
             (e.g. \"$0 train -n 100000 -L Lfx1152\"; see train.sh -h)
   status    is training running; latest lines of the newest log
-  attach    attach to the training screen session (detach with Ctrl-a d)
+  attach [SESSION]
+            attach to the training screen session (detach with Ctrl-a d);
+            with SESSION, attach to that screen session instead, creating it
+            if needed (for other work while training runs)
   fetch     copy logs, models and checkpoints to ${RESULTS_DIR}/NAME/
   update    git pull the ocr repo on the droplet
   sync      copy this computer's scripts/ folder to the droplet (to try
@@ -282,7 +285,14 @@ EOF
 
     attach)
         require_ip
-        on_droplet -t -- screen -r "$screen_name"
+        session="${1:-$screen_name}"
+        [[ $session =~ ^[A-Za-z0-9._-]+$ ]] || die "session names may only contain letters, digits, '.', '_' and '-'."
+        if [[ $session == "$screen_name" ]]; then
+            on_droplet -t -- screen -r "$screen_name"
+        else
+            # Reattach (taking it over from any other terminal) or create it.
+            on_droplet -t -- "if screen -ls | grep -q '\\.${session}[[:space:]]'; then screen -d -r '${session}'; else screen -S '${session}'; fi"
+        fi
         ;;
 
     fetch)
