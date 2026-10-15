@@ -24,6 +24,8 @@
 set -o pipefail
 
 conf="${HOME}/.config/ocr-cloud.conf"
+ocr_script_dir="$(readlink -f "$(dirname "$0")")"
+repo_dir="$(dirname "$ocr_script_dir")"
 # shellcheck source=/dev/null
 [[ -r $conf ]] && source "$conf"
 
@@ -31,7 +33,7 @@ DO_NAME="${DO_NAME:-ocr-train}"
 DO_SIZE="${DO_SIZE:-s-4vcpu-8gb}"
 DO_REGION="${DO_REGION:-fra1}"
 DO_IMAGE="${DO_IMAGE:-ubuntu-24-04-x64}"
-RESULTS_DIR="${RESULTS_DIR:-${HOME}/ocr-cloud-results}"
+RESULTS_DIR="${RESULTS_DIR:-${repo_dir}/data/training}"
 OCR_REPO_URL="https://github.com/sil-car/ocr.git"
 tag="ocr-train"          # droplets with this tag get the firewall below
 firewall_name="ocr-train"
