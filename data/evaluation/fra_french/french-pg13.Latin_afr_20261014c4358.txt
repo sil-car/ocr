@@ -1,0 +1,11 @@
+En ce qui concerne la conjugaison ils lʼ abordent dʼune fagon
+assez di fférente de ce que nous nous sommes proposé́s de réaliser.
+En réponse à une demande de lʼutilisateur lɛ FRENC ASSISTANT
+af fiche tout simplement des tabl eaux de formes conjuguées selon
+le mode et le temps choisís. Il en est de mɛme pour HUbD qui
+af fiche une "page de Bescherelle", mais qui peut aussi suggérer
+lʼinmfinitif du verbe à partir dʼune forme conjiuguée présente dans
+le texte. Si lʼutilisateur surligne, par exemple, suis dans un
+texte, le programme lui af fichera une liste dʼ analses pcssibles,
+
+comme sui t:
