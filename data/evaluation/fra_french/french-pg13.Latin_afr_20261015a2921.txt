@@ -1,0 +1,11 @@
+Ēn ce qui concerne la conjugaison ils lʼabordent dʼune façon
+ass5ez différente de ce que nous nous sommes proposés de réaliser.
+En réponɛe une demande de l1ʼutilisateur le FRENCH ASSISTANT
+affiche tout simplement des tableaux de formes conjuguées selomn
+le mode et le temps choisií.- Il en est de mɛ̂meœ pour HUG6O qui
+affiche une "page de Bescherelìle", mais qui peut aussi suggérer
+lʼɨŋfiɨnitif du verbeœ partir dʼune forme conjuguée présente dans
+le textœ. Si lʼutilisateur surligne, par exemple, suis dans un
+texte, le programme lui affichera une liste d*ʼanalyses possibles,
+
+comme sui t ɛ
