@@ -292,13 +292,15 @@ EOF
         mkdir -p "$dest"
         info "Fetching results to $dest"
         # Skip what can be rebuilt or downloaded again.
-        rsync -av --partial \
+        rsync -aPv \
             -e "ssh ${ssh_opts[*]}" \
             --exclude 'langdata/' \
             --exclude 'Latin/' \
             --exclude 'start-*/' \
             --exclude 'all-lstmf' \
             --exclude 'all-gt' \
+            --exclude "*checkpoint*" \
+            --exclude "*.traineddata" \
             "root@${ip}:tesstrain/data/" "${dest}/"
         ;;
 
